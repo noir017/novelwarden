@@ -113,13 +113,13 @@ export function buildGroup(
 /** 还不是小说工程时的引导。 */
 export function buildInitPrompt(): HTMLElement {
   const box = mk('div', 'project-empty');
-  box.appendChild(mk('p', undefined, '当前工作区还不是 Novel Forge 小说工程。'));
+  box.appendChild(mk('p', undefined, '当前工作区还不是 Novelwarden 小说工程。'));
 
   const btn = mk('button', 'primary', '初始化小说工程');
   btn.addEventListener('click', () => projectAction('initProject'));
   box.appendChild(btn);
 
-  box.appendChild(mk('p', 'hint', '会创建 chapters/ 与 .novelforge/ 目录及模板文件。'));
+  box.appendChild(mk('p', 'hint', '会创建 chapters/ 与 .novelwarden/ 目录及模板文件。'));
   return box;
 }
 

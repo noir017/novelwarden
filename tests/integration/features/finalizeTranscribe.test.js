@@ -32,9 +32,9 @@ const behavior = {};
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
-const CARD = '.novelforge/characters/林昭.md';
-const TIMELINE = '.novelforge/threads/时间线.md';
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
+const CARD = '.novelwarden/characters/林昭.md';
+const TIMELINE = '.novelwarden/threads/时间线.md';
 
 const TEXT = [
   '次日清晨，林昭推开客栈的门，檐下的灯笼被风吹得直晃。',

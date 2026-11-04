@@ -32,7 +32,7 @@ function contentHash(raw) {
 const read = (rel) => fs.readFileSync(path.join(SAMPLE, rel), 'utf8');
 
 /** 章节清单要在收集用例时就读到（每章生成好几条用例），所以放在模块顶层。 */
-const manifest = JSON.parse(read('.novelforge/project.json'));
+const manifest = JSON.parse(read('.novelwarden/project.json'));
 
 /** 章节路径 → 词干（`chapters/001-楔子.md` → `001-楔子`）。示例工程里细纲与正文同名。 */
 const stemOf = (file) => path.basename(file, path.extname(file));
@@ -40,7 +40,7 @@ const stemOf = (file) => path.basename(file, path.extname(file));
 /** `summaries/` 根下的细纲文件名（`global.md` 不是）。 */
 function plotFiles() {
   const plotFile = loadModule('src/core/model/plotFile.ts');
-  return fs.readdirSync(path.join(SAMPLE, '.novelforge/summaries')).filter((f) => plotFile.isPlotFileName(f));
+  return fs.readdirSync(path.join(SAMPLE, '.novelwarden/summaries')).filter((f) => plotFile.isPlotFileName(f));
 }
 
 describe('示例工程数据一致性', () => {
@@ -66,9 +66,9 @@ describe('示例工程数据一致性', () => {
 
   /** 卷与中转站两层都删了，细纲也并进了 summaries/：示例工程里不该再出现它们。 */
   test('没有 volumes/、manuscripts/ 与 plots/', () => {
-    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelforge/volumes')));
-    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelforge/manuscripts')));
-    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelforge/plots')));
+    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelwarden/volumes')));
+    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelwarden/manuscripts')));
+    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelwarden/plots')));
   });
 
   /** 每一章都有同号的细纲（示例工程是走完整条流水线写出来的），外加第 4 章排好了还没写、第 5–10 章只有梗概（大纲排到了）。 */
@@ -87,10 +87,10 @@ describe('示例工程数据一致性', () => {
   test('架构三件都填过，配置能解析出规模参数', () => {
     const setting = loadModule('src/core/model/settingFile.ts');
     for (const doc of setting.SETTING_FILE_DOCS) {
-      const parsed = setting.parseSettingDoc(doc, read(`.novelforge/${doc}.md`), doc);
+      const parsed = setting.parseSettingDoc(doc, read(`.novelwarden/${doc}.md`), doc);
       assert.ok(setting.isSettingFilled(doc, parsed.sections), doc);
     }
-    const config = setting.parseBookConfig(read('.novelforge/config.md'), 'config');
+    const config = setting.parseBookConfig(read('.novelwarden/config.md'), 'config');
     assert.equal(config.totalChapters, 30);
     assert.equal(config.wordsPerChapter, 400);
     assert.equal(config.structure, 'three_act');
@@ -100,9 +100,9 @@ describe('示例工程数据一致性', () => {
   test('情节大纲是各章细纲梗概的汇总，覆盖到第 10 章；没有 outline.md', () => {
     const outline = loadModule('src/core/model/outlineFile.ts');
     const plotFile = loadModule('src/core/model/plotFile.ts');
-    const plots = plotFiles().map((f) => plotFile.parsePlotFile(read(`.novelforge/summaries/${f}`), `.novelforge/summaries/${f}`));
+    const plots = plotFiles().map((f) => plotFile.parsePlotFile(read(`.novelwarden/summaries/${f}`), `.novelwarden/summaries/${f}`));
     assert.equal(outline.outlineCoverage(outline.renderOutline(outline.outlineEntriesOf(plots))), 10);
-    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelforge/outline.md')));
+    assert.ok(!fs.existsSync(path.join(SAMPLE, '.novelwarden/outline.md')));
     for (const p of plots.filter((x) => x.no >= 5)) {
       assert.ok(plotFile.isPlotStub(p), `第 ${p.no} 章是空壳`);
     }
@@ -110,7 +110,7 @@ describe('示例工程数据一致性', () => {
 
   describe('每章的指纹链', () => {
     for (const entry of manifest.chapters) {
-      const plotRel = `.novelforge/summaries/${stemOf(entry.file)}.md`;
+      const plotRel = `.novelwarden/summaries/${stemOf(entry.file)}.md`;
 
       test(`第 ${entry.order} 章有正文`, () => {
         assert.ok(fs.existsSync(path.join(SAMPLE, entry.file)), entry.file);
@@ -149,7 +149,7 @@ describe('示例工程数据一致性', () => {
     test('第 4 章是计划：关键事件排好了，没有正文、没定稿、没记 writtenFrom，上游指纹新鲜', () => {
       const plotFile = loadModule('src/core/model/plotFile.ts');
       const [name] = plotFiles().filter((f) => plotFile.parsePlotFileName(f).no === 4);
-      const plot = plotFile.parsePlotFile(read(`.novelforge/summaries/${name}`), `.novelforge/summaries/${name}`);
+      const plot = plotFile.parsePlotFile(read(`.novelwarden/summaries/${name}`), `.novelwarden/summaries/${name}`);
       assert.ok(plotFile.isPlotFilled(plot.sections));
       assert.equal(plot.sourceHash, '');
       assert.equal(plot.writtenFrom, '');
@@ -161,11 +161,11 @@ describe('示例工程数据一致性', () => {
   test('示例纲要能命中 3 个角色（林昭/沈氏/年轻守卫）', () => {
     // 角色卡的 aliases 应能在示例纲要中被命中（验证角色筛选可用）
     const outline = '林昭带年轻守卫去见他母亲，沈氏在暗处跟着。';
-    const cards = fs.readdirSync(path.join(SAMPLE, '.novelforge/characters'));
+    const cards = fs.readdirSync(path.join(SAMPLE, '.novelwarden/characters'));
     let hitCount = 0;
     for (const f of cards) {
       const fm = md.parseMarkdown(
-        fs.readFileSync(path.join(SAMPLE, '.novelforge/characters', f), 'utf8')
+        fs.readFileSync(path.join(SAMPLE, '.novelwarden/characters', f), 'utf8')
       ).frontmatter;
       const names = [fm.name, ...(Array.isArray(fm.aliases) ? fm.aliases : [])];
       if (names.some((n) => n && n.length >= 2 && outline.includes(n))) hitCount++;

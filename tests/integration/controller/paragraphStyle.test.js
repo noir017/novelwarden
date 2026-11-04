@@ -21,7 +21,7 @@ const { makeFakeHost } = require('../../helpers/fakeHost');
 const { makeSettings } = require('../../helpers/fakeProvider');
 const { cleanup } = require('../../helpers/teardown');
 
-const CONFIG = '.novelforge/config.md';
+const CONFIG = '.novelwarden/config.md';
 const CHAPTER = 'chapters/001-雨夜.md';
 const CHAPTER_TEXT = '# 雨夜\n\n他推开门。\n她笑了。\n';
 
@@ -169,7 +169,7 @@ describe('setParagraphStyle：还不是小说工程', () => {
   let bare;
 
   before(async () => {
-    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-paragraph-bare-'));
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-paragraph-bare-'));
     const project = bundle.project.NovelProject.open(dir);
     bare = new bundle.controller.ChatController(project);
     bare.attach({ kind: 'sidebar', post() {}, reveal() {} });
@@ -183,7 +183,7 @@ describe('setParagraphStyle：还不是小说工程', () => {
   });
 
   test('不写任何文件，说一句为什么', () => {
-    assert.equal(fs.existsSync(path.join(dir, '.novelforge')), false);
+    assert.equal(fs.existsSync(path.join(dir, '.novelwarden')), false);
     assert.ok(fakeHost.toasts.some((m) => /还不是小说工程/.test(m)), fakeHost.toasts.join('\n'));
   });
 });

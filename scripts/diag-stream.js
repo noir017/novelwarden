@@ -4,7 +4,7 @@
  * 整段憋到最后一次响应，前端再怎么改也变不出流式。
  *
  * 用法：node scripts/diag-stream.js [模型引用]
- * 读 ~/.novelforge/config.json 里已配的服务商与 Key。
+ * 读 ~/.novelwarden/config.json 里已配的服务商与 Key（旧 ~/.novelforge/ 兜底）。
  */
 const path = require('path');
 const esbuild = require('esbuild');
@@ -34,7 +34,9 @@ const { OpenAiProvider } = loadModule('src/core/llm/openaiProvider.ts');
 const { AnthropicProvider } = loadModule('src/core/llm/anthropicProvider.ts');
 const P = loadModule('src/core/model/providers.ts');
 
-const HOME = path.join(os.homedir(), '.novelforge');
+const NEW_HOME = path.join(os.homedir(), '.novelwarden');
+const OLD_HOME = path.join(os.homedir(), '.novelforge');
+const HOME = fs.existsSync(path.join(NEW_HOME, 'config.json')) ? NEW_HOME : OLD_HOME;
 
 function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return undefined; }
@@ -58,7 +60,7 @@ function readJson(file) {
   const key = secrets[`novel-forge.apiKey.provider.${active.profile.id}`]
     ?? secrets[`novel-forge.apiKey.${active.profile.id}`];
   if (!key && active.profile.kind !== 'vscode-lm') {
-    console.log(`没找到「${active.profile.id}」的 API Key（~/.novelforge/secrets.json）。`);
+    console.log(`没找到「${active.profile.id}」的 API Key（${path.join(HOME, 'secrets.json')}）。`);
     process.exit(1);
   }
 

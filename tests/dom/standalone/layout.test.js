@@ -72,7 +72,7 @@ describe('一键排版', { skip: JSDOM_SKIP }, () => {
   });
 
   test('「排版」按钮只对正文显示，挨着「预览」', () => {
-    h.open('.novelforge/characters/林昭.md', '# 林昭', 'character');
+    h.open('.novelwarden/characters/林昭.md', '# 林昭', 'character');
     assert.equal(h.formatBtn().classList.contains('hidden'), true, '角色卡不显示');
     h.open('chapters/001-雨夜.md', '他推开门。\n\n\n她笑了。  ', 'chapter');
     assert.equal(h.formatBtn().classList.contains('hidden'), false);
@@ -126,7 +126,7 @@ describe('「编辑」菜单：半角标点转全角与一键排版', { skip: JS
   });
 
   test('非正文时两项置灰', () => {
-    h.open('.novelforge/characters/林昭.md', '# 林昭', 'character');
+    h.open('.novelwarden/characters/林昭.md', '# 林昭', 'character');
     h.area().focus();
     assert.equal(h.menuItem('一键排版').disabled, true);
     assert.equal(h.menuItem('半角标点转全角').disabled, true);

@@ -27,8 +27,8 @@ const config = () => ({
   contextDetail: 3,
 });
 
-const PLOT = '.novelforge/summaries/002-夜探.md';
-const TIANJI = '.novelforge/lore/宗门/天机阁.md';
+const PLOT = '.novelwarden/summaries/002-夜探.md';
+const TIANJI = '.novelwarden/lore/宗门/天机阁.md';
 const SECRET = '阁主就是林昭失踪的父亲。';
 const DROPPED = '暗设没带：写正文不带读者还不知道的事，要让这一章揭开就写进本章细纲';
 
@@ -69,7 +69,7 @@ before(async () => {
       '',
     ].join('\n')
   );
-  t.write('.novelforge/lore/地域/青崖镇.md', '---\ntitle: 青崖镇\nkeywords: []\n---\n\n# 青崖镇\n\n偏僻小镇，镇口设卡。\n');
+  t.write('.novelwarden/lore/地域/青崖镇.md', '---\ntitle: 青崖镇\nkeywords: []\n---\n\n# 青崖镇\n\n偏僻小镇，镇口设卡。\n');
   t.write('chapters/001-雨夜.md', '# 雨夜\n\n第一章的正文。\n');
   t.write(
     PLOT,

@@ -23,7 +23,7 @@ const { mount, JSDOM_SKIP, file, viewState } = require('../../helpers/dom');
 const URL = 'http://localhost/?project=%2Ftmp%2F%E9%9D%92%E4%BA%91';
 const C1 = 'chapters/001-入宗.md';
 const C2 = 'chapters/002-下山.md';
-const P1 = '.novelforge/summaries/001-入宗.md';
+const P1 = '.novelwarden/summaries/001-入宗.md';
 const T1 = '# 入宗\n\n林晚推开山门。\n山风里林晚站了很久。\n';
 const T2 = '# 下山\n\n林晚下山去了。\n';
 
@@ -560,7 +560,7 @@ describe('全书查找替换 · 页面模板与插件形态', { skip: JSDOM_SKIP
 describe('全书查找替换 · 与名词补全互不打扰', { skip: JSDOM_SKIP }, () => {
   const NAMES = {
     initialized: true,
-    names: [{ name: '林晚', aliases: ['阿晚'], source: 'character', category: '', brief: '', path: '.novelforge/characters/林晚.md' }],
+    names: [{ name: '林晚', aliases: ['阿晚'], source: 'character', category: '', brief: '', path: '.novelwarden/characters/林晚.md' }],
   };
   const box = (h) => h.doc.querySelector('.nc-box');
   const boxShown = (h) => !!box(h) && !box(h).classList.contains('hidden');

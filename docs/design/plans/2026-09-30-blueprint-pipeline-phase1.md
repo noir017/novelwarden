@@ -109,7 +109,7 @@ targetWords: 3000
 upstreamHash: …
 writtenFrom: …
 status: done        # 可选，作者手工宣布
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 # 第12章 夜入青云
 ## 本章目的

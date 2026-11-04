@@ -11,7 +11,7 @@ const R = loadModule('src/core/context/layers/render.ts');
 
 const card = (over = {}) => ({
   slug: '陆清河',
-  relPath: '.novelforge/characters/陆清河.md',
+  relPath: '.novelwarden/characters/陆清河.md',
   name: '陆清河',
   aliases: [],
   tags: ['配角'],

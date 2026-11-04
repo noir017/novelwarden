@@ -52,11 +52,11 @@ after(() => {
 });
 
 const TEMPLATE_RELS = [
-  '.novelforge/config.md',
-  '.novelforge/premise.md',
-  '.novelforge/world.md',
-  '.novelforge/style.md',
-  '.novelforge/summaries/global.md',
+  '.novelwarden/config.md',
+  '.novelwarden/premise.md',
+  '.novelwarden/world.md',
+  '.novelwarden/style.md',
+  '.novelwarden/summaries/global.md',
 ];
 
 describe('新建一个空工程', () => {
@@ -98,11 +98,11 @@ describe('新建一个空工程', () => {
 
   // 情节大纲是各章细纲梗概的汇总（docs/design/plans/2026-10-22-outline-from-plots.md），没有文件。
   test('不建 outline.md', () => {
-    assert.ok(!t.has('.novelforge/outline.md'));
+    assert.ok(!t.has('.novelwarden/outline.md'));
   });
 
   test('固定目录建好了', () => {
-    for (const d of ['chapters', '.novelforge/characters', '.novelforge/lore', '.novelforge/summaries', '.novelforge/sessions']) {
+    for (const d of ['chapters', '.novelwarden/characters', '.novelwarden/lore', '.novelwarden/summaries', '.novelwarden/sessions']) {
       assert.ok(fs.statSync(t.rel(d)).isDirectory(), d);
     }
   });
@@ -127,7 +127,7 @@ describe('新建一个空工程', () => {
   });
 
   test('不存历史版本（没覆盖任何东西）', () => {
-    assert.equal(t.has('.novelforge/history'), false);
+    assert.equal(t.has('.novelwarden/history'), false);
   });
 
   test('不刷日志：没有 warn / error，也没有一份模板一行', () => {
@@ -140,7 +140,7 @@ describe('在已有东西的目录里初始化：已存在的一个字节不动'
   const AUTHOR_CONFIG = '---\ngenre: 悬疑\n---\n\n# 小说配置\n\n作者自己写好的配置，一个字都不能动。\n';
   const AUTHOR_OUTLINE = '# 情节大纲\n\n## 第 1–10 章\n\n作者写好的大纲。\n';
   const CH = 'chapters/001-楔子.md';
-  const PLOT = '.novelforge/summaries/001-楔子.md';
+  const PLOT = '.novelwarden/summaries/001-楔子.md';
   let t;
   let project;
   let created;
@@ -155,16 +155,16 @@ describe('在已有东西的目录里初始化：已存在的一个字节不动'
 
   before(async () => {
     t = tempDir('newproj-existing');
-    t.write('.novelforge/config.md', AUTHOR_CONFIG);
+    t.write('.novelwarden/config.md', AUTHOR_CONFIG);
     // 老工程留下的 outline.md：不再读，也一个字节不动。
-    t.write('.novelforge/outline.md', AUTHOR_OUTLINE);
+    t.write('.novelwarden/outline.md', AUTHOR_OUTLINE);
     t.write(CH, '# 楔子\n\n雨下了三天。\n');
     // 一份记过 writtenFrom、没记上游指纹的细纲：初始化不该给它补 upstreamHash，也不该让正文挂 ⟳。
     const { renderPlotFile, emptyPlotSections, plotContentHash } = bundle.plotFile;
     const sections = { ...emptyPlotSections(), 梗概: '楔子的计划', 关键事件: '- 下雨' };
     t.write(PLOT, renderPlotFile({ no: 1, title: '楔子', upstreamHash: '', writtenFrom: plotContentHash({ sections }), done: false, sections }));
     // 文风的落点上已经有一个目录：从前 writeIfAbsent 看到「有东西」就跳过，现在也一样，不抛。
-    fs.mkdirSync(t.rel('.novelforge/style.md'), { recursive: true });
+    fs.mkdirSync(t.rel('.novelwarden/style.md'), { recursive: true });
     plotBefore = t.read(PLOT);
 
     project = bundle.project.NovelProject.open(t.dir);
@@ -178,16 +178,16 @@ describe('在已有东西的目录里初始化：已存在的一个字节不动'
   });
 
   test('作者的配置与老工程的 outline.md 一字不动', () => {
-    assert.equal(t.read('.novelforge/config.md'), AUTHOR_CONFIG);
-    assert.equal(t.read('.novelforge/outline.md'), AUTHOR_OUTLINE);
+    assert.equal(t.read('.novelwarden/config.md'), AUTHOR_CONFIG);
+    assert.equal(t.read('.novelwarden/outline.md'), AUTHOR_OUTLINE);
   });
 
   test('缺的那几份照样补上', () => {
-    assert.deepEqual([...created].sort(), ['.novelforge/premise.md', '.novelforge/summaries/global.md', '.novelforge/world.md'].sort());
+    assert.deepEqual([...created].sort(), ['.novelwarden/premise.md', '.novelwarden/summaries/global.md', '.novelwarden/world.md'].sort());
   });
 
   test('落点被目录占着的那一份跳过，不抛', () => {
-    assert.ok(fs.statSync(t.rel('.novelforge/style.md')).isDirectory());
+    assert.ok(fs.statSync(t.rel('.novelwarden/style.md')).isDirectory());
   });
 
   test('已有的细纲一字不动：没被补上 upstreamHash', () => {
@@ -200,7 +200,7 @@ describe('在已有东西的目录里初始化：已存在的一个字节不动'
   });
 
   test('不存历史版本', () => {
-    assert.equal(t.has('.novelforge/history'), false);
+    assert.equal(t.has('.novelwarden/history'), false);
   });
 
   test('再初始化一次：什么都不建、什么都不改', () => {
@@ -221,7 +221,7 @@ describe('分层：model/ 只建目录与 manifest，不写模板', () => {
 
   test('目录与 manifest 有了', () => {
     assert.ok(fs.statSync(t.rel('chapters')).isDirectory());
-    assert.ok(t.has('.novelforge/project.json'));
+    assert.ok(t.has('.novelwarden/project.json'));
   });
 
   test('一份模板都没写——写模板是网关的事', () => {
@@ -255,13 +255,13 @@ describe('初始化流程（插件命令、网页按钮、CLI 共用的 initProj
     for (const rel of TEMPLATE_RELS) {
       assert.ok(t.has(rel), rel);
     }
-    assert.match(t.read('.novelforge/project.json'), /流程建的书/);
+    assert.match(t.read('.novelwarden/project.json'), /流程建的书/);
   });
 });
 
 // 欢迎页「新建一本书」「导入写好的书」（2026-10-24）：一张表单填好书名、作者、放在哪，一步建好。
 describe('createBookAt：在一个目录下建一本书', () => {
-  const readManifest = (root) => JSON.parse(fs.readFileSync(path.join(root, '.novelforge/project.json'), 'utf8'));
+  const readManifest = (root) => JSON.parse(fs.readFileSync(path.join(root, '.novelwarden/project.json'), 'utf8'));
 
   test('建一个以书名命名的文件夹、初始化，返回它的绝对路径', async () => {
     const t = tempDir('newbook');
@@ -297,7 +297,7 @@ describe('createBookAt：在一个目录下建一本书', () => {
     fs.mkdirSync(t.rel('雪夜'));
     const root = await bundle.actions.createBookAt(t.dir, { title: '雪夜', author: '' });
     assert.equal(root, t.rel('雪夜'));
-    assert.ok(fs.existsSync(t.rel('雪夜/.novelforge/project.json')));
+    assert.ok(fs.existsSync(t.rel('雪夜/.novelwarden/project.json')));
   });
 
   test('同名文件夹里有东西：报错，一个字节都不写', async () => {

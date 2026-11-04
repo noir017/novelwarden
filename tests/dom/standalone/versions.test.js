@@ -291,7 +291,7 @@ describe('侧栏「版本」页', { skip: JSDOM_SKIP }, () => {
 
   test('后端说不存（unavailable）：照实说', () => {
     h.open('chapters/003-夜雨.md', '夜雨。');
-    h.ui.post({ type: 'versions', path: 'chapters/003-夜雨.md', entries: [], unavailable: '这个目录还不是小说工程（没有 .novelforge/），不存历史版本。' });
+    h.ui.post({ type: 'versions', path: 'chapters/003-夜雨.md', entries: [], unavailable: '这个目录还不是小说工程（没有 .novelwarden/），不存历史版本。' });
     assert.match(h.body(), /还不是小说工程/);
   });
 
@@ -573,7 +573,7 @@ describe('全书改动', { skip: JSDOM_SKIP }, () => {
   const CH2 = 'chapters/002-客栈.md';
   const CH3 = 'chapters/003-夜访.md';
   const CH4 = 'chapters/004-渡口.md';
-  const LIN = '.novelforge/characters/林昭.md';
+  const LIN = '.novelwarden/characters/林昭.md';
   const diff = (id) => ({
     id,
     unchanged: 10,

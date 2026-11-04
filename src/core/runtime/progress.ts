@@ -18,7 +18,7 @@ import { describeError, elapsed, formatDuration, scoped } from './logger';
 
 export interface TaskSnapshot {
   id: string;
-  /** 展示名，如「同步章节细纲」。不带「Novel Forge：」前缀。 */
+  /** 展示名，如「同步章节细纲」。不带「Novelwarden：」前缀。 */
   title: string;
   /** 当前在做什么，如「第 12 章《夜访》」。 */
   message: string;
@@ -184,7 +184,7 @@ export async function runTask<T>(
   const taskLog = scoped(scope);
   const startedAt = Date.now();
 
-  return getHost().progress(`Novel Forge：${title}`, async (hostSignal, hostReport) => {
+  return getHost().progress(`Novelwarden：${title}`, async (hostSignal, hostReport) => {
     // 自己持一个 controller：宿主的取消（通知条上的 ×）与前端进度条上的
     // 「停止」都要能中断，两条来源在这里并成一个 signal。
     const abort = new AbortController();

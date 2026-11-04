@@ -26,8 +26,8 @@ let fake;
 let ctx;
 let reports;
 
-const PLOT1 = '.novelforge/summaries/001-夜入青云.md';
-const PLOT2 = '.novelforge/summaries/002-藏书阁.md';
+const PLOT1 = '.novelwarden/summaries/001-夜入青云.md';
+const PLOT2 = '.novelwarden/summaries/002-藏书阁.md';
 const CH1 = 'chapters/001-夜入青云.md';
 const SUMMARY_JSON = JSON.stringify({
   梗概: '林昭夜入青云宗。',
@@ -127,7 +127,7 @@ describe('同步与重建：确认框照弹，作者取消就零调用', () => {
       h.confirms.at(-1).message
     );
     assert.equal(r.error, undefined, r.error);
-    assert.ok(r.text.includes('全文大纲重建已交给 Novel Forge 执行'), r.text);
+    assert.ok(r.text.includes('全文大纲重建已交给 Novelwarden 执行'), r.text);
     assert.equal(fake.calls.length, 0);
     assert.equal(ctx.usage.calls, 0);
   });
@@ -202,7 +202,7 @@ describe('定稿：按章号认，给细纲路径也行', () => {
   });
 
   test('旧版细纲先复制一份进回收站', () => {
-    assert.ok(t.has('.novelforge/.trash/.novelforge/summaries/001-夜入青云.md'));
+    assert.ok(t.has('.novelwarden/.trash/.novelwarden/summaries/001-夜入青云.md'));
   });
 
   // 更新细纲 1 次 + 认叙事线 1 次（叙事线重做：线是空的也认）+ 故事时间 1 次（2026-10-24 重做）；没有角色卡，角色状态不调。

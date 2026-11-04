@@ -520,7 +520,7 @@ public class MainActivity extends Activity {
 
     private void showShellMenu() {
         new AlertDialog.Builder(this)
-                .setItems(new CharSequence[]{"服务端设置…", "退出 Novel Forge"}, (d, which) -> {
+                .setItems(new CharSequence[]{"服务端设置…", "退出 Novelwarden"}, (d, which) -> {
                     if (which == 0) showServerSettings();
                     else quit();
                 })

@@ -25,7 +25,7 @@ let t;
 let project;
 let ws;
 
-const PLOT1 = '.novelforge/summaries/001-北行.md';
+const PLOT1 = '.novelwarden/summaries/001-北行.md';
 const CH1 = 'chapters/001-北行.md';
 
 const brief = (target) => bundle.stateBrief.buildStateBrief(project, target);
@@ -130,16 +130,16 @@ describe('架构齐了、还没有大纲', () => {
 
   before(async () => {
     t.write(
-      '.novelforge/config.md',
+      '.novelwarden/config.md',
       '---\ngenre: 玄幻\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n少年林昭北上入宗。\n'
     );
-    t.write('.novelforge/premise.md', '# 故事前提\n\n## 核心冲突链\n\n入宗 → 被疑 → 自证。\n');
-    t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n宗门认令牌不认人。\n');
-    t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n北地少年。\n');
+    t.write('.novelwarden/premise.md', '# 故事前提\n\n## 核心冲突链\n\n入宗 → 被疑 → 自证。\n');
+    t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n宗门认令牌不认人。\n');
+    t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n北地少年。\n');
     project.invalidate();
     beforeLore = await brief();
     // 第五件设定清单：一条条目就算填过。
-    t.write('.novelforge/lore/宗门/青云宗.md', '---\ntitle: 青云宗\nkeywords: [青云宗]\n---\n\n# 青云宗\n');
+    t.write('.novelwarden/lore/宗门/青云宗.md', '---\ntitle: 青云宗\nkeywords: [青云宗]\n---\n\n# 青云宗\n');
     project.invalidate();
     text = await brief();
     ({ step: expected } = await bookStepOf());
@@ -306,11 +306,11 @@ describe('这一章定稿之后转去报全书的下一步', () => {
 
   // 第 20 条 (c)：做完了就不给下一步。造一个假的出来，agent 会自作主张挑一章开始烧钱。
   test('全书写完了就照实说，不造一个下一步', async () => {
-    const saved = t.read('.novelforge/config.md');
-    t.write('.novelforge/config.md', saved.replace('totalChapters: 30', 'totalChapters: 1'));
+    const saved = t.read('.novelwarden/config.md');
+    t.write('.novelwarden/config.md', saved.replace('totalChapters: 30', 'totalChapters: 1'));
     project.invalidate();
     const s = await brief({ kind: 'plot', plotRelPath: PLOT1 });
-    t.write('.novelforge/config.md', saved);
+    t.write('.novelwarden/config.md', saved);
     project.invalidate();
     assert.ok(s.includes('全书都写完了'), s);
     assert.ok(!s.includes('由状态机算出'), s);
@@ -323,7 +323,7 @@ describe('这一章定稿之后转去报全书的下一步', () => {
  * `buildPlotPipelineView` 给一份空壳，主按钮说「写第 2 章细纲」；状态注入也必须说同一句。
  */
 describe('target 是还没落盘的下一章细纲', () => {
-  const pending = '.novelforge/summaries/002.md';
+  const pending = '.novelwarden/summaries/002.md';
 
   // 索引里只有「有文件」的章号；那一号既无细纲也无正文时，findPipeline 要自己补一份
   // 空壳，否则会报成「还没选定某一章」+ 全书的「拆细纲」，与主按钮分叉（第 20 条）。

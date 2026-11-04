@@ -39,8 +39,8 @@ const CHECKPOINTS = [
 ];
 
 const CH3 = 'chapters/第一卷/003-深处.txt';
-const PLOT3 = '.novelforge/summaries/第一卷/003-深处.md';
-const LIN = '.novelforge/characters/林昭.md';
+const PLOT3 = '.novelwarden/summaries/第一卷/003-深处.md';
+const LIN = '.novelwarden/characters/林昭.md';
 const CH13 = 'chapters/第一卷/013-新章.txt';
 const DRAFT13 = 'drafts/013-新章.txt';
 

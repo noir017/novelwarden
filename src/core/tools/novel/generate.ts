@@ -7,7 +7,7 @@
  *    正文**。一份三千字的正文塞回循环，agent 每走一步就重烧一遍——十步之后
  *    这一份正文被算了十次钱。要看内容让它显式 `read`。
  * 2. **`history` 传空数组**。agent 的工具调用不是作者的讨论，混进装配器会被
- *    当成创作要求装进 prompt（「用户刚才说：list .novelforge/plots」）。唯一
+ *    当成创作要求装进 prompt（「用户刚才说：list .novelwarden/summaries」）。唯一
  *    该带历史的能力是 `settle`（落定细纲、落定设定）——它要沉淀的就是一段讨论，所以**不支持它**。
  * 3. **哪一层用哪个模型**，AGENTS 第 12 条的延伸：
  *
@@ -104,11 +104,11 @@ export const generateTool: ToolDef = {
 
   description:
     '调用创作模型，为某一份产物生成内容。target 是那份产物的工程内相对路径，' +
-    '层由路径决定：.novelforge/config.md、premise.md、world.md 是架构层，角色图谱给角色目录 .novelforge/characters 本身（一次排出一批角色卡），' +
-    '设定清单给设定目录 .novelforge/lore 本身（一次排一批设定条目），' +
-    '展开一条设定给那一条条目的路径（.novelforge/lore/ 下的 .md，如 .novelforge/lore/宗门/天机阁.md：照已排的细纲把它往前想细，可能建议拆出几条空条目），' +
-    '.novelforge/outline.md 是大纲层（各章细纲「梗概」的汇总，采纳时按章号写回各章细纲），.novelforge/summaries/ 下的细纲是细纲层（一章一份，与正文同样的相对路径、扩展名 .md，' +
-    '如 .novelforge/summaries/上部/003-夜访.md），' +
+    '层由路径决定：.novelwarden/config.md、premise.md、world.md 是架构层，角色图谱给角色目录 .novelwarden/characters 本身（一次排出一批角色卡），' +
+    '设定清单给设定目录 .novelwarden/lore 本身（一次排一批设定条目），' +
+    '展开一条设定给那一条条目的路径（.novelwarden/lore/ 下的 .md，如 .novelwarden/lore/宗门/天机阁.md：照已排的细纲把它往前想细，可能建议拆出几条空条目），' +
+    '.novelwarden/outline.md 是大纲层（各章细纲「梗概」的汇总，采纳时按章号写回各章细纲），.novelwarden/summaries/ 下的细纲是细纲层（一章一份，与正文同样的相对路径、扩展名 .md，' +
+    '如 .novelwarden/summaries/上部/003-夜访.md），' +
     '正文层给那一章的章节路径（chapters/ 下，可以在子目录里；还没写过的章写成 chapters/<章号>.md 即可，' +
     '按章号认到这一章的细纲）。**细纲路径永远是细纲层**，要写正文不要给细纲路径。' +
     '这一章已经有正文时用 writeMode 说清是接着写（continue）还是整章重写（rewrite，缺省）。' +
@@ -173,8 +173,8 @@ export const generateTool: ToolDef = {
         text: '',
         error:
           `认不出「${rel}」是哪一层的产物。` +
-          '架构给 .novelforge/config.md / premise.md / world.md（角色图谱给 .novelforge/characters，设定清单给 .novelforge/lore，展开一条设定给 .novelforge/lore/ 下那一条的 .md），大纲给 .novelforge/outline.md，' +
-          '细纲给 .novelforge/summaries/ 下那一章的细纲（与正文同样的相对路径），正文给那一章的章节路径（chapters/ 下）。' +
+          '架构给 .novelwarden/config.md / premise.md / world.md（角色图谱给 .novelwarden/characters，设定清单给 .novelwarden/lore，展开一条设定给 .novelwarden/lore/ 下那一条的 .md），大纲给 .novelwarden/outline.md，' +
+          '细纲给 .novelwarden/summaries/ 下那一章的细纲（与正文同样的相对路径），正文给那一章的章节路径（chapters/ 下）。' +
           '可以先用 list 看看那个目录下实际有什么。',
       };
     }
@@ -320,7 +320,7 @@ async function resolveTargetPath(project: NovelProject, rel: string): Promise<Pa
 }
 
 /**
- * 架构里没有自己文件的两件：角色目录本身（`.novelforge/characters`）= 角色图谱，设定目录本身（`.novelforge/lore`）=
+ * 架构里没有自己文件的两件：角色目录本身（`.novelwarden/characters`）= 角色图谱，设定目录本身（`.novelwarden/lore`）=
  * 设定清单（`pathOfTarget` 的落点就是它们，工程页「故事架构」那两行的路径也是）。**只在这个工具里认**：网关的种类表
  * （`kindOfPath`）不把一个目录当成可写的产物——写入、改名、删除都不该落在它上面。
  */

@@ -16,8 +16,8 @@ const f = (path, tag, title) => ({
 
 describe('tabNames', () => {
   test('后端给了称呼：用它的短标记与名字', () => {
-    const names = tabNames([f('.novelforge/summaries/003-夜访.md', '细纲', '003-夜访')]);
-    assert.deepEqual(names.get('.novelforge/summaries/003-夜访.md'), { tag: '细纲', title: '003-夜访', desc: '' });
+    const names = tabNames([f('.novelwarden/summaries/003-夜访.md', '细纲', '003-夜访')]);
+    assert.deepEqual(names.get('.novelwarden/summaries/003-夜访.md'), { tag: '细纲', title: '003-夜访', desc: '' });
   });
 
   test('没给称呼：名字是文件名、不带短标记', () => {

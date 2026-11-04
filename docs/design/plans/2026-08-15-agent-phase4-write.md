@@ -332,7 +332,7 @@ DEFAULT_TASK_TIERS.agent = 'balanced';
 
 ## 给接手 agent 的提示词
 
-> 你在 novel-forge 仓库里执行「四期：写工具 + 策略 + 工具流 UI」。前置是零到三期，确认都已合入（`src/core/agent/` 存在且只读四件套能跑，`npm test` 绿）。
+> 你在 novelwarden 仓库里执行「四期：写工具 + 策略 + 工具流 UI」。前置是零到三期，确认都已合入（`src/core/agent/` 存在且只读四件套能跑，`npm test` 绿）。
 >
 > 先读 **`AGENTS.md` 的全部 23 条**——这一期给 agent 开写权限，每一条都在射程内。再读 `docs/design/specs/2026-08-15-agent-architecture-design.md` 的 L3 一节与 `src/core/workspace/README.md`（八条守卫）。
 >

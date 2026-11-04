@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { isProtectedPath, normalizeRel, renameEntryInRoot, sectionOf } from './fileOps';
+import { isInTrash } from '../workspace/guard';
 import { getHost } from '../host';
 import { describeError, scoped } from '../runtime/logger';
 import { exists } from '../model/fs';
@@ -14,13 +15,13 @@ const log = scoped('文件页');
  * 文件页（资源管理器）的类文件操作：工程根范围的重命名、移动、复制。
  *
  * 与 fileOps.ts 的分工：那边锁在章节/角色/设定三个区里，是工程页的产品
- * 承诺；这边面向整个工程根（含 `.novelforge/`），是文件页的磁盘视角。
+ * 承诺；这边面向整个工程根（含 `.novelwarden/`，旧工程是 `.novelforge/`），是文件页的磁盘视角。
  * 相同的约束仍然在：
  *
  * 1. **不出工程根**：`..` 逃逸与绝对路径一律拒绝。
  * 2. **不静默覆盖**：目标同名逐项拒绝，其余项继续。
- * 3. **固定目录不动**：chapters/、drafts/、.novelforge 及其关键子目录受保护。
- * 4. **垃圾箱不搬**：`.novelforge/.trash/` 里的内容不是操作对象（复制出来可以，见下）。
+ * 3. **固定目录不动**：chapters/、drafts/、`.novelwarden/`（旧工程 `.novelforge/`）及其关键子目录受保护。
+ * 4. **垃圾箱不搬**：`.novelwarden/.trash/`（旧工程 `.novelforge/.trash/`）里的内容不是操作对象（复制出来可以，见下）。
  *
  * 移动与复制都经网关（`Workspace.move` / `Workspace.copy`），守卫、伴生、manifest 同步都在那一层做一次：
  *
@@ -126,7 +127,7 @@ async function pasteOne(
     return { from: rel, ok: false, error: `「${rel}」是固定目录` };
   }
   // 回收站里的东西搬不出来（那是改回收站）；**复制得出来**——网关的复制只读来源（`guardCopySource`）。
-  if (!copy && (rel === '.novelforge/.trash' || rel.startsWith('.novelforge/.trash/'))) {
+  if (!copy && isInTrash(project, rel)) {
     log.warn(`粘贴被拒：${rel} 在回收站里`);
     return { from: rel, ok: false, error: '回收站里的内容不能操作' };
   }

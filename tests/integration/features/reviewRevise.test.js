@@ -40,7 +40,7 @@ let posted = [];
 let gateAnswer = () => 'proceed';
 const queues = { review: [], revise: [], write: [] };
 
-const P2 = '.novelforge/summaries/002-客栈.md';
+const P2 = '.novelwarden/summaries/002-客栈.md';
 const CH2_REL = 'chapters/002-客栈.md';
 
 const CH2 = [
@@ -166,11 +166,11 @@ before(async () => {
 
   t = await makeTempProject(bundle.project, { prefix: 'phase5', title: '青崖记' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ntotalChapters: 10\nwordsPerChapter: 1000\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
+  t.write('.novelwarden/config.md', '---\ntotalChapters: 10\nwordsPerChapter: 1000\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
   // 架构三件借示例工程的：全书状态机要它们齐了，才会走到「写第 N 章」。情节大纲是各章细纲梗概的汇总，下面写细纲就有了。
-  const sample = (rel) => fs.readFileSync(path.join(__dirname, '../../../sample-novel/.novelforge', rel), 'utf8');
-  t.write('.novelforge/premise.md', sample('premise.md'));
-  t.write('.novelforge/world.md', sample('world.md'));
+  const sample = (rel) => fs.readFileSync(path.join(__dirname, '../../../sample-novel/.novelwarden', rel), 'utf8');
+  t.write('.novelwarden/premise.md', sample('premise.md'));
+  t.write('.novelwarden/world.md', sample('world.md'));
   ws = new bundle.ws.Workspace(project);
   for (const no of [1, 2, 3]) {
     await writeOutline(no);
@@ -183,8 +183,8 @@ before(async () => {
   const ch2 = await project.getChapter(2);
   await writeOutline(1, { sourceHash: ch1.contentHash, facts: '- 林昭把残令交给了李叔' });
   await writeOutline(2, { sourceHash: ch2.contentHash });
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\nstateThrough: 2\n---\n\n# 林昭\n\n## 当前状态\n\n左臂受伤，住在客栈\n');
-  t.write('.novelforge/characters/沈秋.md', '---\nname: 沈秋\nstateThrough: 2\n---\n\n# 沈秋\n\n## 当前状态\n\n已死亡（第 2 章夜里死在渡口）\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\nstateThrough: 2\n---\n\n# 林昭\n\n## 当前状态\n\n左臂受伤，住在客栈\n');
+  t.write('.novelwarden/characters/沈秋.md', '---\nname: 沈秋\nstateThrough: 2\n---\n\n# 沈秋\n\n## 当前状态\n\n已死亡（第 2 章夜里死在渡口）\n');
   project.invalidate();
 
   controller = new bundle.controller.ChatController(project);
@@ -347,7 +347,7 @@ describe('五期验收', () => {
 
   // 五期补遗 §2：预检的永久放行。
   describe('重写第 3 章：记为刻意安排', () => {
-    const P3 = '.novelforge/summaries/003-渡口.md';
+    const P3 = '.novelwarden/summaries/003-渡口.md';
     const rewrite3 = async () => {
       posted = [];
       await controller.handle({

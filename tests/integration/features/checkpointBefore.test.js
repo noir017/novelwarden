@@ -109,7 +109,7 @@ describe('checkpointBefore 本身', () => {
     d.write('chapters/001-雨夜.md', '# 雨夜\n');
     const project = bundle.project.NovelProject.open(d.dir);
     assert.equal(await bundle.checkpoint.checkpointBefore(project, '批量写章之前'), undefined);
-    assert.equal(d.has('.novelforge'), false);
+    assert.equal(d.has('.novelwarden'), false);
   });
 });
 
@@ -118,13 +118,13 @@ describe('checkpointBefore 本身', () => {
 const TITLES = ['停舟', '令牌', '夜访'];
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-${TITLES[no - 1]}.txt`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
 
 /** 排好前 3 章细纲（计划）的工程，还没有正文。 */
 async function plotted(prefix) {
   const t = await fresh(prefix);
-  t.write('.novelforge/config.md', '---\ntotalChapters: 10\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿\n\n## 当前状态\n\n（待补充）\n');
+  t.write('.novelwarden/config.md', '---\ntotalChapters: 10\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿\n\n## 当前状态\n\n（待补充）\n');
   const ws = new bundle.ws.Workspace(t.project);
   for (let no = 1; no <= TITLES.length; no++) {
     await ws.writePlot({
@@ -251,7 +251,7 @@ describe('按目录整理设定', () => {
   let t;
   before(async () => {
     t = await fresh('organize');
-    t.write('.novelforge/lore/过所.md', '---\ntitle: 过所\nkeywords: [过所]\n---\n\n# 过所\n\n出入凭证。\n');
+    t.write('.novelwarden/lore/过所.md', '---\ntitle: 过所\nkeywords: [过所]\n---\n\n# 过所\n\n出入凭证。\n');
     t.project.invalidate();
   });
 
@@ -259,7 +259,7 @@ describe('按目录整理设定', () => {
     replyFn = () => JSON.stringify({ folders: ['制度'], moves: [{ from: '过所', to: '制度' }] });
     h.expect('开始', undefined);
     await bundle.lore.organizeLore(t.project, 'unfiled');
-    assert.ok(t.has('.novelforge/lore/过所.md'));
+    assert.ok(t.has('.novelwarden/lore/过所.md'));
     assert.deepEqual(await list(t), []);
   });
 
@@ -267,12 +267,12 @@ describe('按目录整理设定', () => {
     replyFn = () => JSON.stringify({ folders: ['制度'], moves: [{ from: '过所', to: '制度' }] });
     h.expect('开始', '照这样整理');
     await bundle.lore.organizeLore(t.project, 'unfiled');
-    assert.ok(t.has('.novelforge/lore/制度/过所.md'));
+    assert.ok(t.has('.novelwarden/lore/制度/过所.md'));
     const all = await list(t);
     assert.equal(all.length, 1);
     assert.equal(all[0].note, '按目录整理设定之前');
-    assert.ok('.novelforge/lore/过所.md' in all[0].files);
-    assert.ok(!('.novelforge/lore/制度/过所.md' in all[0].files));
+    assert.ok('.novelwarden/lore/过所.md' in all[0].files);
+    assert.ok(!('.novelwarden/lore/制度/过所.md' in all[0].files));
   });
 });
 
@@ -320,13 +320,13 @@ describe('从已写正文补齐', () => {
     replyFn = (messages) => (isSummary(messages) ? summaryJson(messages) : '');
     h.expect('先整理细纲', '10', '开始补齐');
     await bundle.derive.deriveFromText(t.project);
-    assert.ok(t.has('.novelforge/summaries/001-入宗.md'));
+    assert.ok(t.has('.novelwarden/summaries/001-入宗.md'));
     assert.ok(h.confirms.some((c) => c.actions.includes('开始补齐')), '其余几样那一步没走到');
     assert.ok(fake.calls.some((m) => !isSummary(m)), '其余几样没调到模型（没进任务）');
     const all = await list(t);
     assert.equal(all.length, 1);
     assert.equal(all[0].note, '从已写正文补齐之前');
-    assert.ok(!('.novelforge/summaries/001-入宗.md' in all[0].files));
+    assert.ok(!('.novelwarden/summaries/001-入宗.md' in all[0].files));
   });
 
   test('细纲本来就齐：其余几样那一步自己存一个', async () => {
@@ -335,7 +335,7 @@ describe('从已写正文补齐', () => {
     const all = await list(t);
     assert.equal(all.length, 2);
     assert.equal(all[0].note, '从已写正文补齐之前');
-    assert.ok('.novelforge/summaries/001-入宗.md' in all[0].files);
+    assert.ok('.novelwarden/summaries/001-入宗.md' in all[0].files);
   });
 });
 
@@ -344,7 +344,7 @@ describe('从已写正文补齐', () => {
 describe('补齐架构、批量拆细纲、批量展开设定、立即同步、从正文补记叙事线', () => {
   test('补齐架构', async () => {
     const t = await fresh('settings');
-    t.write('.novelforge/config.md', t.read('.novelforge/config.md').replace(/## 一句话\n\n（待补充）/, '## 一句话\n\n少年背着旧案入宗'));
+    t.write('.novelwarden/config.md', t.read('.novelwarden/config.md').replace(/## 一句话\n\n（待补充）/, '## 一句话\n\n少年背着旧案入宗'));
     t.project.invalidate();
     h.expect('开始补齐');
     await bundle.batch.completeSettings(t.project);
@@ -362,10 +362,10 @@ describe('补齐架构、批量拆细纲、批量展开设定、立即同步、�
 
   test('批量展开设定', async () => {
     const t = await fresh('expand');
-    t.write('.novelforge/lore/过所.md', '---\ntitle: 过所\nkeywords: [过所]\n---\n\n# 过所\n');
+    t.write('.novelwarden/lore/过所.md', '---\ntitle: 过所\nkeywords: [过所]\n---\n\n# 过所\n');
     t.project.invalidate();
     h.expect('开始展开');
-    await bundle.lore.expandLoreEntries(t.project, ['.novelforge/lore/过所.md']);
+    await bundle.lore.expandLoreEntries(t.project, ['.novelwarden/lore/过所.md']);
     assert.ok(h.confirms.some((c) => c.actions.includes('开始展开')), '这一条不算能展开的');
     assert.deepEqual((await list(t)).map((x) => x.note), ['展开设定之前（1 条）']);
   });
@@ -385,11 +385,11 @@ describe('补齐架构、批量拆细纲、批量展开设定、立即同步、�
     const t = await fresh('backfill');
     t.write('chapters/001-入宗.md', `# 入宗\n\n${filler(300, 3)}\n`);
     t.write('chapters/002-雪夜.md', `# 雪夜\n\n${filler(300, 5)}\n`);
-    t.write('.novelforge/threads/青崖旧案.md', '---\nkind: 主线\n---\n\n# 青崖旧案\n\n## 意图\n查清七年前那场火。\n');
+    t.write('.novelwarden/threads/青崖旧案.md', '---\nkind: 主线\n---\n\n# 青崖旧案\n\n## 意图\n查清七年前那场火。\n');
     t.project.invalidate();
     const chapters = await t.project.listChapters();
     for (const c of chapters) {
-      const rel = `.novelforge/summaries/${c.relPath.replace(/^chapters\//, '')}`;
+      const rel = `.novelwarden/summaries/${c.relPath.replace(/^chapters\//, '')}`;
       t.write(rel, `---\nno: ${c.order}\ntitle: ${c.title}\nsourceHash: ${c.contentHash}\n---\n\n# ${c.title}\n\n## 梗概\n第 ${c.order} 章。\n`);
     }
     t.project.invalidate();
@@ -407,7 +407,7 @@ describe('存不下不挡批量动作（⚑11）', () => {
   test('存档点的目录被一份文件占着：照样替换', async () => {
     const t = await fresh('blocked');
     t.write('chapters/001-入宗.md', '# 入宗\n\n林晚推开山门。\n');
-    fs.writeFileSync(t.rel('.novelforge/checkpoints'), '不是目录');
+    fs.writeFileSync(t.rel('.novelwarden/checkpoints'), '不是目录');
     t.project.invalidate();
     const q = { query: '林晚', replacement: '林婉', scopes: ['chapter'] };
     const preview = await bundle.bookFind.searchBook(t.project, q);

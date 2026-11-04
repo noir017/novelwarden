@@ -56,11 +56,11 @@ const baseConfig = {
   requestTimeoutMs: 300000,
 };
 
-const PLOT1 = '.novelforge/summaries/001-楔子.md';
-const PLOT2 = '.novelforge/summaries/002-客栈里的女人.md';
-const PLOT3 = '.novelforge/summaries/003-夜访.md';
+const PLOT1 = '.novelwarden/summaries/001-楔子.md';
+const PLOT2 = '.novelwarden/summaries/002-客栈里的女人.md';
+const PLOT3 = '.novelwarden/summaries/003-夜访.md';
 /** 第 4 章的细纲：排好了（计划），还没写正文——全书的下一步就是写它。 */
-const PLOT4 = '.novelforge/summaries/004-空匣.md';
+const PLOT4 = '.novelwarden/summaries/004-空匣.md';
 const CH1 = 'chapters/001-楔子.md';
 const CH3 = 'chapters/003-夜访.md';
 
@@ -763,7 +763,7 @@ describe('装配：用户 @ 的引用', () => {
           { id: 'sel1', kind: 'selection', label: '003-夜访.md:5-9',
             relPath: CH3,
             range: { start: 5, end: 9 }, text: '这是我选中的一段话，请针对它修改。' },
-          { id: 'file1', kind: 'character', label: '林昭.md', relPath: '.novelforge/characters/林昭.md' },
+          { id: 'file1', kind: 'character', label: '林昭.md', relPath: '.novelwarden/characters/林昭.md' },
           { id: 'gone', kind: 'file', label: '不存在.md', relPath: 'chapters/不存在.md' },
         ],
       }),
@@ -1623,10 +1623,10 @@ describe('装配：架构文档填过的才带', () => {
   before(async () => {
     fixture = copyFixture('builder-setting');
     fixture.write(
-      '.novelforge/world.md',
-      '---\ngeneratedBy: novel-forge\n---\n\n# 世界观\n\n## 规则与漏洞\n\n（待补充）\n\n## 阶层与资源\n\n（待补充）\n\n## 深层危机\n\n（待补充）\n'
+      '.novelwarden/world.md',
+      '---\ngeneratedBy: novelwarden\n---\n\n# 世界观\n\n## 规则与漏洞\n\n（待补充）\n\n## 阶层与资源\n\n（待补充）\n\n## 深层危机\n\n（待补充）\n'
     );
-    fixture.remove('.novelforge/premise.md');
+    fixture.remove('.novelwarden/premise.md');
     const p = projectMod.NovelProject.open(fixture.dir);
     b = await builderMod.buildContext(
       p,
@@ -1951,13 +1951,13 @@ describe('工程页数据', () => {
 
   test('角色图谱那一行报人数、指向角色目录', () => {
     const row = tree.architecture.find((r) => r.key === 'characters');
-    assert.ok(row.detail === '4 人' && row.relPath === '.novelforge/characters', JSON.stringify(row));
+    assert.ok(row.detail === '4 人' && row.relPath === '.novelwarden/characters', JSON.stringify(row));
   });
 
   test('设定清单那一行报条数、指向设定目录', () => {
     const row = tree.architecture.find((r) => r.key === 'lore');
     assert.equal(row.label, '设定清单');
-    assert.equal(row.relPath, '.novelforge/lore');
+    assert.equal(row.relPath, '.novelwarden/lore');
     assert.match(row.detail, /^\d+ 条$/);
   });
 
@@ -1994,7 +1994,7 @@ describe('工程页数据', () => {
 
   test('给出各区的根目录', () => {
     assert.ok(
-      tree.chaptersRoot === 'chapters' && tree.charactersRoot === '.novelforge/characters' && tree.loreRoot === '.novelforge/lore',
+      tree.chaptersRoot === 'chapters' && tree.charactersRoot === '.novelwarden/characters' && tree.loreRoot === '.novelwarden/lore',
       [tree.chaptersRoot, tree.charactersRoot, tree.loreRoot].join(' ')
     );
   });
@@ -2043,9 +2043,9 @@ describe('工程页数据', () => {
     assert.equal(tree.globalSummaryThrough, 3);
   });
 
-  test('元数据路径都在 .novelforge 下', () => {
+  test('元数据路径都在 .novelwarden 下', () => {
     assert.ok(
-      [tree.styleGuidePath, tree.globalSummaryPath].every((p) => p.startsWith('.novelforge/')),
+      [tree.styleGuidePath, tree.globalSummaryPath].every((p) => p.startsWith('.novelwarden/')),
       [tree.styleGuidePath, tree.globalSummaryPath].join(' ')
     );
   });
@@ -2304,7 +2304,7 @@ describe('装配：二期的新层与移植的契约', () => {
     // 排第 5–8 章那一批拆了半：前一半（第 5、6 章）刚排好、还没落盘，现在排后一半。
     split = await build({
       action: GEN('plot'),
-      target: { kind: 'plot', plotRelPath: '.novelforge/summaries/007.md' },
+      target: { kind: 'plot', plotRelPath: '.novelwarden/summaries/007.md' },
       ask: '',
       range: { from: 7, to: 8 },
       draftPlots: [
@@ -2357,8 +2357,8 @@ describe('装配：二期的新层与移植的契约', () => {
   test('没写总章数时不带结构指导，并在明细里说为什么', async () => {
     const fixture = copyFixture('builder-nototal');
     try {
-      const cfg = fs.readFileSync(path.join(fixture.dir, '.novelforge/config.md'), 'utf8').replace(/^totalChapters: .*\r?\n/m, '');
-      fixture.write('.novelforge/config.md', cfg);
+      const cfg = fs.readFileSync(path.join(fixture.dir, '.novelwarden/config.md'), 'utf8').replace(/^totalChapters: .*\r?\n/m, '');
+      fixture.write('.novelwarden/config.md', cfg);
       const p = projectMod.NovelProject.open(fixture.dir);
       const b = await builderMod.buildContext(p, { action: GEN('outline'), target: { kind: 'outline' }, ask: '' }, baseConfig);
       const item = ids(b).get('structure');

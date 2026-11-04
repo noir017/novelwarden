@@ -20,7 +20,7 @@ const { makeFakeHost } = require('../../helpers/fakeHost');
 const { makeSettings } = require('../../helpers/fakeProvider');
 const { cleanup } = require('../../helpers/teardown');
 
-const SENSITIVE = '.novelforge/sensitive.txt';
+const SENSITIVE = '.novelwarden/sensitive.txt';
 
 let bundle;
 let t;
@@ -55,11 +55,11 @@ before(async () => {
   bundle.host.initHost(fake.host);
   t = await makeTempProject(bundle.project, { prefix: 'check-terms', title: '青云剑录' });
   t.write(
-    '.novelforge/config.md',
+    '.novelwarden/config.md',
     '---\ngenre: 仙侠\nsubGenre: 修真\n---\n# 小说配置\n\n## 全局要求\n\n- 严禁出现「手机」「电脑」，须用「玉简」\n'
   );
-  t.write('.novelforge/style.md', '# 文风指南\n\n## 禁用词表\n\n- 不用「不禁」「顿时」\n');
-  t.write('.novelforge/summaries/001-雨夜.md', '---\ntargetWords: 3000\n---\n# 第1章 雨夜\n\n## 关键事件\n\n- 出城\n');
+  t.write('.novelwarden/style.md', '# 文风指南\n\n## 禁用词表\n\n- 不用「不禁」「顿时」\n');
+  t.write('.novelwarden/summaries/001-雨夜.md', '---\ntargetWords: 3000\n---\n# 第1章 雨夜\n\n## 关键事件\n\n- 出城\n');
   controller = new bundle.controller.ChatController(t.project);
   controller.attach({ kind: 'sidebar', post: (m) => posted.push(m), reveal() {} });
 });
@@ -92,7 +92,7 @@ describe('checkTerms：连上就推，与生成链同一份禁用词', () => {
 
   test('与写正文时 planWriting 用的一模一样（同一个函数、同一份输入）', async () => {
     const plan = await bundle.generate.planWriting(t.project, {
-      target: { kind: 'plot', plotRelPath: '.novelforge/summaries/001-雨夜.md' },
+      target: { kind: 'plot', plotRelPath: '.novelwarden/summaries/001-雨夜.md' },
       targetNo: 1,
     });
     assert.deepEqual(lastOf('checkTerms').terms.banned, plan.banned);
@@ -116,7 +116,7 @@ describe('checkTerms：变了才推', () => {
   });
 
   test('style.md 的禁用词表改了：重推，带着新词', async () => {
-    t.write('.novelforge/style.md', '# 文风指南\n\n## 禁用词表\n\n- 不用「不禁」「顿时」「霎时」\n');
+    t.write('.novelwarden/style.md', '# 文风指南\n\n## 禁用词表\n\n- 不用「不禁」「顿时」「霎时」\n');
     posted = [];
     await controller.pushState();
     assert.equal(all('checkTerms').length, 1);
@@ -124,7 +124,7 @@ describe('checkTerms：变了才推', () => {
   });
 
   test('config.md 换成都市题材：现代说法不再算禁用词', async () => {
-    t.write('.novelforge/config.md', '---\ngenre: 都市\n---\n# 小说配置\n');
+    t.write('.novelwarden/config.md', '---\ngenre: 都市\n---\n# 小说配置\n');
     posted = [];
     await controller.pushState();
     assert.equal(all('checkTerms').length, 1);
@@ -171,7 +171,7 @@ describe('checkTerms：变了才推', () => {
     const plain = makeFakeHost({ name: 'vscode', settings: () => makeSettings({ contextWindow: 100000 }) });
     bundle.host.initHost(plain.host);
     try {
-      t.write('.novelforge/style.md', '# 文风指南\n\n## 禁用词表\n\n- 不用「刹那」\n');
+      t.write('.novelwarden/style.md', '# 文风指南\n\n## 禁用词表\n\n- 不用「刹那」\n');
       posted = [];
       await controller.handle({ type: 'ready' });
       await controller.pushState();

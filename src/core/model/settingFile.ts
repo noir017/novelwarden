@@ -236,7 +236,7 @@ export function renderBookConfig(config: WritableBookConfig): string {
     totalChapters: config.totalChapters,
     wordsPerChapter: config.wordsPerChapter,
     paragraphStyle: config.paragraphStyle,
-    generatedBy: 'novel-forge',
+    generatedBy: 'novelwarden',
   });
   const body = stringifySections(config.sections, CONFIG_SECTION_KEYS, { keepEmpty: true });
   return `${fm}\n\n# ${SETTING_DOC_HEADING.config}\n\n${body}\n`;
@@ -295,7 +295,7 @@ export function parseSettingDoc(doc: SettingFileDoc, text: string, relPath: stri
 
 /** 渲染前提或世界观。配置有 frontmatter 字段，走 {@link renderBookConfig}。 */
 export function renderSettingDoc(doc: Exclude<SettingFileDoc, 'config'>, sections: Record<string, string>): string {
-  const fm = stringifyFrontmatter({ generatedBy: 'novel-forge' });
+  const fm = stringifyFrontmatter({ generatedBy: 'novelwarden' });
   const body = stringifySections(sections, SETTING_SECTION_KEYS[doc], { keepEmpty: true });
   return `${fm}\n\n# ${SETTING_DOC_HEADING[doc]}\n\n${body}\n`;
 }

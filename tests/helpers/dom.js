@@ -401,13 +401,13 @@ const emptySession = (extra) =>
 const pipelineView = (extra) =>
   Object.assign(
     {
-      plotRelPath: '.novelforge/summaries/012-夜入青云.md',
+      plotRelPath: '.novelwarden/summaries/012-夜入青云.md',
       no: 12,
       title: '夜入青云',
       // 情节大纲里有没有这一章（就是这一章细纲的梗概），大纲排到第几章。流水线条上「大纲」那一格画它。
       outline: { covered: true, coverage: 20 },
       plot: {
-        relPath: '.novelforge/summaries/012-夜入青云.md',
+        relPath: '.novelwarden/summaries/012-夜入青云.md',
         exists: true,
         filled: true,
         upstreamStale: false,
@@ -431,7 +431,7 @@ const workbenchView = (extra) => {
     {
       stage: 'plot',
       title: '细纲 · 第 12 章《夜入青云》',
-      relPath: '.novelforge/summaries/012-夜入青云.md',
+      relPath: '.novelwarden/summaries/012-夜入青云.md',
       sections: [{ key: '梗概', text: '林昭成功进入青云宗' }],
     },
     extra
@@ -493,36 +493,36 @@ function sampleTree() {
       idea: '一个从火里活下来的人回到起火的地方。', totalChapters: 30, wordsPerChapter: 400,
       configHasContent: true, outlineCoverage: 20, plotFilledNos: [1, 3, 4],
     },
-    chaptersRoot: 'chapters', charactersRoot: '.novelforge/characters', loreRoot: '.novelforge/lore',
-    globalSummaryThrough: 2, styleGuidePath: '.novelforge/style.md',
-    globalSummaryPath: '.novelforge/summaries/global.md',
+    chaptersRoot: 'chapters', charactersRoot: '.novelwarden/characters', loreRoot: '.novelwarden/lore',
+    globalSummaryThrough: 2, styleGuidePath: '.novelwarden/style.md',
+    globalSummaryPath: '.novelwarden/summaries/global.md',
     // 叙事线（一条线一个文件，`views/threads.ts` 现算好、排好序）：四条线——主线进行中、一条感情线断了且有伏笔逾期、
     // 一条支线还只是计划、一条人物线已收束；最后是「未归属的伏笔」。「现在」是定稿到的第 3 章。
-    threadsPath: '.novelforge/threads',
+    threadsPath: '.novelwarden/threads',
     threads: {
       current: 3,
       lines: [
-        { name: '青崖旧案', relPath: '.novelforge/threads/青崖旧案.md', kind: '主线', status: '进行中', lastActive: 3,
+        { name: '青崖旧案', relPath: '.novelwarden/threads/青崖旧案.md', kind: '主线', status: '进行中', lastActive: 3,
           detail: '主线 · 进行中 · 最近第 3 章 · 1 条伏笔没收', warnings: [], tip: '意图：查清七年前那场火\n\n当前进度（写到第 3 章）：林昭回到青崖镇' },
-        { name: '林昭与沈氏', relPath: '.novelforge/threads/林昭与沈氏.md', kind: '感情线', status: '进行中', lastActive: 1,
+        { name: '林昭与沈氏', relPath: '.novelwarden/threads/林昭与沈氏.md', kind: '感情线', status: '进行中', lastActive: 1,
           detail: '感情线 · 进行中 · 最近第 1 章 · 2 条伏笔没收', warnings: ['1 条伏笔逾期', '过了计划收束的第 2 章'], tip: '' },
-        { name: '李叔的旧账', relPath: '.novelforge/threads/李叔的旧账.md', kind: '支线', status: '计划中',
+        { name: '李叔的旧账', relPath: '.novelwarden/threads/李叔的旧账.md', kind: '支线', status: '计划中',
           detail: '支线 · 计划中 · 计划第 6–12 章', warnings: [], tip: '' },
-        { name: '守卫的选择', relPath: '.novelforge/threads/守卫的选择.md', kind: '人物线', status: '已收束', lastActive: 2,
+        { name: '守卫的选择', relPath: '.novelwarden/threads/守卫的选择.md', kind: '人物线', status: '已收束', lastActive: 2,
           detail: '人物线 · 已收束 · 最近第 2 章', warnings: [], tip: '' },
       ],
-      unfiled: { relPath: '.novelforge/threads/未归属的伏笔.md', total: 2, detail: '2 条', warnings: [] },
+      unfiled: { relPath: '.novelwarden/threads/未归属的伏笔.md', total: 2, detail: '2 条', warnings: [] },
     },
     // 故事架构：五件文档 + 情节大纲，顺序即生成顺序。世界观还没写。
     // 角色图谱、设定清单没有自己的文件，relPath 给的是角色目录、设定目录。这棵树已经写了正文，
     // 设定清单算填过（一条条目都没有也照实说 0 条）。
     architecture: [
-      { key: 'config', label: '小说配置', relPath: '.novelforge/config.md', filled: true, detail: '' },
-      { key: 'premise', label: '故事前提', relPath: '.novelforge/premise.md', filled: true, detail: '' },
-      { key: 'characters', label: '角色图谱', relPath: '.novelforge/characters', filled: true, detail: '2 人' },
-      { key: 'world', label: '世界观', relPath: '.novelforge/world.md', filled: false, detail: '待生成' },
-      { key: 'lore', label: '设定清单', relPath: '.novelforge/lore', filled: true, detail: '0 条' },
-      { key: 'outline', label: '情节大纲', relPath: '.novelforge/outline.md', filled: true, detail: '覆盖到第 20 章' },
+      { key: 'config', label: '小说配置', relPath: '.novelwarden/config.md', filled: true, detail: '' },
+      { key: 'premise', label: '故事前提', relPath: '.novelwarden/premise.md', filled: true, detail: '' },
+      { key: 'characters', label: '角色图谱', relPath: '.novelwarden/characters', filled: true, detail: '2 人' },
+      { key: 'world', label: '世界观', relPath: '.novelwarden/world.md', filled: false, detail: '待生成' },
+      { key: 'lore', label: '设定清单', relPath: '.novelwarden/lore', filled: true, detail: '0 条' },
+      { key: 'outline', label: '情节大纲', relPath: '.novelwarden/outline.md', filled: true, detail: '覆盖到第 20 章' },
     ],
     // 章节列表是扁平的，一个章号一行，升序。这棵树没分卷（`volumes` 空、每行 `volume` 是空串），页签照旧平铺；
     // 分卷的画法见 tests/dom/view/volumes.test.js 的 `volumeTree()`。
@@ -531,7 +531,7 @@ function sampleTree() {
       // 第 1 章：写完且定稿过，细纲与正文对得上，还带一份草稿。
       { no: 1, label: '第 1 章《楔子》', title: '楔子', volume: '',
         relPath: 'chapters/001-楔子.md',
-        plotPath: '.novelforge/summaries/001-楔子.md', plotExists: true,
+        plotPath: '.novelwarden/summaries/001-楔子.md', plotExists: true,
         chapterPath: 'chapters/001-楔子.md',
         wordCount: 300, stale: false,
         stage: 'done', upstreamStale: false,
@@ -541,7 +541,7 @@ function sampleTree() {
       // 整理一份落在那里）。写够了目标字数、还没定稿 → 待定稿。
       { no: 2, label: '第 2 章《入镇》', title: '入镇', volume: '',
         relPath: 'chapters/002-入镇.md',
-        plotPath: '.novelforge/summaries/002-入镇.md', plotExists: false,
+        plotPath: '.novelwarden/summaries/002-入镇.md', plotExists: false,
         chapterPath: 'chapters/002-入镇.md',
         wordCount: 2980, targetWords: 3000, stale: true,
         stage: 'finalize', upstreamStale: false,
@@ -550,7 +550,7 @@ function sampleTree() {
       // 第 3 章：写完且定稿过。
       { no: 3, label: '第 3 章《夜访》', title: '夜访', volume: '',
         relPath: 'chapters/003-夜访.md',
-        plotPath: '.novelforge/summaries/003-夜访.md', plotExists: true,
+        plotPath: '.novelwarden/summaries/003-夜访.md', plotExists: true,
         chapterPath: 'chapters/003-夜访.md',
         wordCount: 300, stale: false,
         stage: 'done', upstreamStale: false,
@@ -559,8 +559,8 @@ function sampleTree() {
       // 第 4 章：细纲排好了、正文还没写（目标 3000 字）；情节大纲里覆盖它的那一节
       // 在细纲之后改过（⟳）。它就是 nextChapterNo——主路径因此是细纲。
       { no: 4, label: '第 4 章《北行》', title: '北行', volume: '',
-        relPath: '.novelforge/summaries/004-北行.md',
-        plotPath: '.novelforge/summaries/004-北行.md', plotExists: true,
+        relPath: '.novelwarden/summaries/004-北行.md',
+        plotPath: '.novelwarden/summaries/004-北行.md', plotExists: true,
         chapterPath: '',
         wordCount: 0, targetWords: 3000, stale: false,
         stage: 'manuscript', upstreamStale: true,
@@ -568,8 +568,8 @@ function sampleTree() {
         progress: { plot: 1, manuscript: 0, summary: 0 } },
       // 第 5 章：细纲只有一个骨架（「关键事件」是空的）→ 待写细纲。
       { no: 5, label: '第 5 章《赤星》', title: '赤星', volume: '',
-        relPath: '.novelforge/summaries/005-赤星.md',
-        plotPath: '.novelforge/summaries/005-赤星.md', plotExists: true,
+        relPath: '.novelwarden/summaries/005-赤星.md',
+        plotPath: '.novelwarden/summaries/005-赤星.md', plotExists: true,
         chapterPath: '',
         wordCount: 0, stale: false,
         stage: 'plot', upstreamStale: false,
@@ -577,10 +577,10 @@ function sampleTree() {
         progress: { plot: 0, manuscript: 0, summary: 0 } },
     ],
     characters: [
-      { kind: 'dir', label: '配角', relPath: '.novelforge/characters/配角', fileCount: 1, children: [
-        { kind: 'file', label: '李叔', relPath: '.novelforge/characters/配角/李叔.md', detail: '' },
+      { kind: 'dir', label: '配角', relPath: '.novelwarden/characters/配角', fileCount: 1, children: [
+        { kind: 'file', label: '李叔', relPath: '.novelwarden/characters/配角/李叔.md', detail: '' },
       ] },
-      { kind: 'file', label: '林昭', relPath: '.novelforge/characters/林昭.md', detail: '主角' },
+      { kind: 'file', label: '林昭', relPath: '.novelwarden/characters/林昭.md', detail: '主角' },
     ],
     lore: [],
     // 设定名录（views/lore.ts）：这棵树没有设定条目，定稿里也没出现过——三样都是空的。
@@ -594,10 +594,10 @@ function sampleTree() {
     castConflicts: [],
     // 林昭出场三章、上次只更新到第 1 章 → 待更新 2 章；李叔从没在定稿过的细纲里出现。
     castByCard: {
-      '.novelforge/characters/林昭.md': {
+      '.novelwarden/characters/林昭.md': {
         plots: [1, 2, 3], detail: '第 1、2、3 章', updatedThrough: 1, pending: 2,
       },
-      '.novelforge/characters/配角/李叔.md': {
+      '.novelwarden/characters/配角/李叔.md': {
         plots: [], detail: '未在定稿中出现', updatedThrough: 0, pending: 0,
       },
     },

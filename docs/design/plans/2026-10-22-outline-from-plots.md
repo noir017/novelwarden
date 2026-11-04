@@ -55,7 +55,7 @@
 - 新工程不建 `outline.md`。
 - VS Code 壳：情节大纲开在一个虚拟文件系统（`novelforge:` scheme）上，读写同样经网关。
 - 示例工程：删掉 `outline.md`，第 5–10 章改成空壳，第 1–4 章的梗概收成大纲那一条（指纹重算）。
-- 外部的 autopilot 脚本（`skills/novelforge-autopilot`）算覆盖到第几章改成扫细纲的梗概。
+- 外部的 autopilot 脚本（`skills/novelwarden-autopilot`）算覆盖到第几章改成扫细纲的梗概。
 - 历史版本、存档点不管 `outline.md`（它没有字节）：存回去时改了的每份细纲各自存历史，细纲在存档点里就退得回。
 - 新的一份一条章标题都认不出（旧格式、散文式）却要整份换掉有条目的大纲：拒，不写（照拆会把空壳全删掉）。
 

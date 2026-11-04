@@ -44,14 +44,14 @@ before(async () => {
   t.write('chapters/009-北行.md', '# 北行\n\n「我从没去过北境。」他说。\n那年他十七。\n');
   t.write('chapters/003-楔子.md', '# 楔子\n\n雨下了三天。\n北境的雪他见过三回。\n');
   t.write(
-    '.novelforge/summaries/012-入宗.md',
+    '.novelwarden/summaries/012-入宗.md',
     '## 梗概\n\n翻墙进宗门\n\n## 关键事件\n\n山门外等到天黑，三拍\n\n## 看点\n\n令牌\n'
   );
   // 100 行的长文件，用来逼出 read 的行数截断。
   t.write('chapters/020-长章.md', Array.from({ length: 100 }, (_, i) => `第 ${i + 1} 行`).join('\n'));
   // 80 个角色卡：逼出 list 的 60 项上限。
   for (let i = 1; i <= 80; i++) {
-    t.write(`.novelforge/characters/角色${String(i).padStart(2, '0')}.md`, `# 角色${i}\n`);
+    t.write(`.novelwarden/characters/角色${String(i).padStart(2, '0')}.md`, `# 角色${i}\n`);
   }
   project.invalidate();
 
@@ -84,7 +84,7 @@ describe('list', () => {
   });
 
   test('目录带斜杠后缀，与文件分得开', async () => {
-    const r = await run(toolOf('list'), { path: '.novelforge' });
+    const r = await run(toolOf('list'), { path: '.novelwarden' });
     assert.ok(r.text.includes('summaries/'), r.text);
   });
 
@@ -95,19 +95,19 @@ describe('list', () => {
 
   // 不静默截断。
   test('超 60 项时说明「还有 N 项未列出」', async () => {
-    const r = await run(toolOf('list'), { path: '.novelforge/characters' });
+    const r = await run(toolOf('list'), { path: '.novelwarden/characters' });
     assert.ok(/还有 \d+ 项未列出/.test(r.text), r.text.slice(-200));
   });
 
   test('截断时只列 60 项', async () => {
-    const r = await run(toolOf('list'), { path: '.novelforge/characters' });
+    const r = await run(toolOf('list'), { path: '.novelwarden/characters' });
     const shown = r.text.split('\n').filter((l) => l.includes('.md')).length;
     assert.equal(shown, 60, String(shown));
   });
 
   test('总数写在开头', async () => {
-    const r = await run(toolOf('list'), { path: '.novelforge/characters' });
-    assert.ok(r.text.startsWith('.novelforge/characters（80 项）'), r.text.slice(0, 60));
+    const r = await run(toolOf('list'), { path: '.novelwarden/characters' });
+    assert.ok(r.text.startsWith('.novelwarden/characters（80 项）'), r.text.slice(0, 60));
   });
 
   // 越界不抛：这条路上的输入来自模型，它会猜路径。
@@ -213,7 +213,7 @@ describe('search', () => {
   test('kinds 限定生效', async () => {
     const r = await run(toolOf('search'), { pattern: '山门', kinds: ['plot'] });
     assert.ok(!r.text.includes('chapters/'), r.text);
-    assert.ok(r.text.includes('.novelforge/summaries/'), r.text);
+    assert.ok(r.text.includes('.novelwarden/summaries/'), r.text);
   });
 
   test('认不出的 kinds 当没限定，不是搜出空结果', async () => {
@@ -222,7 +222,7 @@ describe('search', () => {
   });
 
   test('path 限定生效', async () => {
-    const r = await run(toolOf('search'), { pattern: '山门', path: '.novelforge/summaries' });
+    const r = await run(toolOf('search'), { pattern: '山门', path: '.novelwarden/summaries' });
     assert.ok(!r.text.includes('chapters/'), r.text);
   });
 

@@ -33,7 +33,7 @@ const finished = [];
 const pad3 = (n) => String(n).padStart(3, '0');
 const TITLES = ['停舟', '令牌', '夜访', '井', '名册'];
 const CH = (no) => `chapters/${pad3(no)}-${TITLES[no - 1]}.txt`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
 
 /**
  * 按执行卡里重列的必需事件认是第几章在写（续写那几轮另有契约）。每章的关键事件都以
@@ -146,7 +146,7 @@ async function fresh(prefix, { written = [], blank = [] } = {}) {
     concurrency: 4,
   };
   const t = await makeTempProject(bundle.project, { prefix, title: '批量写章' });
-  t.write('.novelforge/config.md', '---\ntotalChapters: 10\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
+  t.write('.novelwarden/config.md', '---\ntotalChapters: 10\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
   const ws = new bundle.ws.Workspace(t.project);
   for (let no = 1; no <= 5; no++) {
     await ws.writePlot({
@@ -161,7 +161,7 @@ async function fresh(prefix, { written = [], blank = [] } = {}) {
   for (const no of written) {
     t.write(CH(no), `# ${TITLES[no - 1]}\n\n作者自己写的第 ${no} 章。\n`);
   }
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿\n\n## 当前状态\n\n（待补充）\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿\n\n## 当前状态\n\n（待补充）\n');
   t.project.invalidate();
   fake.reset();
   h.toasts.length = 0;
@@ -269,7 +269,7 @@ describe('写完即定稿；已有正文的跳过；弹窗确认过的不再问'
   });
 
   test('角色状态更新到第 3 章', () => {
-    assert.match(t.read('.novelforge/characters/林昭.md'), /stateThrough: 3/);
+    assert.match(t.read('.novelwarden/characters/林昭.md'), /stateThrough: 3/);
   });
 
   test('完成提示说定稿了几章', () => {
@@ -538,8 +538,8 @@ describe('边写边拆细纲：大纲覆盖之内没细纲的章，写到时先�
       'check', 'write:4', 'summary', 'state', 'events', 'time',
     ]);
     // 一条线都没排：叙事线目录里只有同步时推出来的时间线。
-    assert.ok(!t.has('.novelforge/threads/未归属的伏笔.md'));
-    assert.ok(t.has('.novelforge/threads/时间线.md'));
+    assert.ok(!t.has('.novelwarden/threads/未归属的伏笔.md'));
+    assert.ok(t.has('.novelwarden/threads/时间线.md'));
   });
 
   test('拆细纲的时候看得见前面定稿的连续性事实', () => {
@@ -588,7 +588,7 @@ describe('全文大纲增量更新', () => {
     const r = await bundle.summarize.updateGlobalSummary(t.project, runner);
     assert.deepEqual(r, { calls: 1, through: 2 });
     assert.match(users[0], /第 1–2 章定稿过的逐章细纲/);
-    assert.match(t.read('.novelforge/summaries/global.md'), /through: 2[\s\S]*第 1 版：林昭一路丢玉佩/);
+    assert.match(t.read('.novelwarden/summaries/global.md'), /through: 2[\s\S]*第 1 版：林昭一路丢玉佩/);
   });
 
   test('之后只并入新定稿的章，旧的全文大纲一起带上；没有新章就零调用', async () => {
@@ -606,16 +606,16 @@ describe('全文大纲增量更新', () => {
 
   // 全文大纲（原全书摘要）只剩「主线进展」：老文件里另外三节当认不出的小节，留在文件里、不交给模型，下一版只写主线。
   test('老格式（全书摘要四节）：另外三节不读、不交给模型，文件里还在', async () => {
-    const old = t.read('.novelforge/summaries/global.md').replace(
+    const old = t.read('.novelwarden/summaries/global.md').replace(
       /\n*$/,
       '\n\n## 已收伏笔\n\n- 玉佩之谜（第 1 章）\n\n## 未收伏笔\n\n- 断剑之谜\n\n## 人物关系变动\n\n- 林昭与沈青结盟\n'
     );
-    t.write('.novelforge/summaries/global.md', old);
+    t.write('.novelwarden/summaries/global.md', old);
     t.project.invalidate();
     const read = await t.project.readGlobalSummary();
     assert.match(read, /## 主线进展[\s\S]*第 2 版：林昭一路丢玉佩/);
     assert.doesNotMatch(read, /已收伏笔|断剑之谜|人物关系变动|林昭与沈青结盟/);
-    assert.match(t.read('.novelforge/summaries/global.md'), /## 未收伏笔\n\n- 断剑之谜/);
+    assert.match(t.read('.novelwarden/summaries/global.md'), /## 未收伏笔\n\n- 断剑之谜/);
     await bundle.batch.writeManuscripts(t.project, { range: { from: 4, to: 4 }, mode: 'finalize', call: {} });
     const r = await bundle.summarize.updateGlobalSummary(t.project, runner);
     assert.deepEqual(r, { calls: 1, through: 4 });
@@ -624,7 +624,7 @@ describe('全文大纲增量更新', () => {
   });
 
   test('模板与写回的文件：H1 是「全文大纲」，只有「主线进展」一节', () => {
-    const text = t.read('.novelforge/summaries/global.md');
+    const text = t.read('.novelwarden/summaries/global.md');
     assert.match(text, /\n# 全文大纲\n\n## 主线进展\n/);
     assert.doesNotMatch(text, /未收伏笔|人物关系变动/);
   });
@@ -818,7 +818,7 @@ function scheduleShenQiu(t, state, through = 0) {
       '## 关键事件', '', '第 2 章林昭查到一点东西。', '', '## 看点', '', '第 2 章结尾：又一个人不见了。', '',
     ].join('\n')
   );
-  t.write('.novelforge/characters/沈秋.md', `---\nname: 沈秋\nstateThrough: ${through}\n---\n\n# 沈秋\n\n## 当前状态\n\n${state}\n`);
+  t.write('.novelwarden/characters/沈秋.md', `---\nname: 沈秋\nstateThrough: ${through}\n---\n\n# 沈秋\n\n## 当前状态\n\n${state}\n`);
   t.project.invalidate();
 }
 
@@ -874,7 +874,7 @@ describe('一致性预检：开跑之前查一遍，有问题先问', () => {
   test('没有卡的人：靠前面定稿的连续性事实认出来，停在那一章前面', async () => {
     const t = await fresh('wb-preflight-fact');
     scheduleShenQiu(t, '');
-    t.remove('.novelforge/characters/沈秋.md');
+    t.remove('.novelwarden/characters/沈秋.md');
     // 第 1 章也排着沈秋：他死在这一章（不算提前登场）。
     t.write(PLOT(1), t.read(PLOT(1)).replace('## 出场人物\n\n林昭\n', '## 出场人物\n\n林昭、沈秋\n'));
     t.project.invalidate();
@@ -924,7 +924,7 @@ describe('开写之前补建角色卡：定稿过的细纲里出场两章以上�
   });
 
   test('先建卡再写：老周有了卡，第 3 章写了', () => {
-    assert.ok(t.has('.novelforge/characters/老周.md'));
+    assert.ok(t.has('.novelwarden/characters/老周.md'));
     assert.ok(t.has(CH(3)));
   });
 });

@@ -23,8 +23,8 @@ const L = {
     tag: '细纲',
     title: '003-夜访',
     crumbs: [
-      { label: '细纲', dir: '.novelforge/summaries' },
-      { label: '第一卷', dir: '.novelforge/summaries/第一卷' },
+      { label: '细纲', dir: '.novelwarden/summaries' },
+      { label: '第一卷', dir: '.novelwarden/summaries/第一卷' },
       { label: '第 3 章 夜访' },
     ],
   },
@@ -51,7 +51,7 @@ describe('标签：同一章的三份分得清', { skip: JSDOM_SKIP }, () => {
   before(() => {
     ui = mount({ body: 'standalone', scripts: ['view.js', 'editor.js'], shims: ['pointerCapture', 'confirm', 'scrollIntoView'] });
     open(ui, 'chapters/003-夜访.md', L.ch3);
-    open(ui, '.novelforge/summaries/第一卷/003-夜访.md', L.plot3);
+    open(ui, '.novelwarden/summaries/第一卷/003-夜访.md', L.plot3);
     open(ui, 'drafts/003-夜访.md', L.draft3);
   });
 
@@ -70,7 +70,7 @@ describe('标签：同一章的三份分得清', { skip: JSDOM_SKIP }, () => {
   test('悬停提示是完整的相对路径', () => {
     assert.deepEqual(
       tabs().map((t) => t.title),
-      ['chapters/003-夜访.md', '.novelforge/summaries/第一卷/003-夜访.md', 'drafts/003-夜访.md']
+      ['chapters/003-夜访.md', '.novelwarden/summaries/第一卷/003-夜访.md', 'drafts/003-夜访.md']
     );
   });
 
@@ -121,7 +121,7 @@ describe('工具栏面包屑', { skip: JSDOM_SKIP }, () => {
       scripts: ['view.js', 'editor.js', 'explorer.js'],
       shims: ['pointerCapture', 'confirm', 'scrollIntoView', 'clipboard'],
     });
-    open(ui, '.novelforge/summaries/第一卷/003-夜访.md', L.plot3);
+    open(ui, '.novelwarden/summaries/第一卷/003-夜访.md', L.plot3);
   });
 
   test('写成「细纲 › 第一卷 › 第 3 章 夜访」', () => {
@@ -129,7 +129,7 @@ describe('工具栏面包屑', { skip: JSDOM_SKIP }, () => {
   });
 
   test('原始相对路径在悬停提示上', () => {
-    assert.equal(path().title, '.novelforge/summaries/第一卷/003-夜访.md');
+    assert.equal(path().title, '.novelwarden/summaries/第一卷/003-夜访.md');
   });
 
   test('目录段是按钮，文件那一段不是', () => {
@@ -143,21 +143,21 @@ describe('工具栏面包屑', { skip: JSDOM_SKIP }, () => {
     assert.ok(ui.doc.getElementById('pane-files').classList.contains('active'), '没切到文件页');
     assert.equal(ui.last('switchTab')?.tab, 'files');
     const dirs = ui.last('listDir')?.dirs ?? [];
-    for (const dir of ['.novelforge', '.novelforge/summaries', '.novelforge/summaries/第一卷']) {
+    for (const dir of ['.novelwarden', '.novelwarden/summaries', '.novelwarden/summaries/第一卷']) {
       assert.ok(dirs.includes(dir), `${dir} 没展开：${JSON.stringify(dirs)}`);
     }
   });
 
   test('目录列出来之后那一行标出来', () => {
     ui.post({ type: 'dirListings', listings: [
-      listing('', { '.novelforge': 'dir' }),
-      listing('.novelforge', { summaries: 'dir' }),
-      listing('.novelforge/summaries', { 第一卷: 'dir' }),
-      listing('.novelforge/summaries/第一卷', { '003-夜访.md': 'file' }),
+      listing('', { '.novelwarden': 'dir' }),
+      listing('.novelwarden', { summaries: 'dir' }),
+      listing('.novelwarden/summaries', { 第一卷: 'dir' }),
+      listing('.novelwarden/summaries/第一卷', { '003-夜访.md': 'file' }),
     ] });
     const row = ui.doc.querySelector('#filesBody .fx-row.fx-revealed');
     assert.ok(row, '没有标出来的行');
-    assert.equal(row.dataset.path, '.novelforge/summaries/第一卷');
+    assert.equal(row.dataset.path, '.novelwarden/summaries/第一卷');
   });
 
   test('章节那一段的标题取章节索引（有正文的章改了标题、文件名不动时，与章节条、「转到…」说的一样）', () => {
@@ -165,7 +165,7 @@ describe('工具栏面包屑', { skip: JSDOM_SKIP }, () => {
     assert.deepEqual(segs(), ['正文', '›', '第 3 章 夜访']);
     ui.post({ type: 'chapterIndex', chapters: [{
       no: 3, label: '第 3 章《夜半来客》', title: '夜半来客', relPath: 'chapters/003-夜访.md',
-      plotPath: '.novelforge/summaries/003-夜访.md', plotExists: true, chapterPath: 'chapters/003-夜访.md',
+      plotPath: '.novelwarden/summaries/003-夜访.md', plotExists: true, chapterPath: 'chapters/003-夜访.md',
       wordCount: 300, stage: 'finalize',
     }] });
     assert.deepEqual(segs(), ['正文', '›', '第 3 章 夜半来客']);
@@ -174,8 +174,8 @@ describe('工具栏面包屑', { skip: JSDOM_SKIP }, () => {
   });
 
   test('后端没给称呼：只写原始路径一段，不能点', () => {
-    ui.post({ type: 'editorOpen', file: file('.novelforge/project.json', '{}') });
-    assert.deepEqual(segs(), ['.novelforge/project.json']);
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/project.json', '{}') });
+    assert.deepEqual(segs(), ['.novelwarden/project.json']);
     assert.equal(path().querySelectorAll('button').length, 0);
   });
 });
@@ -253,7 +253,7 @@ describe('「▾」：两块编辑区开着的文件与最近关闭', { skip: JS
     ui = mount({ body: 'standalone', scripts: ['view.js', 'editor.js'], shims: ['pointerCapture', 'confirm', 'scrollIntoView'] });
     open(ui, 'chapters/003-夜访.md', L.ch3);
     open(ui, 'notes.txt', undefined);
-    open(ui, '.novelforge/summaries/第一卷/003-夜访.md', L.plot3, { pane: 'draft' });
+    open(ui, '.novelwarden/summaries/第一卷/003-夜访.md', L.plot3, { pane: 'draft' });
     // 左边的正文改一笔：列表里要标出来。
     ui.clickEl(ui.panes()[0].querySelectorAll('.ed-tab')[0]);
     const area = ui.doc.getElementById('edArea');
@@ -289,7 +289,7 @@ describe('「▾」：两块编辑区开着的文件与最近关闭', { skip: JS
     const events = [];
     ui.window.addEventListener('nf-editor-active', (e) => events.push(e.detail.path));
     ui.clickEl(btn(openMenu(), '细纲 003-夜访'));
-    assert.equal(events.pop(), '.novelforge/summaries/第一卷/003-夜访.md');
+    assert.equal(events.pop(), '.novelwarden/summaries/第一卷/003-夜访.md');
     assert.equal(ui.doc.querySelector('.ctx-menu'), null, '菜单没收起');
   });
 

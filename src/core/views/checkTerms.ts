@@ -4,7 +4,7 @@
  * {@link readBannedTerms}，同一个函数、同一份输入，编辑器里标出来的与写完一章之后数的不会是两份词表。
  *
  * 读了哪些盘：`style.md`（一次）、`config.md`（调用方给了 `book` 就不读——controller 构建 `ViewState` 时那趟
- * 流水线索引已经读过）、`.novelforge/sensitive.txt`（一次，没有就是没有）。controller 每次 `pushState` 都调，
+ * 流水线索引已经读过）、`.novelwarden/sensitive.txt`（一次，没有就是没有）。controller 每次 `pushState` 都调，
  * 内容没变就不推（`controller/check.ts`）。
  */
 import { NovelProject } from '../model/project';

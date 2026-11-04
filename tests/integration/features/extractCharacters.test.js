@@ -65,7 +65,7 @@ describe('提取角色：笔记不进语料，称谓不建卡', () => {
     ]);
     await bundle.characters.extractCharacters(project);
     corpus = fake.calls[0]?.at(-1)?.content ?? '';
-    files = fs.readdirSync(t.rel('.novelforge/characters')).sort();
+    files = fs.readdirSync(t.rel('.novelwarden/characters')).sort();
     card = (await project.listCharacters()).find((c) => c.name === '韩厉');
     confirms = h.confirms.map((c) => c.message);
   });

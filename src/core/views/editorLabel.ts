@@ -11,7 +11,7 @@
  * | 种类 | 短标记 | 标签上的名字 | 面包屑 |
  * |---|---|---|---|
  * | 正文 `chapters/第一卷/003-夜访.md` | （不带） | 003-夜访 | 正文 › 第一卷 › 第 3 章 夜访 |
- * | 细纲 `.novelforge/summaries/第一卷/003-夜访.md` | 细纲 | 003-夜访 | 细纲 › 第一卷 › 第 3 章 夜访 |
+ * | 细纲 `.novelwarden/summaries/第一卷/003-夜访.md` | 细纲 | 003-夜访 | 细纲 › 第一卷 › 第 3 章 夜访 |
  * | 草稿 `drafts/003-夜访.md` | 草稿 | 003-夜访 | 草稿 › 第 3 章 夜访 |
  * | 角色 / 设定 | 角色 / 设定 | 林晚 | 角色 › 配角 › 林晚 |
  * | 架构三件、情节大纲 | （不带） | 小说配置 / 情节大纲 | 故事架构 › 小说配置 |
@@ -120,7 +120,7 @@ function fixed(rel: string, group: string, title: string): EditorFileLabel {
 function skillLabel(project: NovelProject, rel: string, base: string): EditorFileLabel {
   const root = project.relPath(project.skillsDir);
   if (!root || !rel.startsWith(`${root}/`)) {
-    // 阶段绑定那一份（`.novelforge/skills.json`）。
+    // 阶段绑定那一份（`.novelwarden/skills.json`）。
     return { tag: AREA_LABEL.skill, title: '技能绑定', crumbs: [{ label: AREA_LABEL.skill, dir: root }, { label: '技能绑定' }] };
   }
   // `skills/<名字>/SKILL.md` 叫那个名字；技能目录里别的文件叫自己的文件名。

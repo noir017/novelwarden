@@ -30,8 +30,8 @@ const GATE = {
   callId: 'c1',
   name: 'write',
   title: 'Agent 要写入设定「北境雪原」',
-  detail: '.novelforge/lore/北境雪原.md · 新建 · 约 320 字',
-  argsText: '{\n  "path": ".novelforge/lore/北境雪原.md"\n}',
+  detail: '.novelwarden/lore/北境雪原.md · 新建 · 约 320 字',
+  argsText: '{\n  "path": ".novelwarden/lore/北境雪原.md"\n}',
   proceed: '确认',
   skip: '跳过',
 };

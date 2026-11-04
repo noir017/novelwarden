@@ -1,11 +1,11 @@
-# Novel Forge 独立 Web 程序设计
+# Novelwarden 独立 Web 程序设计
 
 日期：2026-08-04
 状态：已评审通过
 
 ## 背景与目标
 
-Novel Forge 当前是 VS Code 插件，但核心能力（章节数据层、上下文预算构建、LLM 续写/总结/角色提取、对话会话管理）并不真正依赖 VS Code。本设计把它改造为**双形态共存**：
+Novelwarden 当前是 VS Code 插件，但核心能力（章节数据层、上下文预算构建、LLM 续写/总结/角色提取、对话会话管理）并不真正依赖 VS Code。本设计把它改造为**双形态共存**：
 
 1. 保留 VS Code 插件形态（现有用户不丢失）；
 2. 新增独立程序形态：Bun 打包、启动本地 Web 服务、浏览器里操作，类似 opencode 的使用方式。
@@ -151,7 +151,7 @@ novelforge init [dir]   # 交互式初始化小说工程（复用 core 的 initi
 
 - **插件壳**：维持现有 esbuild 流程，入口改为 `src/vscode/extension.ts` → `dist/extension.js`，`vsce package` 不受影响。
 - **独立壳**：`bun build src/standalone/cli.ts --compile` 产出单文件可执行（`novelforge.exe` / `novelforge`）；`media/` 资源通过 bun compile 的 asset 机制内嵌，分发即单文件。
-- **npm 包**：同一 bun 构建产物 + `bin: { "novelforge": ... }`；`bun install -g novel-forge-cli` 或 `bunx novel-forge-cli` 可用。
+- **npm 包**：同一 bun 构建产物 + `bin: { "novelforge": ... }`；`bun install -g novelwarden-cli` 或 `bunx novelwarden-cli` 可用。
 - README 给出两条安装路：GitHub Release 下载可执行文件（推荐）与 bun 安装。
 - CI 发布流水线不在本次范围；先保证本地 `npm run build:standalone` 可复现两条产物。
 

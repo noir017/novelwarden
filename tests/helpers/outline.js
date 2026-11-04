@@ -45,7 +45,7 @@ function entriesOf(text) {
 
 /** 只有标题与梗概的一份细纲（与网关拆大纲时建的空壳同一个样子，只是不带空的那几节）。 */
 function stubOf({ no, title, text }) {
-  return `---\nno: ${no}\ntitle: ${title}\ngeneratedBy: novel-forge\n---\n\n# 第${no}章${title ? ` ${title}` : ''}\n\n## 梗概\n\n${text}\n`;
+  return `---\nno: ${no}\ntitle: ${title}\ngeneratedBy: novelwarden\n---\n\n# 第${no}章${title ? ` ${title}` : ''}\n\n## 梗概\n\n${text}\n`;
 }
 
 /**
@@ -54,7 +54,7 @@ function stubOf({ no, title, text }) {
  * （与网关存大纲时同一个口径）。`t` 是 tmpProject 的路径助手（`write` / `rel`）；章节根按缺省的 `chapters/` 认。
  */
 function writeOutline(t, text) {
-  const dir = t.rel('.novelforge/summaries');
+  const dir = t.rel('.novelwarden/summaries');
   const existing = fs.existsSync(dir) ? listDeep(dir) : [];
   const chaptersDir = t.rel('chapters');
   const chapters = fs.existsSync(chaptersDir) ? listDeep(chaptersDir, () => true) : [];
@@ -65,7 +65,7 @@ function writeOutline(t, text) {
       const mirror = chapter
         ? path.relative(chaptersDir, chapter).split(path.sep).join('/').replace(/\.[^./]*$/, '') + '.md'
         : `${String(e.no).padStart(3, '0')}.md`;
-      t.write(`.novelforge/summaries/${mirror}`, stubOf(e));
+      t.write(`.novelwarden/summaries/${mirror}`, stubOf(e));
       continue;
     }
     const raw = fs.readFileSync(hit, 'utf8');

@@ -32,7 +32,7 @@
 | [plotCheck.ts](plotCheck.ts) | 写前冲突检查的选事实、提示词与校验：只认硬矛盾，每一处都要带两句能在原文里找到的引文。 |
 | [preflight.ts](preflight.ts) | ★ 一致性预检：细纲排出场的人在卡上或连续性事实里已经死了 → 一条风险。 |
 | [manuscriptCheck.ts](manuscriptCheck.ts) | 写完一章之后的确定性检查（禁用词、停在半句、比喻词计数）与续写回退点。 |
-| [sensitiveWords.ts](sensitiveWords.ts) | 自定义敏感词表 `.novelforge/sensitive.txt` 的解析（写作体检用），坏行跳过并记原因。 |
+| [sensitiveWords.ts](sensitiveWords.ts) | 自定义敏感词表 `.novelwarden/sensitive.txt` 的解析（写作体检用），坏行跳过并记原因。 |
 | [trimProse.ts](trimProse.ts) | 删修饰的纯函数：切段编号、读回 `[n] 正文`、只许删的逐段验收（`trimProblem`：新增汉字按字 LCS 算、对白一字不差、删完至少留四成、段尾标点不变）、拼回正文并按八成保底退回删得最多的段（`applyTrim`）。纯函数、零 import。 |
 | [paragraphFormat.ts](paragraphFormat.ts) | ★ **正文的分段格式与一键排版**（`paragraphStyle` 三个值，`formatProse` / `layoutProse`）。 |
 | [textFind.ts](textFind.ts) | 查找替换的匹配口径（编正则、找全部匹配、`$1` 展开、只换选中的几处），编辑器查找条与全书查找替换共用。 |
@@ -47,7 +47,7 @@
 | [callChoice.ts](callChoice.ts) | 调模型之前那一问的两个下拉框：`CallChoice` / `CallPrompt` / `CallAnswer`。 |
 | [thinking.ts](thinking.ts) | ★ **思考深度**的档位表与两家的字段映射；「不思考」不带任何思考参数。 |
 | [contextDetail.ts](contextDetail.ts) | ★ **上下文详细度**四级与每一级的全部上限；`contextLimitsOf(config)` 是唯一的取法。 |
-| [session.ts](session.ts) | 对话会话存储 `.novelforge/sessions/<id>.json`：创作目标、@ 引用、上下文明细快照的序列化与旧会话归一。 |
+| [session.ts](session.ts) | 对话会话存储 `.novelwarden/sessions/<id>.json`：创作目标、@ 引用、上下文明细快照的序列化与旧会话归一。 |
 
 ## 关键设计
 
@@ -56,7 +56,7 @@
 - **章节认任意扩展名，角色/设定只认 `.md`**：章节的判定在 `chapterFile.ts`——数字前缀 + 非二进制扩展名，所以 `001-楔子.txt`、`001-楔子`（无扩展名）、`004.json` 都是章节，`001-封面.png` 不是，`047 细纲.txt`、`048 作话.txt` 这种整个标题就是笔记词的也不是。角色卡与设定条目是插件自己的数据格式（frontmatter + 固定小节），不跟着放宽；`listFilesDeep` 收 accept 回调，两类各传各的。
 - **顺序只看序号，一条轴**：章节顺序由文件名数字前缀决定，与所在层级无关；`卷一/003-x.md` 与 `003-x.md` 都是「第 3 章」。细纲号就是章号，但配对按路径：有正文的章只认正文镜像的那份细纲（`NovelProject.plotFor`），还没有正文的章按号认计划。序号撞车时两条都留在树上，让作者看见冲突，流水线认路径排序第一份正文。
 - **只有 markdown 家族解析 H1**：`.md`/`.markdown` 的章节标题取自正文首行的 `# 标题`（`readChapterText` 会剥掉），其余格式一律取文件名、正文一个字节不动。`extractH1` 与 `stripH1` **都只看首行、互为逆运算**——早先 `extractH1` 带 `m` 标志扫全文，会把 `.txt` 正文中段的一行 `# xxx` 认成标题却不剥掉它。改这两个函数时务必保持互逆。（副作用：角色卡/设定条目里 `# 名字` 不在首行时，标题现在回落 `frontmatter.name` → 文件名。）
-- **草稿与细纲都按章节路径镜像**：`chapters/第一卷/012-夜入.txt` → `drafts/第一卷/012-夜入.txt`（文件名原样）、`.novelforge/summaries/第一卷/012-夜入.md`（扩展名换成 `.md`），不落索引——没有索引就没有会漂移的第二份真相。章节（文件或整个卷目录）经网关改名/移动时草稿与细纲跟着搬（`workspace/handlers/chapter.ts` 的 `carryDraft` / `carryPlot`；移出 `chapters/` 就留在原处），单章改名时细纲里的标题也跟着改成新名（`Workspace.retitlePlot`，只改标题两行；作者在细纲上另起过的不动），删章节两样都不删（第 10 条；细纲退回这一章的计划）；在外面直接给正文改名，旧细纲不被新路径冒认（那是一章新的）。细纲改名改的是标题：没有正文时文件名跟着标题，有正文时文件名跟着正文不动；正文从不跟着细纲改名（作者的文件）。照细纲新写正文时正文落在细纲所在的子目录，纯序号的细纲（`030.md`）配上有标题的正文会跟着改名（`Workspace.createChapterAt`）。目标已存在时**不动**（不静默覆盖）。
+- **草稿与细纲都按章节路径镜像**：`chapters/第一卷/012-夜入.txt` → `drafts/第一卷/012-夜入.txt`（文件名原样）、`.novelwarden/summaries/第一卷/012-夜入.md`（扩展名换成 `.md`），不落索引——没有索引就没有会漂移的第二份真相。章节（文件或整个卷目录）经网关改名/移动时草稿与细纲跟着搬（`workspace/handlers/chapter.ts` 的 `carryDraft` / `carryPlot`；移出 `chapters/` 就留在原处），单章改名时细纲里的标题也跟着改成新名（`Workspace.retitlePlot`，只改标题两行；作者在细纲上另起过的不动），删章节两样都不删（第 10 条；细纲退回这一章的计划）；在外面直接给正文改名，旧细纲不被新路径冒认（那是一章新的）。细纲改名改的是标题：没有正文时文件名跟着标题，有正文时文件名跟着正文不动；正文从不跟着细纲改名（作者的文件）。照细纲新写正文时正文落在细纲所在的子目录，纯序号的细纲（`030.md`）配上有标题的正文会跟着改名（`Workspace.createChapterAt`）。目标已存在时**不动**（不静默覆盖）。
 - **`deletePlot` 不碰 `chapters/`**：删细纲只是放弃这一章的规划稿（定稿过的连同档案一起进回收站），正文是作者的东西，不该被顺手带走。
 - **新建只出序号名**：`writePlot` / `createChapter` 的 `title` 允许为空，那时落成 `007.md` 且不写 H1——手工新建一章时还没有标题可言，凭空塞一个「第7章」进文件名只是个假标题，而它会进上下文。为此有个 `safeStem`：**空标题给空串，不给 `sanitizeFileName` 的兜底名「未命名」**，否则会得到 `007-未命名.md`。标题回落链（`extractH1` → 文件名词干 → `第 N 章`）本来就认这种名；界面上的说法统一走 `pipeline.ts` 的 `chapterLabel`，未命名时只报序号。写 H1 时用的是**清洗后的词干**而不是原样 `title`，两者一致，改名时 `renamedBody` 才认得出「这个 H1 是跟着文件名走的」。
 - **正文依据的细纲指纹记在细纲上**：章节可以是 `.txt` / 无扩展名 / `.json`，是作者的东西、没有 frontmatter，所以「这份正文依据的是哪一版细纲」记在细纲自己的 frontmatter（`writtenFrom`），由正文落盘那一步写（`workspace.recordWrittenFrom`），定稿时刷成反向更新之后的指纹——之后再改细纲，正文才挂 ⟳。定稿时正文的 `contentHash` 记在同一份 frontmatter 的 `sourceHash` 上。从没记过（作者手写的正文）就永不标脏。老工程 `manuscripts/` 里的中转站正文、`plots/` 里的老细纲一个字节都不动，代码不再读。

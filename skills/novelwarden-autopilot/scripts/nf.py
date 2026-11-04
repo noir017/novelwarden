@@ -1,4 +1,4 @@
-"""Novel Forge 自动驾驶：经 drv.mjs 的状态目录操作独立版服务。
+"""Novelwarden 自动驾驶：经 drv.mjs 的状态目录操作独立版服务。
 
 前提：drv.mjs 已在后台跑着（同一个 --state）。所有子命令只读写状态目录里的文件，
 真正的收发由 drv.mjs 完成。
@@ -49,8 +49,28 @@ def project_root():
     return root
 
 
+META_DIRS = ('.novelwarden', '.novelforge', '.novel')
+
+
+def meta_dir(root):
+    """新工程用 .novelwarden/；旧工程的 .novelforge/、更早的 .novel/ 继续认。"""
+    for name in META_DIRS:
+        p = os.path.join(root, name)
+        if os.path.isdir(p):
+            return p
+    return os.path.join(root, '.novelwarden')
+
+
 def nf(*parts):
-    return os.path.join(project_root(), '.novelforge', *parts)
+    return os.path.join(meta_dir(project_root()), *parts)
+
+
+def config_path():
+    """全局配置：新装 ~/.novelwarden/，旧机器 ~/.novelforge/ 继续 fallback。"""
+    for p in (os.path.expanduser('~/.novelwarden/config.json'), os.path.expanduser('~/.novelforge/config.json')):
+        if os.path.isfile(p):
+            return p
+    return os.path.expanduser('~/.novelwarden/config.json')
 
 
 def book_config():
@@ -69,10 +89,10 @@ def book_config():
 
 
 def chapters_dir():
-    # 章节根默认 chapters/；设置里改过的话以 ~/.novelforge/config.json 的 chaptersDir 为准。
+    # 章节根默认 chapters/；设置里改过的话以 ~/.novelwarden/config.json 的 chaptersDir 为准。
     cfg = {}
     try:
-        cfg = json.load(open(os.path.expanduser('~/.novelforge/config.json'), encoding='utf8'))
+        cfg = json.load(open(config_path(), encoding='utf8'))
     except Exception:
         pass
     return os.path.join(project_root(), cfg.get('chaptersDir') or 'chapters')
@@ -237,7 +257,7 @@ def cmd_status(a):
     if not st:
         # 服务只在切到设置页时推 settings；没推过就直接读全局配置（不碰 secrets.json）。
         try:
-            st = json.load(open(os.path.expanduser('~/.novelforge/config.json'), encoding='utf8'))
+            st = json.load(open(config_path(), encoding='utf8'))
         except Exception:
             st = {}
     nxt = (load('last-pipeline.json') or {}).get('next')
@@ -345,7 +365,8 @@ def cmd_write(a):
                 plot = plot_of(f)
                 say('接着写', f, wc, '字')
                 if plot:
-                    send({'type': 'chapterAction', 'plotRelPath': f'.novelforge/summaries/{plot}', 'action': 'continue'})
+                    plot_rel = os.path.relpath(os.path.join(meta_dir(project_root()), 'summaries', plot), project_root()).replace('\\', '/')
+                    send({'type': 'chapterAction', 'plotRelPath': plot_rel, 'action': 'continue'})
                     if wait_pending():
                         answer_all()
                         time.sleep(4)

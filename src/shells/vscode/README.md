@@ -7,7 +7,7 @@
 
 | 文件 | 职责 |
 |---|---|
-| [extension.ts](extension.ts) | ★ `activate()`：注册全部 `novel.*` 命令、「Novel Forge」输出面板（core 日志的 sink）、FileSystemWatcher（章节保存 → 刷新定稿状态：正文改了，那一章的定稿就对不上了）、`.novel` → `.novelforge` 迁移询问、无工作区时的占位视图。 |
+| [extension.ts](extension.ts) | ★ `activate()`：注册全部 `novel.*` 命令、「Novelwarden」输出面板（core 日志的 sink）、FileSystemWatcher（章节保存 → 刷新定稿状态：正文改了，那一章的定稿就对不上了）、旧目录 `.novelforge/` / `.novel/` → `.novelwarden/` 迁移询问、无工作区时的占位视图。 |
 | [vscodeHost.ts](vscodeHost.ts) | `Host` 的实现：弹窗/进度/文件监听接回原生 API。`openFile` 开在第一栏，`openBeside` 用 `ViewColumn.Beside` 让草稿与正文并排。`confirmCall`（调模型之前的那一问）：原生模态框放不了下拉框，多一颗「换模型 / 详细度…」，点了依次弹 QuickPick（Esc 是不改那一项），选完回到模态框；补充说明末尾写着「按分档」时各项活交给谁与「这一次：……」。 |
 | [chatViewProvider.ts](chatViewProvider.ts) | 侧边栏宿主（`WebviewViewProvider`，视图 id `novelForge.chat`）。实现 `ViewHost` 挂到 `ChatController`。 |
 | [chatPanel.ts](chatPanel.ts) | 编辑器宿主（`WebviewPanel` 单例）。侧边栏太窄时用 ⧉ 打开，两边是同一个会话。 |
@@ -18,7 +18,7 @@
 ## 关键设计
 
 - **UI 全在 webview**：不用 TreeView 等原生控件，一套 HTML 同时供侧边栏与编辑器标签页使用。命令、菜单、快捷键的声明在根目录 [package.json](../../../package.json)。
-- **激活条件**：`workspaceContains:.novelforge/project.json`（含旧目录 `.novel/`），非小说工程不激活。
+- **激活条件**：`workspaceContains:.novelwarden/project.json`（含旧目录 `.novelforge/`、`.novel/`），非小说工程不激活。
 - **侧边栏折叠不丢状态**：`retainContextWhenHidden: true`，否则草稿和流式内容会丢。
 - **命令是兜底入口**：工程页上常用的那几件（初始化、新建细纲 / 角色卡 / 设定、定稿、照正文更新过期细纲（`Novel: 照正文更新所有过期细纲`）、提取角色卡 / 文风、生成设定……）都有一条 `novel.*` 命令（webview 只说「点了什么」），命令面板也能直达。带表单的批量动作（补齐架构、拆细纲、批量写章）只在工程页上。
 - **输出面板最先建**：`registerOutputChannel` 是 `activate` 的第一句。迁移、配置读取这些在它之后才跑，但模块 import 期就可能打过日志了——所以它会先把缓冲里已有的补进面板，再挂 sink。面板里的内容与网页日志页是同一份，只是多一个能跟其他扩展并排看、能整段复制的入口（命令 `Novel: 显示输出面板日志`）。

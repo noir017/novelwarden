@@ -49,7 +49,7 @@ export class VsCodeLmProvider implements LlmProvider {
         );
       }
       void vscode.window.showWarningMessage(
-        `Novel Forge：找不到模型 family「${this.family}」，已改用「${models[0].family}」。`
+        `Novelwarden：找不到模型 family「${this.family}」，已改用「${models[0].family}」。`
       );
     }
     this.model = models[0];
@@ -86,7 +86,7 @@ export class VsCodeLmProvider implements LlmProvider {
       const response = await model.sendRequest(
         toLmMessages(messages),
         {
-          justification: 'Novel Forge 需要调用语言模型续写小说正文。',
+          justification: 'Novelwarden 需要调用语言模型续写小说正文。',
         },
         source.token
       );
@@ -153,7 +153,7 @@ function toLmMessages(messages: ChatMessage[]): vscode.LanguageModelChatMessage[
 function translateLmError(err: vscode.LanguageModelError): string {
   switch (err.code) {
     case vscode.LanguageModelError.NoPermissions.name:
-      return '未获得使用该语言模型的授权，请在弹出的确认框中允许 Novel Forge 使用 Copilot 模型。';
+      return '未获得使用该语言模型的授权，请在弹出的确认框中允许 Novelwarden 使用 Copilot 模型。';
     case vscode.LanguageModelError.Blocked.name:
       return '请求被模型的内容策略拦截。可尝试调整纲要措辞，或在设置页切换到自建 API 的模型。';
     case vscode.LanguageModelError.NotFound.name:

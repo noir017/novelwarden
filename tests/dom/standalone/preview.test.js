@@ -19,8 +19,8 @@ const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, MIRROR_LAYOUT, PREVIEW_LAYOUT, file } = require('../../helpers/dom');
 
 const SHIMS = ['pointerCapture', 'confirm', 'scrollIntoView', 'clipboard'];
-const A = '.novelforge/characters/林昭.md';
-const B = '.novelforge/characters/沈青.md';
+const A = '.novelwarden/characters/林昭.md';
+const B = '.novelwarden/characters/沈青.md';
 /** 行：0 标题，2 一段，4–5 一段（两行），7–8 列表两项。 */
 const TEXT = '# 林昭\n\n青云宗外门弟子。\n\n性子急，\n话不多。\n\n- 剑\n- 玉佩\n';
 const LINES = TEXT.split('\n').length;

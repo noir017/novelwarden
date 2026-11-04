@@ -19,12 +19,12 @@ export interface CliOptions {
 }
 
 /**
- * novelforge [dir] [--port N] [--host ADDR] [--no-open] [--verbose]
- * novelforge init [dir]
+ * novelwarden [dir] [--port N] [--host ADDR] [--no-open] [--verbose]
+ * novelwarden init [dir]
  *
  * 不带目录起服务时 `root` 为 undefined（不再把 cwd 当成工程）。
  * `init` 不带目录时仍默认当前目录，与原来一致。
- * 令牌不走参数（会出现在 `ps` 里），只认环境变量 `NOVELFORGE_TOKEN`，由 main.ts 读。
+ * 令牌不走参数（会出现在 `ps` 里），只认环境变量 `NOVELWARDEN_TOKEN`（旧名 `NOVELFORGE_TOKEN` 兼容），由 main.ts 读。
  */
 export function parseArgs(argv: string[]): CliOptions {
   let port = DEFAULT_PORT;

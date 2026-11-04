@@ -13,7 +13,7 @@ const { loadModule } = require('../../helpers/load');
 
 const pipeline = loadModule('src/core/model/pipeline.ts');
 
-const L = { kind: 'lore', relPath: '.novelforge/lore/宗门/天机阁.md' };
+const L = { kind: 'lore', relPath: '.novelwarden/lore/宗门/天机阁.md' };
 
 describe('单条设定目标', () => {
   test('阶段是架构，取得到路径，不归属任何一章', () => {
@@ -28,14 +28,14 @@ describe('单条设定目标', () => {
     assert.equal(pipeline.targetKey(L), `lore:${L.relPath}`);
     assert.notEqual(pipeline.targetKey(L), pipeline.targetKey({ kind: 'setting', doc: 'lore' }));
     assert.equal(pipeline.isSameTarget(L, { kind: 'lore', relPath: L.relPath }), true);
-    assert.equal(pipeline.isSameTarget(L, { kind: 'lore', relPath: '.novelforge/lore/宗门/青云宗.md' }), false);
+    assert.equal(pipeline.isSameTarget(L, { kind: 'lore', relPath: '.novelwarden/lore/宗门/青云宗.md' }), false);
   });
 
   // 名字：调用方读得到条目时给标题，没给取文件名。
   test('描述：给了标题用标题，没给取文件名', () => {
     assert.equal(pipeline.describeTarget(L), '设定 · 天机阁');
     assert.equal(pipeline.describeTarget(L, { title: '天机阁（旧称）' }), '设定 · 天机阁（旧称）');
-    assert.equal(pipeline.describeTarget({ kind: 'lore', relPath: '.novelforge/lore/九层楼.markdown' }), '设定 · 九层楼');
+    assert.equal(pipeline.describeTarget({ kind: 'lore', relPath: '.novelwarden/lore/九层楼.markdown' }), '设定 · 九层楼');
   });
 });
 

@@ -30,9 +30,9 @@ const config = (contextDetail = 3) => ({
   contextDetail,
 });
 
-const PLOT = '.novelforge/summaries/002-夜探.md';
-const LIN = '.novelforge/characters/林昭.md';
-const SHEN = '.novelforge/characters/沈青.md';
+const PLOT = '.novelwarden/summaries/002-夜探.md';
+const LIN = '.novelwarden/characters/林昭.md';
+const SHEN = '.novelwarden/characters/沈青.md';
 const SECRET = '林昭自己就是那份烧毁的名册上的人。';
 const OLD = '他认得那块令牌的来历';
 const DROPPED = '暗设没带：写正文不带读者还不知道的事，要让这一章揭开就写进本章细纲';
@@ -66,7 +66,7 @@ before(async () => {
   // 图谱让模型没有就写「无」：当没有。
   t.write(SHEN, card('沈青', { 身份: '药材商', 当前状态: '在客栈', 暗设: '无' }));
   // 老卡：「未收伏笔」是认不出的小节。
-  t.write('.novelforge/characters/李叔.md', card('李叔', { 身份: '镇口守卫', 当前状态: '在镇口', 未收伏笔: OLD }));
+  t.write('.novelwarden/characters/李叔.md', card('李叔', { 身份: '镇口守卫', 当前状态: '在镇口', 未收伏笔: OLD }));
   t.write('chapters/001-雨夜.md', '# 雨夜\n\n第一章的正文。\n');
   t.write(
     PLOT,
@@ -169,7 +169,7 @@ describe('老卡里的「未收伏笔」不读', () => {
     const li = (await t.project.listCharacters()).find((c) => c.name === '李叔');
     assert.equal(li.sections.暗设, '');
     assert.ok(!Object.values(li.sections).some((v) => v.includes(OLD)));
-    assert.ok(t.read('.novelforge/characters/李叔.md').includes(`## 未收伏笔\n\n${OLD}`));
+    assert.ok(t.read('.novelwarden/characters/李叔.md').includes(`## 未收伏笔\n\n${OLD}`));
   });
 });
 

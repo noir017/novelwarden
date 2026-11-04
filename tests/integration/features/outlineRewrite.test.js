@@ -126,7 +126,7 @@ describe('全套', () => {
   let before7;
   before(async () => {
     t = await fresh('outline-rewrite-all');
-    before7 = t.read('.novelforge/summaries/007-第7章.md');
+    before7 = t.read('.novelwarden/summaries/007-第7章.md');
     plan = await bundle.rewrite.outlineRewritePlan(t.project);
     h.expect();
     calls = await bundle.rewrite.rewriteOutline(t.project, plan, '节奏再快一点');
@@ -167,7 +167,7 @@ describe('全套', () => {
     assert.match(outline, /## 第8章：新规划\n新规划第 8 章。/);
     assert.match(outline, /## 第45章：新规划/);
     assert.doesNotMatch(outline, /旧版第 8 章/);
-    assert.equal(t.read('.novelforge/summaries/007-第7章.md'), before7);
+    assert.equal(t.read('.novelwarden/summaries/007-第7章.md'), before7);
     assert.ok(!h.erred(), h.toasts.join('\n'));
   });
 });

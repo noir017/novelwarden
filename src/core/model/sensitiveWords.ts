@@ -1,5 +1,5 @@
 /**
- * 自定义敏感词表（`.novelforge/sensitive.txt`）：发布平台不让出现的词，作者自己维护。**纯函数、绝不抛**
+ * 自定义敏感词表（`.novelwarden/sensitive.txt`）：发布平台不让出现的词，作者自己维护。**纯函数、绝不抛**
  * （第 1 条：作者会手改它，认不出的行跳过）；只 import 同样零 import 的 `manuscriptCheck.ts`，前端也能打包。
  *
  * 现在**只给内置编辑器的「写作体检」用**（后端读出来解析好，随 `checkTerms` 推给编辑器，正文里出现了就标出来，
@@ -23,7 +23,7 @@
  */
 import { foldLatin } from './manuscriptCheck';
 
-/** 文件名（在 `.novelforge/` 下）。 */
+/** 文件名（在 `.novelwarden/` 下）。 */
 export const SENSITIVE_FILE_NAME = 'sensitive.txt';
 
 /** 一个词最多几个字（码位）：再长就是一句话了。 */

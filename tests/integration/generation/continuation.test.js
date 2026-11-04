@@ -37,8 +37,8 @@ let project;
 let settings = {};
 let script = [];
 
-const P2 = '.novelforge/summaries/002-客栈.md';
-const P3 = '.novelforge/summaries/003-夜访.md';
+const P2 = '.novelwarden/summaries/002-客栈.md';
+const P3 = '.novelwarden/summaries/003-夜访.md';
 
 /** 第 1 章的正文（写第 2 章时，它的结尾是重演检测的对照）。 */
 const CH1_END = [
@@ -739,8 +739,8 @@ describe('禁用词：执行卡后面点名，续写那一轮说清用了几次�
   let r;
   let saved;
   before(async () => {
-    saved = t.read('.novelforge/config.md');
-    t.write('.novelforge/config.md', '---\ngenre: 仙侠\n---\n\n# 小说配置\n\n## 全局要求\n\n严禁使用“系统”一类说法。\n');
+    saved = t.read('.novelwarden/config.md');
+    t.write('.novelwarden/config.md', '---\ngenre: 仙侠\n---\n\n# 小说配置\n\n## 全局要求\n\n严禁使用“系统”一类说法。\n');
     project.invalidate();
     r = await write(P2, [
       { text: `能量涌动，神经一跳。${filler(500, 400)}`, stop: 'end' },
@@ -748,7 +748,7 @@ describe('禁用词：执行卡后面点名，续写那一轮说清用了几次�
     ]);
   });
   after(() => {
-    t.write('.novelforge/config.md', saved);
+    t.write('.novelwarden/config.md', saved);
     project.invalidate();
   });
 

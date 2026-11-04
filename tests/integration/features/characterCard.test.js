@@ -45,7 +45,7 @@ let project;
  */
 let settings;
 
-const CARD = '.novelforge/characters/林昭.md';
+const CARD = '.novelwarden/characters/林昭.md';
 
 /**
  * 对应原脚本的 `expect()`：清答案队列与各录制器，并把「调了几次」归零。
@@ -80,7 +80,7 @@ function makePlot(no, title, cast, words = 400) {
   const stem = `${String(no).padStart(3, '0')}-${title}`;
   t.write(`chapters/${stem}.md`, `# ${title}\n\n${pad}\n`);
   t.write(
-    `.novelforge/summaries/${stem}.md`,
+    `.novelwarden/summaries/${stem}.md`,
     `---\nno: ${no}\ntitle: ${title}\nsourceHash: x\ncast: [${cast.join(', ')}]\n---\n\n` +
       `# 第${no}章 ${title}\n\n## 梗概\n\n略。\n\n## 出场人物\n\n${cast.join('、')}\n\n## 关键事件\n\n甲乙丙。\n\n## 看点\n\n略。\n`
   );
@@ -447,11 +447,11 @@ describe('定稿里没出场过的角色', () => {
   let toasts;
 
   before(async () => {
-    t.write('.novelforge/characters/幽灵.md', '---\nname: 幽灵\n---\n\n# 幽灵\n');
+    t.write('.novelwarden/characters/幽灵.md', '---\nname: 幽灵\n---\n\n# 幽灵\n');
     project.invalidate();
     expect('开始');
     setReplies([cardJson()]);
-    await cardMod.updateCharacterCard(project, '.novelforge/characters/幽灵.md', 'full');
+    await cardMod.updateCharacterCard(project, '.novelwarden/characters/幽灵.md', 'full');
     callCount = fake.calls.length;
     toasts = [...h.toasts];
   });
@@ -606,7 +606,7 @@ describe('批量更新所有角色卡', () => {
     fullReviewedCount = h.reviewed.length;
     bothRewritten =
       t.read(CARD).includes('重建的身份') &&
-      t.read('.novelforge/characters/客栈掌柜.md').includes('重建的身份');
+      t.read('.novelwarden/characters/客栈掌柜.md').includes('重建的身份');
     fullToasts = [...h.toasts];
 
     // ---- 取消：一次模型都不调。
@@ -787,7 +787,7 @@ describe('给未建卡的人全部建卡', () => {
     // 而不是钉死一个数字——重要的是「说的人数 = 列出的人数」。
     pending = await castMod.buildCastIndex(project).then((idx) => idx.unknown.length);
     cancelCallCount = fake.calls.length;
-    noEmptyCard = !fs.existsSync(t.rel('.novelforge/characters/艄公.md'));
+    noEmptyCard = !fs.existsSync(t.rel('.novelwarden/characters/艄公.md'));
 
     // ---- 真跑：并发建卡，新卡不走 diff。
     settings.concurrency = 3;
@@ -797,9 +797,9 @@ describe('给未建卡的人全部建卡', () => {
       await cardMod.createCardsForAllCast(project);
 
       bothCreated =
-        fs.existsSync(t.rel('.novelforge/characters/艄公.md')) &&
-        fs.existsSync(t.rel('.novelforge/characters/货郎.md'));
-      boatmanCard = t.read('.novelforge/characters/艄公.md');
+        fs.existsSync(t.rel('.novelwarden/characters/艄公.md')) &&
+        fs.existsSync(t.rel('.novelwarden/characters/货郎.md'));
+      boatmanCard = t.read('.novelwarden/characters/艄公.md');
       reviewedCount = h.reviewed.length;
       callsPeak = fake.peak();
       doneToasts = [...h.toasts];

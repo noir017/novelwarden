@@ -23,7 +23,7 @@ const { describe, test, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, file, viewState, sampleTree } = require('../../helpers/dom');
 
-const T = (name) => `.novelforge/threads/${name}.md`;
+const T = (name) => `.novelwarden/threads/${name}.md`;
 const UNFILED = T('未归属的伏笔');
 const STORE_KEY = 'novelforge.editor.v1';
 
@@ -47,11 +47,11 @@ function overview(extra = {}) {
     through: 3,
     volumes: true,
     chapters: [
-      ch(1, 'finalized', '楔子', '', { chapterPath: 'chapters/001-楔子.md', plotPath: '.novelforge/summaries/001-楔子.md' }),
-      ch(2, 'finalized', '入镇', '', { chapterPath: 'chapters/002-入镇.md', plotPath: '.novelforge/summaries/002-入镇.md' }),
-      ch(3, 'finalized', '夜访', '', { chapterPath: 'chapters/003-夜访.md', plotPath: '.novelforge/summaries/003-夜访.md' }),
+      ch(1, 'finalized', '楔子', '', { chapterPath: 'chapters/001-楔子.md', plotPath: '.novelwarden/summaries/001-楔子.md' }),
+      ch(2, 'finalized', '入镇', '', { chapterPath: 'chapters/002-入镇.md', plotPath: '.novelwarden/summaries/002-入镇.md' }),
+      ch(3, 'finalized', '夜访', '', { chapterPath: 'chapters/003-夜访.md', plotPath: '.novelwarden/summaries/003-夜访.md' }),
       ch(4, 'written', '北行', '第二卷', { chapterPath: 'chapters/第二卷/004-北行.md' }),
-      ch(5, 'planned', '赤星', '第二卷', { plotPath: '.novelforge/summaries/第二卷/005-赤星.md' }),
+      ch(5, 'planned', '赤星', '第二卷', { plotPath: '.novelwarden/summaries/第二卷/005-赤星.md' }),
       ch(6, 'none', '', '第二卷', {}),
     ],
     groups: [
@@ -547,7 +547,7 @@ describe('叙事线总览 · 点击', { skip: JSDOM_SKIP }, () => {
   test('还没写的打开细纲；细纲正文都没有的说一句、不发', () => {
     const n = h.ui.sent.length;
     h.ui.clickEl(h.cellOf(h.row(T('青崖旧案')), 5));
-    assert.deepEqual(h.sentAfter(n), [{ type: 'openChapter', plotRelPath: '.novelforge/summaries/第二卷/005-赤星.md' }]);
+    assert.deepEqual(h.sentAfter(n), [{ type: 'openChapter', plotRelPath: '.novelwarden/summaries/第二卷/005-赤星.md' }]);
     const m = h.ui.sent.length;
     h.ui.clickEl(h.doc.querySelector('.tov-nums .tov-col[data-ch="6"]'));
     assert.deepEqual(h.sentAfter(m), []);

@@ -59,20 +59,20 @@ before(async () => {
 
   // 第 1 章：根下，定稿过。
   t.write('chapters/001-楔子.md', '# 楔子\n\n雨下了三天。');
-  t.write('.novelforge/summaries/001-楔子.md', plot(1, '楔子', 'sourceHash: abc\n'));
+  t.write('.novelwarden/summaries/001-楔子.md', plot(1, '楔子', 'sourceHash: abc\n'));
   // 第 2 章：第一卷里，定稿过；细纲的标题优先。
   t.write('chapters/第一卷/002-入镇.md', '# 入镇\n\n他走进镇子。');
-  t.write('.novelforge/summaries/第一卷/002-入镇.md', plot(2, '入镇（改）', 'sourceHash: def\n'));
+  t.write('.novelwarden/summaries/第一卷/002-入镇.md', plot(2, '入镇（改）', 'sourceHash: def\n'));
   // 第 3 章：写了没定稿，没有细纲。
   t.write('chapters/第一卷/003-夜访.txt', '夜里有人敲门。');
   // 第 4 章：只有细纲。
-  t.write('.novelforge/summaries/第一卷/004-北行.md', plot(4, '北行'));
+  t.write('.novelwarden/summaries/第一卷/004-北行.md', plot(4, '北行'));
   // 第 5 章：正文在外面改了名，旧细纲成了孤儿——不冒认，这一章「写了没定稿」。
   t.write('chapters/第一卷/005-新名.md', '# 新名\n\n正文');
-  t.write('.novelforge/summaries/第一卷/005-旧名.md', plot(5, '旧名', 'sourceHash: ghi\n'));
+  t.write('.novelwarden/summaries/第一卷/005-旧名.md', plot(5, '旧名', 'sourceHash: ghi\n'));
 
   t.write(
-    '.novelforge/threads/林昭与沈青.md',
+    '.novelwarden/threads/林昭与沈青.md',
     [
       '---',
       'kind: 感情线',
@@ -95,10 +95,10 @@ before(async () => {
       '',
     ].join('\n')
   );
-  t.write('.novelforge/threads/青崖旧案.md', '---\nkind: 主线\n---\n\n# 青崖旧案\n\n## 进展\n- 第 2 章 · 推进：找到令牌\n');
-  t.write('.novelforge/threads/未归属的伏笔.md', '# 未归属的伏笔\n\n## 伏笔\n- 断剑（第 3 章前收）\n');
+  t.write('.novelwarden/threads/青崖旧案.md', '---\nkind: 主线\n---\n\n# 青崖旧案\n\n## 进展\n- 第 2 章 · 推进：找到令牌\n');
+  t.write('.novelwarden/threads/未归属的伏笔.md', '# 未归属的伏笔\n\n## 伏笔\n- 断剑（第 3 章前收）\n');
   // 七期的单文件不认。
-  t.write('.novelforge/threads.md', '# 叙事线\n\n## 旧的线\n- 第 1 章 · 推进：不该出现\n');
+  t.write('.novelwarden/threads.md', '# 叙事线\n\n## 旧的线\n- 第 1 章 · 推进：不该出现\n');
   // 第 1、2 章定稿时叙事线判过了：水位记在 project.json（四期），偏差只算判过的章。
   await project.writeManifest({ ...(await project.readManifest()), threadsThrough: 2 });
   project.invalidate();
@@ -127,7 +127,7 @@ describe('views/threads › buildThreadsOverview', () => {
     );
     const at = (no) => o.chapters.find((c) => c.no === no);
     assert.equal(at(1).chapterPath, 'chapters/001-楔子.md');
-    assert.equal(at(1).plotPath, '.novelforge/summaries/001-楔子.md');
+    assert.equal(at(1).plotPath, '.novelwarden/summaries/001-楔子.md');
     assert.equal(at(3).plotPath, undefined);
     assert.equal(at(4).chapterPath, undefined);
     assert.equal(at(5).plotPath, undefined, '改了名的正文不冒认旧细纲');
@@ -148,7 +148,7 @@ describe('views/threads › buildThreadsOverview', () => {
       ['感情线', ['林昭与沈青']],
     ]);
     const pair = o.groups[1].lines[0];
-    assert.equal(pair.relPath, '.novelforge/threads/林昭与沈青.md');
+    assert.equal(pair.relPath, '.novelwarden/threads/林昭与沈青.md');
     // 第 2 章计划结盟、第 2 章定稿了却没发生：偏差。
     assert.equal(pair.cells.find((c) => c.chapter === 2).deviation, true);
     const jade = pair.foreshadowing[0];
@@ -167,7 +167,7 @@ describe('views/threads › buildThreadsOverview', () => {
   });
 
   test('还不是小说工程：initialized 为 false，其余都是空的', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-threads-overview-bare-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-threads-overview-bare-'));
     try {
       const bare = bundle.project.NovelProject.open(dir);
       assert.deepEqual(await bundle.threads.buildThreadsOverview(bare), {

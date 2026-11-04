@@ -18,7 +18,7 @@ const { describe, test, before } = require('node:test');
 const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, file } = require('../../helpers/dom');
 
-const S = '.novelforge/summaries';
+const S = '.novelwarden/summaries';
 const row = (no, title, chapterPath, plotPath, plotExists, stage, wordCount = 0) => ({
   no,
   label: `第 ${no} 章《${title}》`,

@@ -374,7 +374,7 @@ export async function generateThreads(project: NovelProject): Promise<number> {
   });
 }
 
-/** 「排出 3 条叙事线、5 条伏笔（同名跳过 1 条），已写进 .novelforge/threads/。」 */
+/** 「排出 3 条叙事线、5 条伏笔（同名跳过 1 条），已写进 .novelwarden/threads/。」 */
 export function describePlanned(r: PlanThreadsOutcome, rel: string): string {
   const notes = [r.same > 0 ? `同名跳过 ${r.same} 条` : '', r.bad > 0 ? `${r.bad} 条不合格没收（见日志）` : ''].filter(Boolean);
   return r.added.length > 0

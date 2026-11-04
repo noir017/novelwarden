@@ -15,7 +15,7 @@ const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, file, viewState } = require('../../helpers/dom');
 
 const A = 'chapters/001-雨夜.md';
-const B = '.novelforge/summaries/001-雨夜.md';
+const B = '.novelwarden/summaries/001-雨夜.md';
 const C = 'drafts/001-雨夜.md';
 
 function setup() {

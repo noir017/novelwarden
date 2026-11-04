@@ -216,7 +216,7 @@ describe('细纲的「设定」一节', () => {
   ].join('\n');
 
   test('读出「设定」一节，连续性事实不被它吃进去', () => {
-    const plot = pf.parsePlotFile(FILE, '.novelforge/summaries/003-夜访.md');
+    const plot = pf.parsePlotFile(FILE, '.novelwarden/summaries/003-夜访.md');
     assert.deepEqual(plot.lore, [
       { name: '停舟客栈', category: '地域', note: '二层木楼' },
       { name: '崖字令牌', category: '信物', note: '' },
@@ -225,20 +225,20 @@ describe('细纲的「设定」一节', () => {
   });
 
   test('没有这一节是 undefined；有标题、写着（无）是空数组', () => {
-    const none = pf.parsePlotFile(FILE.replace(/## 设定[\s\S]*$/, ''), '.novelforge/summaries/003-夜访.md');
+    const none = pf.parsePlotFile(FILE.replace(/## 设定[\s\S]*$/, ''), '.novelwarden/summaries/003-夜访.md');
     assert.equal(none.lore, undefined);
-    const empty = pf.parsePlotFile(FILE.replace(/## 设定[\s\S]*$/, '## 设定\n\n（无）\n'), '.novelforge/summaries/003-夜访.md');
+    const empty = pf.parsePlotFile(FILE.replace(/## 设定[\s\S]*$/, '## 设定\n\n（无）\n'), '.novelwarden/summaries/003-夜访.md');
     assert.deepEqual(empty.lore, []);
   });
 
   test('「设定」一节不进内容指纹', () => {
-    const with_ = pf.parsePlotFile(FILE, '.novelforge/summaries/003-夜访.md');
-    const without = pf.parsePlotFile(FILE.replace(/## 设定[\s\S]*$/, ''), '.novelforge/summaries/003-夜访.md');
+    const with_ = pf.parsePlotFile(FILE, '.novelwarden/summaries/003-夜访.md');
+    const without = pf.parsePlotFile(FILE.replace(/## 设定[\s\S]*$/, ''), '.novelwarden/summaries/003-夜访.md');
     assert.equal(pf.plotContentHash(with_), pf.plotContentHash(without));
   });
 
   test('渲染：给了才写，写在七节之后；读回来一样', () => {
-    const plot = pf.parsePlotFile(FILE, '.novelforge/summaries/003-夜访.md');
+    const plot = pf.parsePlotFile(FILE, '.novelwarden/summaries/003-夜访.md');
     const text = pf.renderPlotFile({ ...plot, sourceHash: 'abc', done: false });
     assert.ok(text.indexOf('## 设定') > text.indexOf('## 连续性事实'));
     assert.deepEqual(pf.parsePlotFile(text, plot.relPath).lore, plot.lore);

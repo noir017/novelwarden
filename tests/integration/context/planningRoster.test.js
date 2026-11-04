@@ -20,7 +20,7 @@ const { makeFakeHost } = require('../../helpers/fakeHost');
 const { cleanup } = require('../../helpers/teardown');
 
 const pad3 = (n) => String(n).padStart(3, '0');
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 const config = (extra = {}) => ({
   providers: [{ id: 'p', kind: 'openai', baseUrl: 'https://x/v1', models: [{ name: 'm' }] }],
@@ -76,9 +76,9 @@ before(() => {
 async function withProject(fn, { plots = true, stubs = [] } = {}) {
   const t = await makeTempProject(bundle.project, { prefix: 'planningRoster', title: '图谱' });
   try {
-    t.write('.novelforge/characters/林昭.md', card('林昭', '主角'));
+    t.write('.novelwarden/characters/林昭.md', card('林昭', '主角'));
     for (const name of ['沈青', '老陈', '周婶', '李叔', '阿九']) {
-      t.write(`.novelforge/characters/${name}.md`, card(name, '配角'));
+      t.write(`.novelwarden/characters/${name}.md`, card(name, '配角'));
     }
     if (plots) {
       for (let no = 1; no <= 61; no++) {

@@ -795,7 +795,7 @@ describe('设置页草稿：新配置的模型不必先保存就能测', () => {
 });
 
 describe('config.json 缺席时的 settings.json 兜底', () => {
-  // 真实 VS Code 壳里这是**两个不同的源**：ConfigStore 读 ~/.novelforge/config.json，
+  // 真实 VS Code 壳里这是**两个不同的源**：ConfigStore 读 ~/.novelwarden/config.json，
   // legacy reader 读 settings.json。上面的用例让两者共用一个对象，
   // 恰好掩盖了这条路径——这里必须分开。
   //

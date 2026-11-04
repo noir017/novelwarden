@@ -49,7 +49,7 @@ before(async () => {
   G = bundle.guard;
 
   t.write('chapters/001-楔子.md', '# 楔子\n\n雨下了三天。\n');
-  t.write('.novelforge/.trash/chapters/009-删过的.md', '删过的东西');
+  t.write('.novelwarden/.trash/chapters/009-删过的.md', '删过的东西');
 });
 
 after(() => {
@@ -103,18 +103,18 @@ describe('守卫 3 · 固定目录保护', () => {
   const fixed = [
     'chapters',
     'drafts',
-    '.novelforge',
+    '.novelwarden',
     // 场景、卷、中转站三层删掉了，细纲也从 plots/ 搬进了 summaries/；代码不再读那几个目录，
     // 但老工程磁盘上的它们是作者的文件（D11），不能被整棵搬走或删掉。
-    '.novelforge/plots',
-    '.novelforge/scenes',
-    '.novelforge/volumes',
-    '.novelforge/manuscripts',
-    '.novelforge/summaries',
-    '.novelforge/characters',
-    '.novelforge/lore',
-    '.novelforge/sessions',
-    '.novelforge/.trash',
+    '.novelwarden/plots',
+    '.novelwarden/scenes',
+    '.novelwarden/volumes',
+    '.novelwarden/manuscripts',
+    '.novelwarden/summaries',
+    '.novelwarden/characters',
+    '.novelwarden/lore',
+    '.novelwarden/sessions',
+    '.novelwarden/.trash',
   ];
 
   for (const rel of fixed) {
@@ -133,7 +133,7 @@ describe('守卫 3 · 固定目录保护', () => {
 describe('守卫 4 · 回收站里的内容不可操作', () => {
   test('.trash 里的文件改不动', async () => {
     assert.equal(
-      await codeOf(() => G.guardMutate(project, '.novelforge/.trash/chapters/009-删过的.md')),
+      await codeOf(() => G.guardMutate(project, '.novelwarden/.trash/chapters/009-删过的.md')),
       'inTrash'
     );
   });
@@ -141,7 +141,7 @@ describe('守卫 4 · 回收站里的内容不可操作', () => {
   test('.trash 里的文件写不进去', async () => {
     assert.equal(
       await codeOf(() =>
-        G.guardWrite(project, '.novelforge/.trash/新的.md', { mode: 'overwrite' })
+        G.guardWrite(project, '.novelwarden/.trash/新的.md', { mode: 'overwrite' })
       ),
       'inTrash'
     );
@@ -149,15 +149,15 @@ describe('守卫 4 · 回收站里的内容不可操作', () => {
 
   // 但**读**得到：作者要能翻回收站找回东西。
   test('.trash 里的文件读得到', async () => {
-    const abs = await G.guardRead(project, '.novelforge/.trash/chapters/009-删过的.md');
+    const abs = await G.guardRead(project, '.novelwarden/.trash/chapters/009-删过的.md');
     assert.ok(abs.includes('.trash'));
   });
 });
 
-// 历史版本（`.novelforge/history/`）是网关自己存的副本：从前守卫只拦 `.trash/` 与 `sessions/`，往这里写、搬、复制都放行，
+// 历史版本（`.novelwarden/history/`）是网关自己存的副本：从前守卫只拦 `.trash/` 与 `sessions/`，往这里写、搬、复制都放行，
 // 作者的操作能往「历史」面板里塞一份假快照。现在与回收站同一个口径：读得到，写不进去。
 describe('守卫 4 · 历史版本写不进去（读得到）', () => {
-  const SNAP = '.novelforge/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt';
+  const SNAP = '.novelwarden/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt';
 
   before(() => {
     t.write(SNAP, '旧稿');
@@ -165,7 +165,7 @@ describe('守卫 4 · 历史版本写不进去（读得到）', () => {
 
   test('往历史版本里新建文件被拒', async () => {
     assert.equal(
-      await codeOf(() => G.guardWrite(project, '.novelforge/history/chapters/001-楔子.md/伪造.txt', { mode: 'create' })),
+      await codeOf(() => G.guardWrite(project, '.novelwarden/history/chapters/001-楔子.md/伪造.txt', { mode: 'create' })),
       'inHistory'
     );
   });
@@ -175,7 +175,7 @@ describe('守卫 4 · 历史版本写不进去（读得到）', () => {
   });
 
   test('历史版本目录本身也写不进去', async () => {
-    assert.equal(await codeOf(() => G.guardWrite(project, '.novelforge/history', { mode: 'create' })), 'inHistory');
+    assert.equal(await codeOf(() => G.guardWrite(project, '.novelwarden/history', { mode: 'create' })), 'inHistory');
   });
 
   test('快照读得到', async () => {
@@ -183,8 +183,8 @@ describe('守卫 4 · 历史版本写不进去（读得到）', () => {
     assert.equal(abs, t.rel(SNAP));
   });
 
-  test('名字只是像的目录不算（`.novelforge/history2/`）', async () => {
-    const r = await G.guardWrite(project, '.novelforge/history2/随手记.md', { mode: 'create' });
+  test('名字只是像的目录不算（`.novelwarden/history2/`）', async () => {
+    const r = await G.guardWrite(project, '.novelwarden/history2/随手记.md', { mode: 'create' });
     assert.equal(r.existed, false);
   });
 });
@@ -256,7 +256,7 @@ describe('守卫 7 · 覆盖前审阅', () => {
     const withReview = makeFakeHost({ settings: () => ({}) });
     bundle.host.initHost(withReview.host);
     withReview.expect();
-    const { ok } = await G.reviewOverwrite('第 12 章的细纲', '.novelforge/summaries/012.md', '旧', '新');
+    const { ok } = await G.reviewOverwrite('第 12 章的细纲', '.novelwarden/summaries/012.md', '旧', '新');
     assert.equal(ok, true);
     assert.equal(withReview.reviewed.length, 1, JSON.stringify(withReview.reviewed));
     // 网关的覆盖审阅请求合并：独立版的合并视图可以交回作者挑过的那一份（五期 W11）。
@@ -269,8 +269,8 @@ describe('守卫 7 · 覆盖前审阅', () => {
   test('把落点路径交给 reviewReplace', async () => {
     const withReview = makeFakeHost({ settings: () => ({}) });
     bundle.host.initHost(withReview.host);
-    await G.reviewOverwrite('第 12 章的细纲', '.novelforge/summaries/012.md', '旧', '新');
-    assert.equal(withReview.reviewed[0]?.relPath, '.novelforge/summaries/012.md', JSON.stringify(withReview.reviewed));
+    await G.reviewOverwrite('第 12 章的细纲', '.novelwarden/summaries/012.md', '旧', '新');
+    assert.equal(withReview.reviewed[0]?.relPath, '.novelwarden/summaries/012.md', JSON.stringify(withReview.reviewed));
     bundle.host.initHost(h.host);
   });
 
@@ -278,7 +278,7 @@ describe('守卫 7 · 覆盖前审阅', () => {
     const withReview = makeFakeHost({ settings: () => ({}) });
     withReview.setReviewVerdict('discard');
     bundle.host.initHost(withReview.host);
-    const { ok } = await G.reviewOverwrite('第 12 章的细纲', '.novelforge/summaries/012.md', '旧', '新');
+    const { ok } = await G.reviewOverwrite('第 12 章的细纲', '.novelwarden/summaries/012.md', '旧', '新');
     assert.equal(ok, false);
     bundle.host.initHost(h.host);
   });
@@ -296,37 +296,37 @@ describe('守卫 7 · 覆盖前审阅', () => {
 
   test('没有 reviewReplace 的宿主退化成确认框', async () => {
     h.expect('覆盖');
-    const { ok } = await G.reviewOverwrite('全书大纲', '.novelforge/outline.md', '旧的一段', '新的一段');
+    const { ok } = await G.reviewOverwrite('全书大纲', '.novelwarden/outline.md', '旧的一段', '新的一段');
     assert.equal(ok, true);
     assert.equal(h.confirms.length, 1);
   });
 
   test('确认框的文案一字不改', async () => {
     h.expect('覆盖');
-    await G.reviewOverwrite('全书大纲', '.novelforge/outline.md', '旧的一段', '新的一段');
+    await G.reviewOverwrite('全书大纲', '.novelwarden/outline.md', '旧的一段', '新的一段');
     assert.equal(h.confirms[0].message, '「全书大纲」已经有内容了，用新版本覆盖？');
   });
 
   test('确认框的 detail 给字数对比与路径', async () => {
     h.expect('覆盖');
-    await G.reviewOverwrite('全书大纲', '.novelforge/outline.md', '旧的一段', '新的一段甲');
-    assert.equal(h.confirms[0].detail, '现有 4 字，新版 5 字。\n.novelforge/outline.md');
+    await G.reviewOverwrite('全书大纲', '.novelwarden/outline.md', '旧的一段', '新的一段甲');
+    assert.equal(h.confirms[0].detail, '现有 4 字，新版 5 字。\n.novelwarden/outline.md');
   });
 
   test('用户选「保留原样」就不写', async () => {
     h.expect('保留原样');
-    assert.equal((await G.reviewOverwrite('全书大纲', '.novelforge/outline.md', '旧', '新')).ok, false);
+    assert.equal((await G.reviewOverwrite('全书大纲', '.novelwarden/outline.md', '旧', '新')).ok, false);
   });
 
   test('用户直接取消也不写', async () => {
     h.expect();
-    assert.equal((await G.reviewOverwrite('全书大纲', '.novelforge/outline.md', '旧', '新')).ok, false);
+    assert.equal((await G.reviewOverwrite('全书大纲', '.novelwarden/outline.md', '旧', '新')).ok, false);
   });
 
   // 一字未变还弹个框，只会让人以为自己点错了。
   test('内容一模一样时不弹框，直接算通过', async () => {
     h.expect();
-    assert.equal((await G.reviewOverwrite('全书大纲', '.novelforge/outline.md', ' 甲 ', '甲')).ok, true);
+    assert.equal((await G.reviewOverwrite('全书大纲', '.novelwarden/outline.md', ' 甲 ', '甲')).ok, true);
     assert.equal(h.confirms.length, 0);
   });
 });

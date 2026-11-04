@@ -26,7 +26,7 @@
 | `host.ts` + 三个壳 | `Host.confirmCall`；独立版 `prompt` 多 `actions` / `call`、`promptResult` 多 `choice`、`PromptHub` 交回整份回答；VS Code 多一颗「换模型 / 详细度…」；命令行不问 |
 | 协议 / controller | `projectAction.confirmed` → `call`；`ViewState.contextDetail` |
 | 前端 | `view/callFields.ts`（新）、`form.ts` 的 `buildSelect`（认 `optgroup`）、`prompt.ts` 多按钮 + 下拉框、两张批量表单 |
-| `skills/novelforge-autopilot` | 驱动脚本跟着协议改：确认框答第一颗按钮上的字，批量带 `call: {}` |
+| `skills/novelwarden-autopilot` | 驱动脚本跟着协议改：确认框答第一颗按钮上的字，批量带 `call: {}` |
 
 ## 选择挂在哪：调用链上的一层「这一次」
 

@@ -1,6 +1,6 @@
 # core/mcp — 把工具端给外部 agent
 
-**多步的活交给外部 agent（Claude Code、Codex……），Novel Forge 只提供工具。**
+**多步的活交给外部 agent（Claude Code、Codex……），Novelwarden 只提供工具。**
 
 本项目不自带对话循环。上下文压缩、多步规划、权限模式、各家服务商的 tool calling 兼容——这些通用
 agent 做得更好，自己再做一份只是更弱的重复。真正值钱的不在循环里：创作质量来自分阶段装配
@@ -23,7 +23,7 @@ agent 做得更好，自己再做一份只是更弱的重复。真正值钱的�
 
 ```
 MCP 已就绪：http://127.0.0.1:3000/mcp
-    claude mcp add --transport http novelforge http://127.0.0.1:3000/mcp
+    claude mcp add --transport http novelwarden http://127.0.0.1:3000/mcp
 ```
 
 调用落在**最近操作的那个网页窗口开着的工程**上；地址带 `?project=<工程目录>`（每次请求都看地址，不必重新 initialize）就落到那个工程，它必须在某个窗口里开着。没打开工程时工具照样列得出来，调用回一句「先打开工程」。
@@ -50,7 +50,7 @@ VS Code 壳还没接（要另起一个 HTTP 服务，等用得上再说）。
 
 ### 2. 落盘前当场过一遍人（第 19 条）
 
-`generate` 一产出，执行端就在 Novel Forge 的对话页里问一句写不写（与单步创作同一张卡片），
+`generate` 一产出，执行端就在 Novelwarden 的对话页里问一句写不写（与单步创作同一张卡片），
 **等作者答了才返回**，结论接在返回后面。这一问不交给宿主的权限配置：宿主那一层管的是「让不让调这个
 工具」，可以被设成全自动；这一问管的是「这份东西进不进磁盘」，任何情况下都在。
 

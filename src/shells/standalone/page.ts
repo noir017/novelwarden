@@ -52,7 +52,7 @@ export function standalonePage(root?: string, version = '0.0.0'): string {
 <link href="/media/view.css" rel="stylesheet">
 <link href="/media/standalone.css" rel="stylesheet">
 <link rel="icon" href="/favicon.ico" type="image/svg+xml">
-<title>Novel Forge</title>
+<title>Novelwarden</title>
 </head>
 <body class="${bodyClass}">
 
@@ -65,7 +65,7 @@ export function standalonePage(root?: string, version = '0.0.0'): string {
     <button type="button" class="wb-menu-btn" data-menu="view">视图</button>
     <button type="button" class="wb-menu-btn" data-menu="help">帮助</button>
   </nav>
-  <span class="wb-title-text" id="wbTitleText">Novel Forge</span>
+  <span class="wb-title-text" id="wbTitleText">Novelwarden</span>
   <span class="spacer"></span>
   <button class="icon-btn" id="wbThemeBtn" title="切换主题">☀</button>
   <!-- 窄屏上菜单栏收进这一颗（view/menubar.ts）；宽屏不显示。 -->

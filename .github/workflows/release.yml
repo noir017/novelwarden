@@ -85,27 +85,27 @@ jobs:
         run: |
           node scripts/embed-media.js
           bun build src/shells/standalone/main.ts --compile \
-            --target=bun-linux-x64 --outfile dist/novelforge-linux-x64
+            --target=bun-linux-x64 --outfile dist/novelwarden-linux-x64
           bun build src/shells/standalone/main.ts --compile \
-            --target=bun-windows-x64 --outfile dist/novelforge-windows-x64.exe
+            --target=bun-windows-x64 --outfile dist/novelwarden-windows-x64.exe
 
-      # .vsix 必须在独立版**之后**打，且靠 .vscodeignore 把 dist/novelforge*
+      # .vsix 必须在独立版**之后**打，且靠 .vscodeignore 把 dist/novelwarden*
       # 排除掉——否则 113 MB 的可执行会被塞进扩展包。
       - name: 打包 .vsix
-        run: npx --yes @vscode/vsce@latest package --no-dependencies --out novel-forge-${{ needs.version.outputs.version }}.vsix
+        run: npx --yes @vscode/vsce@latest package --no-dependencies --out novelwarden-${{ needs.version.outputs.version }}.vsix
 
       # 防呆闸门：.claude/ 与 local/ 是本机私有目录，绝不能进公开产物。
       # vsce 一旦看到 .vscodeignore 就完全无视 .gitignore，所以这里实测一遍
       # 包内清单，而不是信任配置。
       - name: 校验 .vsix 未夹带私有文件
         run: |
-          list="$(unzip -Z1 novel-forge-${{ needs.version.outputs.version }}.vsix)"
+          list="$(unzip -Z1 novelwarden-${{ needs.version.outputs.version }}.vsix)"
           echo "$list"
           if echo "$list" | grep -Ei '(^|/)(\.claude|\.cursor|\.worktrees|local|temp)/'; then
             echo "::error::.vsix 里夹带了私有目录，检查 .vscodeignore"
             exit 1
           fi
-          if echo "$list" | grep -E 'dist/novelforge'; then
+          if echo "$list" | grep -E 'dist/novelwarden'; then
             echo "::error::.vsix 里夹带了独立版可执行（应由 .vscodeignore 排除）"
             exit 1
           fi
@@ -115,8 +115,8 @@ jobs:
           name: bundles
           path: |
             *.vsix
-            dist/novelforge-linux-x64
-            dist/novelforge-windows-x64.exe
+            dist/novelwarden-linux-x64
+            dist/novelwarden-windows-x64.exe
           if-no-files-found: error
 
   # ── 3) 桌面安装包 ───────────────────────────────────────────────
@@ -249,17 +249,17 @@ jobs:
 
       # 三个 job 的产物散在各自子目录里，摊平到一层、统一改名再上传。
       #
-      # 各家打包器的名字各是各的（Tauri 用产品名「Novel Forge」，空格到了 GitHub 上变成点：
-      # `Novel.Forge_0.2.6_x64-setup.exe`；vsce 是 `novel-forge-0.2.6.vsix`；独立版不带版本号），
+      # 各家打包器的名字各是各的（Tauri 用产品名「Novelwarden」：
+      # `Novelwarden_0.3.0_x64-setup.exe`；vsce 是 `novelwarden-0.3.0.vsix`；独立版不带版本号），
       # Windows 下桌面安装器和独立版又都是 .exe，下载页上分不出谁是谁。一律改成
-      # `NovelForge-<版本>-<形态>-<系统>-<架构>`：形态是 desktop（桌面版，装了双击打开）、
+      # `Novelwarden-<版本>-<形态>-<系统>-<架构>`：形态是 desktop（桌面版，装了双击打开）、
       # server（独立版，跑起来用浏览器打开）、vscode（插件）、android（手机 app，内置的 node 只有 arm64）；
       # 桌面与独立版的架构一律写 x64（deb 叫 amd64、rpm 叫 x86_64）。
-      # 只在这里改：前面各 job 的中间产物名照旧（.vscodeignore 按 dist/novelforge* 排除独立版）。
+      # 只在这里改：前面各 job 的中间产物名照旧（.vscodeignore 按 dist/novelwarden* 排除独立版）。
       # 每个源文件必须正好一个，产物多了、少了都停下，不静默漏传。
       - name: 摊平产物并统一改名
         run: |
-          p="NovelForge-${{ needs.version.outputs.version }}"
+          p="Novelwarden-${{ needs.version.outputs.version }}"
           mkdir -p out
           put() {
             local hits n
@@ -276,10 +276,10 @@ jobs:
           put '*.msi'                      "$p-desktop-windows-x64.msi"
           put '*.deb'                      "$p-desktop-linux-x64.deb"
           put '*.rpm'                      "$p-desktop-linux-x64.rpm"
-          put 'novelforge-windows-x64.exe' "$p-server-windows-x64.exe"
-          put 'novelforge-linux-x64'       "$p-server-linux-x64"
-          put '*.vsix'                     "$p-vscode.vsix"
-          put 'novelforge-android.apk'     "$p-android-arm64.apk"
+          put 'novelwarden-windows-x64.exe' "$p-server-windows-x64.exe"
+          put 'novelwarden-linux-x64'       "$p-server-linux-x64"
+          put '*.vsix'                      "$p-vscode.vsix"
+          put 'novelwarden-android.apk'     "$p-android-arm64.apk"
           total="$(find artifacts -type f | wc -l)"
           if [ "$total" -ne "$(ls out | wc -l)" ]; then
             echo "::error::产物里有 $total 个文件，只认领了 $(ls out | wc -l) 个——新的产物要在上面加一行改名"
@@ -292,7 +292,7 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.version.outputs.tag }}
-          name: Novel Forge ${{ needs.version.outputs.tag }}
+          name: Novelwarden ${{ needs.version.outputs.tag }}
           draft: true
           files: out/*
           fail_on_unmatched_files: true

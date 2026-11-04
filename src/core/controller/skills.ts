@@ -151,7 +151,7 @@ export async function uninstallSkillFrom(sink: SkillsSink, scope: SkillsScope, i
   const choice = await getHost().confirm(`从我的技能库卸载「${label}」？`, ['卸载'], {
     modal: true,
     detail:
-      '整个目录挪进 ~/.novelforge/.trash/skills/，不真删。本工程绑了它的阶段会一起解绑；' +
+      '整个目录挪进技能库的 .trash/skills/，不真删。本工程绑了它的阶段会一起解绑；' +
       '别的工程里绑了它的，下次生成会在明细里写明「找不到」，然后不带。',
   });
   if (choice !== '卸载') {
@@ -173,7 +173,7 @@ export async function uninstallSkillFrom(sink: SkillsSink, scope: SkillsScope, i
   await pushSkillsTo(sink, scope);
 }
 
-/** 删本工程的技能：`.novelforge/skills/<名字>/` 整个目录经网关挪进 `.novelforge/.trash/`。 */
+/** 删本工程的技能：`.novelwarden/skills/<名字>/` 整个目录经网关挪进回收站（旧工程是 `.novelforge/`）。 */
 async function removeProjectSkill(sink: SkillsSink, scope: SkillsScope, id: string): Promise<void> {
   if (!scope.project || !scope.workspace) {
     sink.toast('本工程的技能跟着工程走：先打开那个工程。', 'error');
@@ -189,7 +189,7 @@ async function removeProjectSkill(sink: SkillsSink, scope: SkillsScope, id: stri
   const dir = path.posix.dirname(skill.relPath);
   const choice = await getHost().confirm(`删掉本工程的技能「${label}」？`, ['删除'], {
     modal: true,
-    detail: `整个 ${dir}/ 挪进 .novelforge/.trash/，可手动找回。绑了它的阶段会一起解绑。`,
+    detail: `整个 ${dir}/ 挪进 ${scope.project.relPath(scope.project.trashDir)}/，可手动找回。绑了它的阶段会一起解绑。`,
   });
   if (choice !== '删除') {
     return;

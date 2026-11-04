@@ -373,7 +373,7 @@ const WRITE_RANK: Record<BookFindScope, number> = { doc: 0, plot: 1, chapter: 2,
 
 function noHistoryMessage(reason: string | undefined, error: string | undefined): string {
   if (reason === 'notTracked') {
-    return '这个目录还不是小说工程（没有 .novelforge/），存不了历史版本——这次替换的退路就是历史版本，所以没有替换。';
+    return '这个目录还不是小说工程（没有 .novelwarden/），存不了历史版本——这次替换的退路就是历史版本，所以没有替换。';
   }
   if (reason === 'tooLarge') {
     return '超过 2 MB，存不了历史版本——没有替换。';

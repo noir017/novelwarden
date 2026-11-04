@@ -31,7 +31,7 @@ export function checkMenuEntries(): MenuEntry[] {
       label: '编辑敏感词表…',
       disabled: !status.available || !status.canEditList,
       detail: status.canEditList
-        ? '打开这本书的敏感词表（.novelforge/sensitive.txt，没有就新建一份带说明的模板）：一行一个词，「词 => 替换词」给出替换。'
+        ? '打开这本书的敏感词表（工程里的 sensitive.txt，没有就新建一份带说明的模板）：一行一个词，「词 => 替换词」给出替换。'
         : '先打开一个工程。',
       run: () => commandCheck('editList'),
     },

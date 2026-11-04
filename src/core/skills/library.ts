@@ -4,8 +4,8 @@
  * | 来源 | 在哪 | 谁往里放 |
  * |---|---|---|
  * | 内置 | 仓库里的 [builtin/<名字>/](builtin/README.md)，构建时内嵌进程序 | 随应用发布，删不掉 |
- * | 我的技能库 | `~/.novelforge/skills/<名字>/SKILL.md`，所有工程共用 | 设置页「技能」或 agent 从 GitHub 装；也可以手放 |
- * | 本工程 | `.novelforge/skills/<名字>/SKILL.md`，跟着工程走、可进 Git | 作者手放 |
+ * | 我的技能库 | `~/.novelwarden/skills/<名字>/SKILL.md`，所有工程共用 | 设置页「技能」或 agent 从 GitHub 装；也可以手放 |
+ * | 本工程 | `.novelwarden/skills/<名字>/SKILL.md`，跟着工程走、可进 Git | 作者手放 |
  *
  * 三个来源都是**常规的技能目录**：`SKILL.md` 加上它引用的附带文件（`references/*.md` 这类）。
  * 读一份技能就是读 `SKILL.md`、再按引用把附带文件一层层读进来（{@link collectSkillFiles}），
@@ -67,7 +67,7 @@ export interface LoadedSkill {
 
 let userDirOverride: string | undefined;
 
-/** `~/.novelforge/skills/`。 */
+/** `~/.novelwarden/skills/`。 */
 export function userSkillsDir(): string {
   return userDirOverride ?? path.join(homeDir(), 'skills');
 }
@@ -77,7 +77,7 @@ export function setUserSkillsDir(dir: string | undefined): void {
   userDirOverride = dir;
 }
 
-/** 卸载的技能挪去哪：与技能库同级的 `.trash/skills/`（默认即 `~/.novelforge/.trash/skills/`）。 */
+/** 卸载的技能挪去哪：与技能库同级的 `.trash/skills/`（默认即 `~/.novelwarden/.trash/skills/`）。 */
 function userTrashDir(): string {
   return path.join(path.dirname(userSkillsDir()), '.trash', 'skills');
 }

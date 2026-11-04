@@ -1,5 +1,5 @@
 ---
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 
 # 故事前提

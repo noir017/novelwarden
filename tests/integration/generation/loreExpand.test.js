@@ -36,9 +36,9 @@ let gates;
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
-const TJG = '.novelforge/lore/宗门/天机阁.md';
-const CJG = '.novelforge/lore/宗门/藏经阁.md';
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
+const TJG = '.novelwarden/lore/宗门/天机阁.md';
+const CJG = '.novelwarden/lore/宗门/藏经阁.md';
 
 function plotText(no, { hash, synopsis = '往下查。', events = '- 有事发生', facts = '', lore = '' } = {}) {
   return [
@@ -156,18 +156,18 @@ before(async () => {
   });
   t = await makeTempProject(bundle.project, { prefix: 'loreExpand', title: '天机录' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
-  t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n江湖消息都从天机阁买。\n');
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
+  t.write('.novelwarden/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
+  t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n江湖消息都从天机阁买。\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
   // 只有一句话（细纲带出来的空条目）。
   t.write(TJG, entry('天机阁', { keywords: ['天机阁', '阁里'], brief: '卖消息的楼' }));
   // 作者写过的：明面一句、暗设一句。
   t.write(CJG, entry('藏经阁', { brief: '青云宗藏书处', body: '## 概要\n作者写的：藏书三万卷。\n\n## 暗设\n作者写的：底层藏着魔功。' }));
-  t.write('.novelforge/lore/宗门/青云宗.md', entry('青云宗', { brief: '正道第一宗', body: '剑修。' }));
-  t.write('.novelforge/lore/地域/九层楼.md', entry('九层楼', { brief: '天机阁的藏书楼', body: '九层，每层一个守楼人。' }));
-  t.write('.novelforge/lore/地域/后山.md', entry('后山', { brief: '后山禁地', body: '有阵法。' }));
-  t.write('.novelforge/lore/秘药.md', entry('秘药', { brief: '只写了暗设', body: '## 暗设\n作者写的：秘药是毒。' }));
-  fs.mkdirSync(path.join(t.dir, '.novelforge/lore/制度'), { recursive: true });
+  t.write('.novelwarden/lore/宗门/青云宗.md', entry('青云宗', { brief: '正道第一宗', body: '剑修。' }));
+  t.write('.novelwarden/lore/地域/九层楼.md', entry('九层楼', { brief: '天机阁的藏书楼', body: '九层，每层一个守楼人。' }));
+  t.write('.novelwarden/lore/地域/后山.md', entry('后山', { brief: '后山禁地', body: '有阵法。' }));
+  t.write('.novelwarden/lore/秘药.md', entry('秘药', { brief: '只写了暗设', body: '## 暗设\n作者写的：秘药是毒。' }));
+  fs.mkdirSync(path.join(t.dir, '.novelwarden/lore/制度'), { recursive: true });
 
   for (let no = 1; no <= 2; no++) {
     t.write(CH(no), `# 第${no}章\n\n第${no}章的正文。\n`);
@@ -245,7 +245,7 @@ describe('原料（views/loreMaterial）', () => {
 
   test('水位停在第一处没定稿的章之前；路径上没有文件时按路径拼一条空的', async () => {
     assert.equal(await bundle.material.integrationWatermark(project), 2);
-    const missing = await bundle.material.loreEntryAt(project, '.novelforge/lore/地域/鬼门关.md');
+    const missing = await bundle.material.loreEntryAt(project, '.novelwarden/lore/地域/鬼门关.md');
     assert.equal(missing.exists, false);
     assert.equal(missing.entry.title, '鬼门关');
     assert.equal(missing.entry.category, '地域');
@@ -410,7 +410,7 @@ describe('只有一句话的：直接写', () => {
 
   test('子条目建成空条目，放在分类目录里', async () => {
     const child = (await listLore()).find((x) => x.title === '阁规');
-    assert.equal(child.relPath, '.novelforge/lore/制度/阁规.md');
+    assert.equal(child.relPath, '.novelwarden/lore/制度/阁规.md');
     assert.equal(child.brief, '天机阁的十条规矩');
     assert.deepEqual(child.keywords, ['阁规']);
     assert.equal(child.body.trim(), '');
@@ -420,7 +420,7 @@ describe('只有一句话的：直接写', () => {
   test('还没定的问题不写进任何工程文件', () => {
     const walk = (dir) =>
       fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? walk(path.join(dir, d.name)) : [path.join(dir, d.name)]));
-    const hits = walk(path.join(t.dir, '.novelforge'))
+    const hits = walk(path.join(t.dir, '.novelwarden'))
       .filter((f) => !f.includes(`${path.sep}sessions${path.sep}`) && !f.endsWith('.db') && !f.includes(`${path.sep}.history${path.sep}`))
       .filter((f) => fs.readFileSync(f, 'utf8').includes(QUESTION));
     assert.deepEqual(hits, []);
@@ -461,15 +461,15 @@ describe('作者写过的：先对比', () => {
   // 明面是空的，但作者写过暗设：直接写会吞掉那一句，所以也先对比。
   test('只写了暗设的也先对比', async () => {
     fake.reset([{ text: JSON.stringify({ ...EXPANSION, children: [] }), stop: 'end' }]);
-    const gate = await expand({ relPath: '.novelforge/lore/秘药.md' }, '');
+    const gate = await expand({ relPath: '.novelwarden/lore/秘药.md' }, '');
     assert.ok(gate.detail.includes('那里已经有内容了'), gate.detail);
-    assert.deepEqual(h.reviewed.map((r) => r.relPath), ['.novelforge/lore/秘药.md']);
+    assert.deepEqual(h.reviewed.map((r) => r.relPath), ['.novelwarden/lore/秘药.md']);
   });
 
   // 条目早就整合到了更后面（之后前面某章正文又改过、整合水位停在了那里）：展开不能把它拉回去，
   // 不然已经并进条目的那些章又挂上 ＋N。
   test('水位只往前推不往回退', async () => {
-    const QYZ = '.novelforge/lore/宗门/青云宗.md';
+    const QYZ = '.novelwarden/lore/宗门/青云宗.md';
     const text = read(QYZ).replace('title: 青云宗\n', 'title: 青云宗\nupdatedThrough: 9\n');
     t.write(QYZ, text);
     project.invalidate();
@@ -485,9 +485,9 @@ describe('只给名字', () => {
     fake.reset([{ text: JSON.stringify({ ...EXPANSION, children: [] }), stop: 'end' }]);
     await expand({ name: '暗河', category: '地域' }, '');
     const e = (await listLore()).find((x) => x.title === '暗河');
-    assert.equal(e.relPath, '.novelforge/lore/地域/暗河.md');
+    assert.equal(e.relPath, '.novelwarden/lore/地域/暗河.md');
     assert.ok(e.body.includes('一座卖消息的七层楼'));
-    assert.deepEqual(controller.current.target, { kind: 'lore', relPath: '.novelforge/lore/地域/暗河.md' });
+    assert.deepEqual(controller.current.target, { kind: 'lore', relPath: '.novelwarden/lore/地域/暗河.md' });
     assert.ok(h.inputs[0].prompt.includes('会先建一条空条目'), h.inputs[0].prompt);
   });
 
@@ -541,17 +541,17 @@ describe('路径上还没有文件（MCP 给了一条新路径）', () => {
   }
 
   test('按这个路径新建，标题取文件名，记作机器写的', async () => {
-    const gate = await sendTo('.novelforge/lore/地域/鬼门关.md');
+    const gate = await sendTo('.novelwarden/lore/地域/鬼门关.md');
     assert.ok(!gate.detail.includes('那里已经有内容了'), gate.detail);
-    const e = (await listLore()).find((x) => x.relPath === '.novelforge/lore/地域/鬼门关.md');
+    const e = (await listLore()).find((x) => x.relPath === '.novelwarden/lore/地域/鬼门关.md');
     assert.equal(e.title, '鬼门关');
     assert.equal(e.keywords[0], '鬼门关');
     assert.ok(bundle.lore.loreOwnedByMachine(e));
   });
 
   test('文件名是角色卡上的人就不建', async () => {
-    await sendTo('.novelforge/lore/林昭.md');
-    assert.ok(!fs.existsSync(path.join(t.dir, '.novelforge/lore/林昭.md')));
+    await sendTo('.novelwarden/lore/林昭.md');
+    assert.ok(!fs.existsSync(path.join(t.dir, '.novelwarden/lore/林昭.md')));
     const toasts = posted.filter((m) => m.type === 'toast').map((m) => m.message);
     assert.ok(toasts.some((m) => m.includes('「林昭」是角色卡上的人')), toasts.join('|'));
   });
@@ -559,11 +559,11 @@ describe('路径上还没有文件（MCP 给了一条新路径）', () => {
 
 describe('解析不了', () => {
   test('没有卡片、不写入；失败挂在这一条上', async () => {
-    const before3 = read('.novelforge/lore/宗门/青云宗.md');
+    const before3 = read('.novelwarden/lore/宗门/青云宗.md');
     fake.reset([{ text: '青云宗应该更神秘一些，我建议……', stop: 'end' }]);
-    const gate = await expand({ relPath: '.novelforge/lore/宗门/青云宗.md' }, '');
+    const gate = await expand({ relPath: '.novelwarden/lore/宗门/青云宗.md' }, '');
     assert.equal(gate, undefined);
-    assert.equal(read('.novelforge/lore/宗门/青云宗.md'), before3);
+    assert.equal(read('.novelwarden/lore/宗门/青云宗.md'), before3);
     const turn = controller.current.turns[controller.current.turns.length - 1];
     assert.ok(turn.error && turn.error.includes('展开解析不出来'), turn.error);
     assert.equal(turn.artifact, undefined);
@@ -571,7 +571,7 @@ describe('解析不了', () => {
 
   test('被截断的不给写入，也不重来', async () => {
     fake.reset([{ text: '{"brief":"正道第一宗","body":{"概要":"剑修', stop: 'maxTokens' }]);
-    const gate = await expand({ relPath: '.novelforge/lore/宗门/青云宗.md' }, '');
+    const gate = await expand({ relPath: '.novelwarden/lore/宗门/青云宗.md' }, '');
     assert.equal(gate, undefined);
     assert.equal(fake.callCount(), 1);
   });
@@ -582,17 +582,17 @@ describe('解析不了', () => {
     const fixed = '{"brief":"正道第一宗","keywords":[],"body":{"概要":"剑修。", "现状":"封山。"},"children":[],"questions":[]}';
     fake.reset([{ text: broken, stop: 'end' }, { text: fixed, stop: 'end' }]);
     h.setReviewVerdict('apply');
-    const gate = await expand({ relPath: '.novelforge/lore/宗门/青云宗.md' }, '');
+    const gate = await expand({ relPath: '.novelwarden/lore/宗门/青云宗.md' }, '');
     assert.equal(fake.callCount(), 2);
     assert.ok(systemOf(1).includes('格式转写员') && userOf(1).includes('【设定展开 JSON 合同】'), userOf(1).slice(0, 500));
     assert.ok(gate.detail.includes('一共调了 2 次模型'), gate.detail);
-    assert.ok(read('.novelforge/lore/宗门/青云宗.md').includes('封山。'));
+    assert.ok(read('.novelwarden/lore/宗门/青云宗.md').includes('封山。'));
   });
 });
 
 // 2026-10-25 起按小标题写，转写模型照抄成 JSON（features/transcribe.ts）。
 describe('按格式写、转写成 JSON', () => {
-  const DHD = '.novelforge/lore/地域/断魂渡.md';
+  const DHD = '.novelwarden/lore/地域/断魂渡.md';
   const PROSE = [
     '## 一句话',
     '断魂河上的老渡口',
@@ -705,7 +705,7 @@ describe('单章细纲建空条目（§3）', () => {
     ]);
     assert.ok(gate.detail.includes('会新建设定条目：鬼市'), gate.detail);
     const ghost = (await listLore()).find((x) => x.title === '鬼市');
-    assert.equal(ghost.relPath, '.novelforge/lore/地域/鬼市.md');
+    assert.equal(ghost.relPath, '.novelwarden/lore/地域/鬼市.md');
     assert.equal(ghost.brief, '城下的夜市');
     assert.equal(ghost.body.trim(), '');
     assert.equal((await listLore()).filter((x) => x.title === '天机阁').length, 1);
@@ -717,7 +717,7 @@ describe('单章细纲建空条目（§3）', () => {
   test('覆盖已有的那一章细纲时也建', async () => {
     const gate = await writePlot(5, [{ name: '黑水渡', category: '地域', isNew: true, note: '鬼市的渡口' }]);
     assert.ok(gate.detail.includes('会新建设定条目：黑水渡'), gate.detail);
-    assert.ok((await listLore()).some((x) => x.relPath === '.novelforge/lore/地域/黑水渡.md'));
+    assert.ok((await listLore()).some((x) => x.relPath === '.novelwarden/lore/地域/黑水渡.md'));
   });
 });
 

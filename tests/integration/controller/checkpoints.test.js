@@ -96,7 +96,7 @@ describe('列表与存', () => {
       const list = got.find((m) => m.type === 'checkpoints');
       assert.match(list.unavailable, /还不是小说工程/);
       assert.ok(got.some((m) => m.type === 'toast' && m.level === 'error' && /还不是小说工程/.test(m.message)));
-      assert.equal(fs.existsSync(`${dir.dir}/.novelforge`), false);
+      assert.equal(fs.existsSync(`${dir.dir}/.novelwarden`), false);
     } finally {
       other.dispose();
       cleanup(dir.dir);

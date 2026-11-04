@@ -1,7 +1,7 @@
 /**
  * 网关的复制（`Workspace.copy`）与文件页的「复制 → 粘贴」（`files/projectFiles.ts` 的 `copyInto`）。
  *
- * 从前粘贴的复制变体直接 `fs.cp`，**不过守卫**：能把文件复制进 `.trash/`、`sessions/`、`.novelforge/history/`，
+ * 从前粘贴的复制变体直接 `fs.cp`，**不过守卫**：能把文件复制进 `.trash/`、`sessions/`、`.novelwarden/history/`，
  * 也能把会话文件、工程库从内部目录里复制出来；复制细纲时连定稿记下的指纹一起抄过去。现在走网关（AGENTS 第 7 条）：
  *
  * | 断言 | 为什么 |
@@ -86,10 +86,10 @@ before(async () => {
   ws = new bundle.ws.Workspace(project);
 
   t.write('notes/备忘.txt', '随便记的。\n');
-  t.write('.novelforge/sessions/会话甲.json', '{"id":"会话甲"}\n');
-  t.write('.novelforge/novelforge.db', 'SQLite format 3\0');
-  t.write('.novelforge/.trash/chapters/009-删过的.md', '# 删过的\n\n找回来的那一章。\n');
-  t.write('.novelforge/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt', '旧稿\n');
+  t.write('.novelwarden/sessions/会话甲.json', '{"id":"会话甲"}\n');
+  t.write('.novelwarden/novelwarden.db', 'SQLite format 3\0');
+  t.write('.novelwarden/.trash/chapters/009-删过的.md', '# 删过的\n\n找回来的那一章。\n');
+  t.write('.novelwarden/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt', '旧稿\n');
   fs.mkdirSync(t.rel('archive'), { recursive: true });
   project.invalidate();
 });
@@ -102,11 +102,11 @@ after(() => {
 
 describe('粘贴（复制）进回收站、会话目录、历史版本：一律拒绝', () => {
   const cases = [
-    ['回收站根', '.novelforge/.trash', '.novelforge/.trash/备忘.txt'],
-    ['回收站里的子目录', '.novelforge/.trash/chapters', '.novelforge/.trash/chapters/备忘.txt'],
-    ['会话目录', '.novelforge/sessions', '.novelforge/sessions/备忘.txt'],
-    ['历史版本根', '.novelforge/history', '.novelforge/history/备忘.txt'],
-    ['历史版本里某份文件的快照目录', '.novelforge/history/chapters/001-楔子.md', '.novelforge/history/chapters/001-楔子.md/备忘.txt'],
+    ['回收站根', '.novelwarden/.trash', '.novelwarden/.trash/备忘.txt'],
+    ['回收站里的子目录', '.novelwarden/.trash/chapters', '.novelwarden/.trash/chapters/备忘.txt'],
+    ['会话目录', '.novelwarden/sessions', '.novelwarden/sessions/备忘.txt'],
+    ['历史版本根', '.novelwarden/history', '.novelwarden/history/备忘.txt'],
+    ['历史版本里某份文件的快照目录', '.novelwarden/history/chapters/001-楔子.md', '.novelwarden/history/chapters/001-楔子.md/备忘.txt'],
   ];
   const results = {};
   let dirIntoTrash;
@@ -118,7 +118,7 @@ describe('粘贴（复制）进回收站、会话目录、历史版本：一律�
       results[name] = (await bundle.projectFiles.copyInto(project, ['notes/备忘.txt'], dest))[0];
     }
     // 整个目录复制进回收站。
-    dirIntoTrash = (await bundle.projectFiles.copyInto(project, ['notes'], '.novelforge/.trash'))[0];
+    dirIntoTrash = (await bundle.projectFiles.copyInto(project, ['notes'], '.novelwarden/.trash'))[0];
     toastsAfter = [...h.toasts];
   });
 
@@ -131,7 +131,7 @@ describe('粘贴（复制）进回收站、会话目录、历史版本：一律�
 
   test('整个目录复制进回收站：拒绝，一个文件都没建', () => {
     assert.equal(dirIntoTrash.ok, false, JSON.stringify(dirIntoTrash));
-    assert.equal(t.has('.novelforge/.trash/notes'), false);
+    assert.equal(t.has('.novelwarden/.trash/notes'), false);
   });
 
   test('拒绝的原因说得出来（回收站 / 内部文件 / 历史版本）', () => {
@@ -145,10 +145,10 @@ describe('粘贴（复制）进回收站、会话目录、历史版本：一律�
   });
 
   test('网关直接调也一样：copy 到这几处抛守卫的错', async () => {
-    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelforge/.trash/x.txt')), 'inTrash');
-    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelforge/sessions/x.json')), 'protected');
-    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelforge/history/x.txt')), 'inHistory');
-    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelforge/novelforge.db-wal')), 'protected');
+    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelwarden/.trash/x.txt')), 'inTrash');
+    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelwarden/sessions/x.json')), 'protected');
+    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelwarden/history/x.txt')), 'inHistory');
+    assert.equal(await codeOf(() => ws.copy('notes/备忘.txt', '.novelwarden/novelwarden.db-wal')), 'protected');
   });
 });
 
@@ -163,20 +163,20 @@ describe('从受保护的地方复制出来', () => {
   let manifestFiles;
 
   before(async () => {
-    fromTrash = (await bundle.projectFiles.copyInto(project, ['.novelforge/.trash/chapters/009-删过的.md'], 'chapters'))[0];
+    fromTrash = (await bundle.projectFiles.copyInto(project, ['.novelwarden/.trash/chapters/009-删过的.md'], 'chapters'))[0];
     manifestFiles = (await project.readManifest()).chapters.map((c) => c.file);
     fromHistory = (
-      await bundle.projectFiles.copyInto(project, ['.novelforge/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt'], 'notes')
+      await bundle.projectFiles.copyInto(project, ['.novelwarden/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt'], 'notes')
     )[0];
-    fromSession = (await bundle.projectFiles.copyInto(project, ['.novelforge/sessions/会话甲.json'], 'notes'))[0];
-    fromDb = (await bundle.projectFiles.copyInto(project, ['.novelforge/novelforge.db'], 'notes'))[0];
-    fromSessionsDir = (await bundle.projectFiles.copyInto(project, ['.novelforge/sessions'], 'notes'))[0];
+    fromSession = (await bundle.projectFiles.copyInto(project, ['.novelwarden/sessions/会话甲.json'], 'notes'))[0];
+    fromDb = (await bundle.projectFiles.copyInto(project, ['.novelwarden/novelwarden.db'], 'notes'))[0];
+    fromSessionsDir = (await bundle.projectFiles.copyInto(project, ['.novelwarden/sessions'], 'notes'))[0];
   });
 
   test('⚑ 回收站里的一章复制得出来（找回一份），回收站里那份一字不动', () => {
     assert.equal(fromTrash.ok, true, JSON.stringify(fromTrash));
     assert.equal(t.read('chapters/009-删过的.md'), '# 删过的\n\n找回来的那一章。\n');
-    assert.equal(t.read('.novelforge/.trash/chapters/009-删过的.md'), '# 删过的\n\n找回来的那一章。\n');
+    assert.equal(t.read('.novelwarden/.trash/chapters/009-删过的.md'), '# 删过的\n\n找回来的那一章。\n');
   });
 
   test('找回进 chapters/ 的那一章进了 manifest', () => {
@@ -186,7 +186,7 @@ describe('从受保护的地方复制出来', () => {
   test('⚑ 历史版本里的一份快照复制得出来，快照本身一字不动', () => {
     assert.equal(fromHistory.ok, true, JSON.stringify(fromHistory));
     assert.equal(t.read('notes/2026-10-18_14-32-05+0800.txt'), '旧稿\n');
-    assert.equal(t.read('.novelforge/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt'), '旧稿\n');
+    assert.equal(t.read('.novelwarden/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt'), '旧稿\n');
   });
 
   test('会话文件复制不出来（内部文件）', () => {
@@ -196,7 +196,7 @@ describe('从受保护的地方复制出来', () => {
 
   test('工程库复制不出来（内部文件）', () => {
     assert.equal(fromDb.ok, false, JSON.stringify(fromDb));
-    assert.equal(t.has('notes/novelforge.db'), false);
+    assert.equal(t.has('notes/novelwarden.db'), false);
   });
 
   test('整个会话目录复制不出来（固定目录）', () => {
@@ -252,7 +252,7 @@ describe('复制一章正文', () => {
   const CH = 'chapters/第一卷/003-夜访.md';
   const BODY = '# 夜访\n\n夜里有人敲门，三下，停一停，又是两下。\n';
   const DRAFT = 'drafts/第一卷/003-夜访.md';
-  const PLOT = '.novelforge/summaries/第一卷/003-夜访.md';
+  const PLOT = '.novelwarden/summaries/第一卷/003-夜访.md';
   let plotBefore;
   let castBefore;
   let result;
@@ -288,7 +288,7 @@ describe('复制一章正文', () => {
   });
 
   test('⚑ 细纲不跟着复制（副本是一章新的，旧细纲不冒认），原细纲一字不动', () => {
-    assert.equal(t.has('.novelforge/summaries/第二卷/003-夜访.md'), false);
+    assert.equal(t.has('.novelwarden/summaries/第二卷/003-夜访.md'), false);
     assert.equal(t.read(PLOT), plotBefore);
   });
 
@@ -309,14 +309,14 @@ describe('复制一章正文', () => {
   });
 
   test('没覆盖任何东西，不存历史版本', () => {
-    assert.equal(t.has('.novelforge/history/chapters/第二卷'), false);
+    assert.equal(t.has('.novelwarden/history/chapters/第二卷'), false);
   });
 });
 
 // ---------------------------------------------------------------- 复制细纲
 
 describe('复制一份细纲：指纹不带着把副本标成新鲜或定稿过（第 18 条）', () => {
-  const PLOT = '.novelforge/summaries/005-回乡.md';
+  const PLOT = '.novelwarden/summaries/005-回乡.md';
   const STALE_UP = 'deadbeefdeadbeef';
   let original;
   let origPlot;
@@ -330,15 +330,15 @@ describe('复制一份细纲：指纹不带着把副本标成新鲜或定稿过�
   before(async () => {
     // 梗概（大纲里这一章那一条）在这份细纲之后改过：原件挂着 ⟳（upstreamHash 对不上此刻梗概的指纹）。
     t.write(PLOT, finalizedPlot(5, '回乡', { upstreamHash: STALE_UP, writtenFrom: '1111111111111111', sourceHash: '2222222222222222' }));
-    fs.mkdirSync(t.rel('.novelforge/summaries/备份'), { recursive: true });
+    fs.mkdirSync(t.rel('.novelwarden/summaries/备份'), { recursive: true });
     project.invalidate();
     original = t.read(PLOT);
     currentUp = bundle.plotFile.plotSynopsisHash((await project.readPlot(PLOT)).sections.梗概);
 
-    result = (await bundle.projectFiles.copyInto(project, [PLOT], '.novelforge/summaries/备份'))[0];
+    result = (await bundle.projectFiles.copyInto(project, [PLOT], '.novelwarden/summaries/备份'))[0];
     project.invalidate();
-    copyText = t.read('.novelforge/summaries/备份/005-回乡.md');
-    copy = await project.readPlot('.novelforge/summaries/备份/005-回乡.md');
+    copyText = t.read('.novelwarden/summaries/备份/005-回乡.md');
+    copy = await project.readPlot('.novelwarden/summaries/备份/005-回乡.md');
     origPlot = await project.readPlot(PLOT);
     pipeOriginal = await bundle.pipe.buildPlotPipeline(project, { no: 5, plot: origPlot });
     pipeCopy = await bundle.pipe.buildPlotPipeline(project, { no: 5, plot: copy });
@@ -378,18 +378,18 @@ describe('复制一份细纲：指纹不带着把副本标成新鲜或定稿过�
   });
 
   test('网关直接复制成另一个章号：上游指纹也去掉（那是另一章了）', async () => {
-    await ws.copy(PLOT, '.novelforge/summaries/备份/007-回乡.md');
+    await ws.copy(PLOT, '.novelwarden/summaries/备份/007-回乡.md');
     project.invalidate();
-    const renumbered = await project.readPlot('.novelforge/summaries/备份/007-回乡.md');
+    const renumbered = await project.readPlot('.novelwarden/summaries/备份/007-回乡.md');
     assert.equal(renumbered.upstreamHash, '');
     assert.equal(renumbered.sourceHash, '');
   });
 
   test('没有 frontmatter 的手写细纲复制过去一字不动（不补指纹）', async () => {
     const HAND = '# 第6章 手写\n\n## 梗概\n\n作者自己写的。\n';
-    t.write('.novelforge/summaries/006-手写.md', HAND);
-    await ws.copy('.novelforge/summaries/006-手写.md', '.novelforge/summaries/备份/006-手写.md');
-    assert.equal(t.read('.novelforge/summaries/备份/006-手写.md'), HAND);
+    t.write('.novelwarden/summaries/006-手写.md', HAND);
+    await ws.copy('.novelwarden/summaries/006-手写.md', '.novelwarden/summaries/备份/006-手写.md');
+    assert.equal(t.read('.novelwarden/summaries/备份/006-手写.md'), HAND);
   });
 });
 
@@ -413,7 +413,7 @@ describe('复制整个目录：逐个文件过守卫，字节原样', () => {
     manifestFiles = (await project.readManifest()).chapters.map((c) => c.file);
 
     // 细纲目录整个复制：里面的每一份都去掉定稿那一侧的指纹。
-    summariesDir = (await bundle.projectFiles.copyInto(project, ['.novelforge/summaries/第一卷'], '.novelforge/summaries/备份'))[0];
+    summariesDir = (await bundle.projectFiles.copyInto(project, ['.novelwarden/summaries/第一卷'], '.novelwarden/summaries/备份'))[0];
   });
 
   test('整棵复制过去', () => {
@@ -434,7 +434,7 @@ describe('复制整个目录：逐个文件过守卫，字节原样', () => {
   test('目录里的细纲同样去掉了定稿那一侧的指纹', async () => {
     assert.equal(summariesDir.ok, true, JSON.stringify(summariesDir));
     project.invalidate();
-    const copied = await project.readPlot('.novelforge/summaries/备份/第一卷/003-夜访.md');
+    const copied = await project.readPlot('.novelwarden/summaries/备份/第一卷/003-夜访.md');
     assert.equal(copied.sourceHash, '');
     assert.equal(copied.writtenFrom, '');
     assert.equal(copied.upstreamHash, 'aaaaaaaaaaaaaaaa');

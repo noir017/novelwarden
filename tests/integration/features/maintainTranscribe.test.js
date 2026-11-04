@@ -31,9 +31,9 @@ let project;
 const behavior = {};
 
 const TRANSCRIBER = '格式转写员';
-const CARD = '.novelforge/characters/林昭.md';
+const CARD = '.novelwarden/characters/林昭.md';
 const CH = (no) => `chapters/00${no}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/00${no}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/00${no}-第${no}章.md`;
 const TEXT = [
   '雨下了一整夜。林昭进了青崖镇，镇口的守卫查验过所。',
   '停舟客栈是镇上唯一的客栈，二层木楼。韩厉带人摸进镇口，火把一路烧到客栈门前。',
@@ -488,7 +488,7 @@ describe('按目录整理 · 「## 新目录」「## 搬家」写，转写成搬
   let plan;
 
   before(async () => {
-    t.write('.novelforge/lore/路引.md', '---\ntitle: 路引\nkeywords: [路引]\n---\n\n# 路引\n\n出入凭证。\n');
+    t.write('.novelwarden/lore/路引.md', '---\ntitle: 路引\nkeywords: [路引]\n---\n\n# 路引\n\n出入凭证。\n');
     project.invalidate();
     transcripts = [JSON.stringify({ folders: ['文书'], moves: [{ from: '路引', to: '文书' }] })];
     fake.reset();
@@ -510,7 +510,7 @@ describe('按目录整理 · 「## 新目录」「## 搬家」写，转写成搬
 
   test('照抄的清单照常校验、给作者看、搬', () => {
     assert.match(plan.message, /搬 1 条设定，新建 1 个目录/);
-    assert.ok(!t.has('.novelforge/lore/路引.md'));
-    assert.ok(t.has('.novelforge/lore/文书/路引.md'));
+    assert.ok(!t.has('.novelwarden/lore/路引.md'));
+    assert.ok(t.has('.novelwarden/lore/文书/路引.md'));
   });
 });

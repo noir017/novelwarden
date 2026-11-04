@@ -10,7 +10,7 @@ const { describe, test, before } = require('node:test');
 const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, sampleTree } = require('../../helpers/dom');
 
-const LORE = '.novelforge/lore';
+const LORE = '.novelwarden/lore';
 const EXPAND = '展开…（预计 2 次调用，最多 3 次）';
 
 const thinTree = (extra) => ({

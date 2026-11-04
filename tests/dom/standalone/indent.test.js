@@ -55,7 +55,7 @@ describe('Tab 缩进', { skip: JSDOM_SKIP }, () => {
   });
 
   test('角色卡等 Markdown：两个半角空格', () => {
-    open('.novelforge/characters/林昭.md', '- 身份', 'character');
+    open('.novelwarden/characters/林昭.md', '- 身份', 'character');
     select(0);
     tab();
     assert.equal(area().value, '  - 身份');

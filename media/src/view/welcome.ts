@@ -401,12 +401,12 @@ function syncComposerLock(): void {
 function updateTitle(item?: WorkspaceItem): void {
   const current = item ?? (store.currentId ? { id: store.currentId, root: store.currentId, name: nameOf(store.currentId) } : undefined);
   const titleText = document.getElementById('wbTitleText');
-  let title = 'Novel Forge';
+  let title = 'Novelwarden';
   let barText = title;
   let shortText = title;
   if (current) {
-    title = fileName ? `${fileName} - ${current.name} - Novel Forge` : `${current.name} - Novel Forge`;
-    barText = fileName ? `${fileName} - ${current.root} - Novel Forge` : `${current.root} - Novel Forge`;
+    title = fileName ? `${fileName} - ${current.name} - Novelwarden` : `${current.name} - Novelwarden`;
+    barText = fileName ? `${fileName} - ${current.root} - Novelwarden` : `${current.root} - Novelwarden`;
     shortText = current.name;
   }
   if (titleText) {
@@ -460,7 +460,7 @@ function ensureSideEmptyHints(): void {
 function buildAbout(): HTMLElement {
   const wrap = mk('div', 'nf-about');
   const card = mk('div', 'nf-about-card');
-  card.appendChild(mk('h2', undefined, 'Novel Forge'));
+  card.appendChild(mk('h2', undefined, 'Novelwarden'));
   card.appendChild(mk('p', 'nf-about-ver', '版本'));
   card.appendChild(mk('p', 'nf-about-path'));
   const close = mk('button', 'primary', '关闭');

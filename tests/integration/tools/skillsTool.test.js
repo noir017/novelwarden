@@ -94,10 +94,10 @@ describe('闸门按动作分', () => {
     const gate = (path, mode) => write.intent({ path, mode }, t.project).gate;
     assert.deepEqual(
       [
-        gate('.novelforge/skills.json'),
-        gate('.novelforge/skills/x/SKILL.md', 'append'),
-        gate('.novelforge/skills.json', 'overwrite'),
-        gate('.novelforge/style.md'),
+        gate('.novelwarden/skills.json'),
+        gate('.novelwarden/skills/x/SKILL.md', 'append'),
+        gate('.novelwarden/skills.json', 'overwrite'),
+        gate('.novelwarden/style.md'),
       ],
       ['always', 'always', 'reviewed', 'mutating']
     );
@@ -158,7 +158,7 @@ describe('检查 → 安装 → 绑定', () => {
   test('绑定：写进本工程的 skills.json', async () => {
     const r = await run({ action: 'bind', id: 'user:scene-craft', stage: 'drafting' });
     assert.ok(!r.error, r.error);
-    assert.deepEqual(JSON.parse(t.read('.novelforge/skills.json')).bindings, { drafting: 'user:scene-craft' });
+    assert.deepEqual(JSON.parse(t.read('.novelwarden/skills.json')).bindings, { drafting: 'user:scene-craft' });
   });
 
   test('一个模型都没调', () => {

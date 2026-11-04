@@ -25,15 +25,15 @@ function index(extra = {}) {
   return {
     initialized: true,
     chapters: [
-      { no: 1, title: '楔子', volume: '', chapterPath: 'chapters/001-楔子.md', plotPath: '.novelforge/summaries/001-楔子.md', words: 300 },
+      { no: 1, title: '楔子', volume: '', chapterPath: 'chapters/001-楔子.md', plotPath: '.novelwarden/summaries/001-楔子.md', words: 300 },
       { no: 2, title: '入镇', volume: '第一卷', chapterPath: 'chapters/第一卷/002-入镇.md', words: 2980 },
-      { no: 3, title: '夜访', volume: '第一卷', chapterPath: 'chapters/第一卷/003-夜访.md', plotPath: '.novelforge/summaries/第一卷/003-夜访.md', words: 3100 },
-      { no: 4, title: '北行', volume: '第一卷', plotPath: '.novelforge/summaries/第一卷/004-北行.md', words: 0 },
-      { no: 12, title: '夜入青云', volume: '第二卷', chapterPath: 'chapters/第二卷/012-夜入青云.md', plotPath: '.novelforge/summaries/第二卷/012-夜入青云.md', words: 3012 },
+      { no: 3, title: '夜访', volume: '第一卷', chapterPath: 'chapters/第一卷/003-夜访.md', plotPath: '.novelwarden/summaries/第一卷/003-夜访.md', words: 3100 },
+      { no: 4, title: '北行', volume: '第一卷', plotPath: '.novelwarden/summaries/第一卷/004-北行.md', words: 0 },
+      { no: 12, title: '夜入青云', volume: '第二卷', chapterPath: 'chapters/第二卷/012-夜入青云.md', plotPath: '.novelwarden/summaries/第二卷/012-夜入青云.md', words: 3012 },
     ],
-    characters: [{ name: '林昭', aliases: ['阿昭'], path: '.novelforge/characters/林昭.md' }],
-    lore: [{ title: '青云宗', path: '.novelforge/lore/青云宗.md' }],
-    docs: [{ key: 'outline', label: '情节大纲', path: '.novelforge/outline.md' }],
+    characters: [{ name: '林昭', aliases: ['阿昭'], path: '.novelwarden/characters/林昭.md' }],
+    lore: [{ title: '青云宗', path: '.novelwarden/lore/青云宗.md' }],
+    docs: [{ key: 'outline', label: '情节大纲', path: '.novelwarden/outline.md' }],
     drafts: [{ path: 'drafts/第一卷/003-夜访.md', name: '003-夜访.md', no: 3 }],
     ...extra,
   };
@@ -305,7 +305,7 @@ describe('「转到…」面板 · 打开什么', { skip: JSDOM_SKIP }, () => {
     h.type('北行');
     const n = h.ui.sent.length;
     h.key(h.input(), 'Enter');
-    assert.deepEqual(h.sentAfter(n), [{ type: 'openChapter', plotRelPath: '.novelforge/summaries/第一卷/004-北行.md' }]);
+    assert.deepEqual(h.sentAfter(n), [{ type: 'openChapter', plotRelPath: '.novelwarden/summaries/第一卷/004-北行.md' }]);
   });
 
   test('章节：Ctrl+Enter 把正文开到第二块编辑区', () => {
@@ -319,13 +319,13 @@ describe('「转到…」面板 · 打开什么', { skip: JSDOM_SKIP }, () => {
     h.type('林昭');
     const n = h.ui.sent.length;
     h.key(h.input(), 'Enter');
-    assert.deepEqual(h.sentAfter(n), [{ type: 'openEditor', path: '.novelforge/characters/林昭.md', pane: 'main' }]);
+    assert.deepEqual(h.sentAfter(n), [{ type: 'openEditor', path: '.novelwarden/characters/林昭.md', pane: 'main' }]);
   });
 
   test('设定、文档、草稿：Ctrl+Enter 开到第二块', () => {
     for (const [q, path] of [
-      ['青云宗', '.novelforge/lore/青云宗.md'],
-      ['情节大纲', '.novelforge/outline.md'],
+      ['青云宗', '.novelwarden/lore/青云宗.md'],
+      ['情节大纲', '.novelwarden/outline.md'],
       ['003-夜访.md', 'drafts/第一卷/003-夜访.md'],
     ]) {
       if (!h.panel()) {
@@ -342,12 +342,12 @@ describe('「转到…」面板 · 打开什么', { skip: JSDOM_SKIP }, () => {
     h.type('林昭');
     let n = h.ui.sent.length;
     h.ui.clickEl(h.rows()[0]);
-    assert.deepEqual(h.sentAfter(n), [{ type: 'openEditor', path: '.novelforge/characters/林昭.md', pane: 'main' }]);
+    assert.deepEqual(h.sentAfter(n), [{ type: 'openEditor', path: '.novelwarden/characters/林昭.md', pane: 'main' }]);
     h.ctrlP();
     h.type('林昭');
     n = h.ui.sent.length;
     h.rows()[0].dispatchEvent(new h.ui.window.MouseEvent('click', { bubbles: true, ctrlKey: true }));
-    assert.deepEqual(h.sentAfter(n), [{ type: 'openEditor', path: '.novelforge/characters/林昭.md', pane: 'draft' }]);
+    assert.deepEqual(h.sentAfter(n), [{ type: 'openEditor', path: '.novelwarden/characters/林昭.md', pane: 'draft' }]);
   });
 
   test('按下鼠标不把焦点从输入框拿走', () => {
@@ -364,7 +364,7 @@ describe('「转到…」面板 · 打开什么', { skip: JSDOM_SKIP }, () => {
     h.key(h.input(), 'Enter');
     h.ui.post({ type: 'editorOpen', file: file('chapters/第一卷/003-夜访.md', '正文', { kind: 'chapter' }) });
     assert.equal(h.doc.activeElement, h.mainArea());
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/summaries/第一卷/003-夜访.md', '细纲', { kind: 'plot' }), pane: 'draft' });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/summaries/第一卷/003-夜访.md', '细纲', { kind: 'plot' }), pane: 'draft' });
     assert.equal(h.doc.activeElement, h.mainArea());
     // 当前那一块（Ctrl+S 存的就是它）也是正文那一块。
     const status = { hasFile: false, path: null };
@@ -377,7 +377,7 @@ describe('「转到…」面板 · 打开什么', { skip: JSDOM_SKIP }, () => {
   test('细纲先到、正文后到：焦点照样落在正文那一块', () => {
     h.type('夜访');
     h.key(h.input(), 'Enter');
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/summaries/第一卷/003-夜访.md', '细纲', { kind: 'plot' }), pane: 'draft' });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/summaries/第一卷/003-夜访.md', '细纲', { kind: 'plot' }), pane: 'draft' });
     h.ui.post({ type: 'editorOpen', file: file('chapters/第一卷/003-夜访.md', '正文', { kind: 'chapter' }) });
     assert.equal(h.doc.activeElement, h.mainArea());
     const status = { hasFile: false, path: null };
@@ -388,7 +388,7 @@ describe('「转到…」面板 · 打开什么', { skip: JSDOM_SKIP }, () => {
   test('Ctrl+Enter 之后焦点进第二块编辑区', () => {
     h.type('林昭');
     h.key(h.input(), 'Enter', { ctrlKey: true });
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭', { kind: 'character' }), pane: 'draft' });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭', { kind: 'character' }), pane: 'draft' });
     const draftArea = h.ui.panes()[1].querySelector('textarea');
     assert.equal(h.doc.activeElement, draftArea);
   });
@@ -511,18 +511,18 @@ describe('「转到…」 · 最近打开的', { skip: JSDOM_SKIP }, () => {
 
   test('编辑器里开过的文件记在按工程分开的 localStorage 里，新的在前', () => {
     const h = harness();
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭', { kind: 'character' }) });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭', { kind: 'character' }) });
     h.ui.post({ type: 'editorOpen', file: file('chapters/第一卷/003-夜访.md', '正文', { kind: 'chapter' }) });
     assert.deepEqual(JSON.parse(h.ui.window.localStorage.getItem(KEY)), [
       'chapters/第一卷/003-夜访.md',
-      '.novelforge/characters/林昭.md',
+      '.novelwarden/characters/林昭.md',
     ]);
   });
 
   test('空输入时「最近打开的」列在前面，后面接前几章（已列过的不重复）', () => {
     const h = harness();
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭', { kind: 'character' }) });
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/summaries/第一卷/003-夜访.md', '细纲', { kind: 'plot' }) });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭', { kind: 'character' }) });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/summaries/第一卷/003-夜访.md', '细纲', { kind: 'plot' }) });
     h.open();
     assert.deepEqual(h.sections(), ['最近打开的', '章节']);
     assert.deepEqual(h.names(), ['夜访', '林昭', '楔子', '入镇', '北行', '夜入青云']);
@@ -534,7 +534,7 @@ describe('「转到…」 · 最近打开的', { skip: JSDOM_SKIP }, () => {
     h.open();
     h.type('林昭');
     h.key(h.input(), 'Enter');
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭', { kind: 'character' }) });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭', { kind: 'character' }) });
     h.ctrlP();
     h.respond();
     assert.equal(h.names()[0], '林昭');
@@ -543,7 +543,7 @@ describe('「转到…」 · 最近打开的', { skip: JSDOM_SKIP }, () => {
 
   test('记不进 localStorage（about:blank）时不报错，只是没有「最近打开的」', () => {
     const h = harness({ url: undefined });
-    h.ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭', { kind: 'character' }) });
+    h.ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭', { kind: 'character' }) });
     h.open();
     assert.deepEqual(h.sections(), ['章节']);
   });
@@ -584,7 +584,7 @@ describe('「转到…」 · 与临时标签', { skip: JSDOM_SKIP }, () => {
     h.type('林昭');
     h.key(h.input(), 'Enter');
     const msg = h.ui.last('openEditor');
-    assert.equal(msg.path, '.novelforge/characters/林昭.md');
+    assert.equal(msg.path, '.novelwarden/characters/林昭.md');
     assert.equal('preview' in msg, false);
     echo(msg);
     assert.equal(tabs().length, 2);

@@ -381,7 +381,7 @@ export interface SkillsView {
   rows: SkillRow[];
   /** 本工程每个阶段绑了哪份。**没打开工程时缺席**：绑定跟着工程走。 */
   bindings?: Partial<Record<SkillStage, string>>;
-  /** 绑定文件读不懂的地方（`.novelforge/skills.json`）。 */
+  /** 绑定文件读不懂的地方（`.novelwarden/skills.json`）。 */
   problems: string[];
   /** 我的技能库在哪：手放技能的作者要知道往哪放。 */
   userDir: string;

@@ -99,7 +99,7 @@ describe('initialize', () => {
     const body = await res.json();
     assert.equal(body.result.protocolVersion, '2025-03-26');
     assert.deepEqual(body.result.capabilities, { tools: { listChanged: false } });
-    assert.equal(body.result.serverInfo.name, 'novel-forge');
+    assert.equal(body.result.serverInfo.name, 'novelwarden');
     assert.ok(body.result.instructions.includes('generate'), body.result.instructions);
   });
 

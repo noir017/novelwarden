@@ -260,7 +260,7 @@ draftId → draft.target → pathOfTarget(target) → ws.write(path, {artifact: 
 
 ## 给接手 agent 的提示词
 
-> 你在 novel-forge 仓库里执行「二期：generation 无状态化 + Draft store」。前置是零期与一期，确认都已合入（`src/core/workspace/` 存在且 `npm test` 绿）。
+> 你在 novelwarden 仓库里执行「二期：generation 无状态化 + Draft store」。前置是零期与一期，确认都已合入（`src/core/workspace/` 存在且 `npm test` 绿）。
 >
 > 先读 `AGENTS.md` 的第 19、20、22 条、`src/core/features/README.md` 的「创作的四层与两条路」、以及 `docs/design/specs/2026-08-15-agent-architecture-design.md` 的 L2 一节。然后读 `src/core/features/creation.ts` 与 `src/core/controller/chat.ts`。
 >

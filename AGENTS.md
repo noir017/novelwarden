@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Novel Forge 首先是一个**写长篇小说的编辑器**（编辑器的功能优先做），其次**照正文自动整理这本书**（细纲、角色卡、设定、叙事线由机器维护，作者改过的机器不覆盖），最后才是往下写（一句念头 → 架构 → 情节大纲 → 细纲 → 正文）。四种壳（独立 Web 服务 / 桌面 / Android / VS Code 插件）共用一套核心。数据是工作区 `.novelforge/` 下的普通 Markdown，app 不读写 `.git`。产品文档见 [README.md](README.md)。
+Novelwarden 首先是一个**写长篇小说的编辑器**（编辑器的功能优先做），其次**照正文自动整理这本书**（细纲、角色卡、设定、叙事线由机器维护，作者改过的机器不覆盖），最后才是往下写（一句念头 → 架构 → 情节大纲 → 细纲 → 正文）。四种壳（独立 Web 服务 / 桌面 / Android / VS Code 插件）共用一套核心。数据是工作区 `.novelwarden/` 下的普通 Markdown，app 不读写 `.git`。旧工程的 `.novelforge/`、`.novel/` 继续可打开，迁移只在作者确认后 rename。产品文档见 [README.md](README.md)。
 
 **一条轴：细纲号 = 章号。** `config.md` → `premise.md` / `characters/` / `world.md` / `lore/` → 情节大纲（**不是文件**，是各章细纲梗概的汇总）→ `summaries/…/NNN-标题.md`（细纲，**镜像正文的相对路径**）→ `chapters/…/NNN-标题.txt`（正文，唯一真相）→ 定稿（界面上叫「同步」，照正文反向更新细纲、设定、角色状态、叙事线 `threads/`、故事时间）。`scenes/`、`volumes/`、`manuscripts/`、`plots/` 已删，代码不认、磁盘上不动。详见 [src/core/model/README.md](src/core/model/README.md)。
 
@@ -61,7 +61,7 @@ npm run test:unit        # 也有 test:integration / test:dom / test:e2e（需 B
 3. **不静默覆盖**：可能吞掉已有内容的动作，落盘前先给作者判断的机会。[workspace](src/core/workspace/README.md)
 4. **不偷偷烧 token**：不自动补、不自动定稿；调模型前一律写明预计调用次数，确认框经 `features/askCall.ts`。[features](src/core/features/README.md)
 5. **模型引用只在第一个斜杠处切分**。[model](src/core/model/README.md)
-6. **不真删**：删除一律搬进 `.novelforge/.trash/`。[workspace](src/core/workspace/README.md)
+6. **不真删**：删除一律搬进 `.novelwarden/.trash/`。[workspace](src/core/workspace/README.md)
 7. **文件访问不越界**：所有写盘经 `core/workspace/` 这一个网关。[workspace](src/core/workspace/README.md)
 8. **细纲号 = 章号，细纲镜像正文的相对路径**：不许平铺、不许只按章号配对。[model](src/core/model/README.md)
 9. **章节不认扩展名**：规则只在 `model/chapterFile.ts` 定义一次。[model](src/core/model/README.md)

@@ -11,7 +11,7 @@
 2. 等它就绪，把窗口从本地 `ui/splash.html` 导航到 `http://127.0.0.1:PORT/`
 3. 退出时把 sidecar 收掉
 
-上次打开的工程由 sidecar 读 `~/.novelforge/window.json` 恢复，与浏览器里跑 `novelforge` 同一条路。打开/关闭文件夹不 kill、不重启 sidecar。旧桌面记忆 `<app_config_dir>/shell.json` 只在 `window.json` 还不存在时迁一次。
+上次打开的工程由 sidecar 读 `~/.novelwarden/window.json` 恢复，与浏览器里跑 `novelwarden` 同一条路。打开/关闭文件夹不 kill、不重启 sidecar。旧桌面记忆 `<app_config_dir>/shell.json` 只在 `window.json` 还不存在时迁一次。
 
 **所以桌面版没有任何功能是"适配"出来的。** sidecar 是同一台机器上的普通进程，
 `fs.watch`、`bun:sqlite`、`openExternal` 唤起系统程序全部照旧工作。用户看不到服务的存在，
@@ -32,7 +32,7 @@ tauri.conf.json」，站在这里是最稳的那条发现路径。CI 里对应�
 |---|---|
 | [src/main.rs](src/main.rs) | 启动编排、三个 `#[tauri::command]`、退出时收 sidecar。无原生 File/Help 菜单 |
 | [src/sidecar.rs](src/sidecar.rs) | sidecar 生命周期：预挑端口、spawn（只传 `--no-open --port`）、等就绪、日志落盘、kill |
-| [src/project.rs](src/project.rs) | 把旧 `shell.json` 的 `last_project` 迁到 `~/.novelforge/window.json`（只一次） |
+| [src/project.rs](src/project.rs) | 把旧 `shell.json` 的 `last_project` 迁到 `~/.novelwarden/window.json`（只一次） |
 | [ui/splash.html](ui/splash.html) + [ui/splash.js](ui/splash.js) | 启动页：启动中 / 失败（重试、查看日志）。不再选目录 |
 | [icons/source.svg](icons/source.svg) | app 图标源文件，改了重跑 `npx tauri icon icons/source.svg` |
 
@@ -54,10 +54,10 @@ npm run sidecar:all  # 连 Windows 的一起编（Bun 交叉编译）
 ## 三条不能改的约定
 
 1. **不再把工程路径传给 sidecar。** 恢复上次工程、打开/关闭文件夹全在 sidecar 里，
-   与 `novelforge` 空窗口同一条路。
+   与 `novelwarden` 空窗口同一条路。
 
 2. **退出时必须 kill sidecar。** Windows 上的孤儿进程会占着端口，还会占着
-   `.novelforge/novelforge.db`（[db.ts](../../core/runtime/db.ts) 里记过这个 EBUSY 坑）。
+   `.novelwarden/novelwarden.db`（[db.ts](../../core/runtime/db.ts) 里记过这个 EBUSY 坑）。
 
 3. **绝不开 `dangerousRemoteDomainIpcAccess`。** 导航到 `http://127.0.0.1:PORT` 之后
    页面属于远程内容，[capabilities/default.json](capabilities/default.json) 刻意没有
@@ -89,7 +89,7 @@ npm run sidecar:all  # 连 Windows 的一起编（Bun 交叉编译）
 
 sidecar 的全部 stdout / stderr 都落在 `<app_log_dir>/sidecar.log`（每次启动截断重来），
 失败闪屏上的「查看日志」打开它所在的目录。起不来的时候那是第一站。导航进页面之后，
-帮助 → 打开日志目录打开的是 `~/.novelforge/`（配置与 window.json）。
+帮助 → 打开日志目录打开的是 `~/.novelwarden/`（配置与 window.json）。
 
 注意这与网页里那个「日志」页是两回事：那一页是 sidecar 内部的业务日志（还会进
 SQLite），这个文件是**壳看到的进程输出**——服务压根没起来时，只有这里有线索。

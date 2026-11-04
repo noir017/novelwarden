@@ -260,7 +260,7 @@ describe('专注：两块编辑区只专注当前那一块', { skip: JSDOM_SKIP 
   before(() => {
     h = harness();
     h.open('chapters/001.md', '正文。');
-    h.open('.novelforge/summaries/001.md', '细纲。', { kind: 'plot' }, { pane: 'draft' });
+    h.open('.novelwarden/summaries/001.md', '细纲。', { kind: 'plot' }, { pane: 'draft' });
   });
 
   test('右边那一块是当前的：专注它，左边那块不挂', () => {
@@ -520,7 +520,7 @@ describe('专注：段落聚焦', { skip: JSDOM_SKIP }, () => {
   });
 
   test('非正文（角色卡、细纲）不做：不调淡、没有这一层', () => {
-    h.open('.novelforge/characters/林昭.md', '# 林昭\n\n主角。', { kind: 'character' });
+    h.open('.novelwarden/characters/林昭.md', '# 林昭\n\n主角。', { kind: 'character' });
     assert.deepEqual([dimmed(), focused()], [false, '']);
   });
 

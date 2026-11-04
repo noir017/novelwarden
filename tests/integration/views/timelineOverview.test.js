@@ -58,16 +58,16 @@ before(async () => {
 
   // 第 1、2 章同步过（第 2 章在第一卷里，细纲的标题优先）；第 3 章同步过、时间线里还没有；第 4 章写了没同步。
   t.write('chapters/001-楔子.md', '# 楔子\n\n雨下了三天。');
-  t.write('.novelforge/summaries/001-楔子.md', plot(1, '楔子', { hash: 'abc', synopsis: '林昭在雨夜进了青崖镇。', timePlace: '傍晚，青崖镇' }));
+  t.write('.novelwarden/summaries/001-楔子.md', plot(1, '楔子', { hash: 'abc', synopsis: '林昭在雨夜进了青崖镇。', timePlace: '傍晚，青崖镇' }));
   t.write('chapters/第一卷/002-入镇.md', '# 入镇\n\n次日他走进镇子。');
-  t.write('.novelforge/summaries/第一卷/002-入镇.md', plot(2, '入镇（改）', { hash: 'def' }));
+  t.write('.novelwarden/summaries/第一卷/002-入镇.md', plot(2, '入镇（改）', { hash: 'def' }));
   t.write('chapters/第一卷/003-夜访.md', '# 夜访\n\n夜里有人敲门。');
-  t.write('.novelforge/summaries/第一卷/003-夜访.md', plot(3, '夜访', { hash: 'ghi' }));
+  t.write('.novelwarden/summaries/第一卷/003-夜访.md', plot(3, '夜访', { hash: 'ghi' }));
   t.write('chapters/第一卷/004-北行.txt', '他往北走。');
 
-  t.write('.novelforge/threads/青崖旧案.md', '---\nkind: 主线\n---\n\n# 青崖旧案\n\n## 进展\n- 第 2 章 · 推进：找到令牌 〔证据：「令牌」〕\n- 第 3 章 · 计划 · 推进：夜探\n');
+  t.write('.novelwarden/threads/青崖旧案.md', '---\nkind: 主线\n---\n\n# 青崖旧案\n\n## 进展\n- 第 2 章 · 推进：找到令牌 〔证据：「令牌」〕\n- 第 3 章 · 计划 · 推进：夜探\n');
   t.write(
-    '.novelforge/threads/时间线.md',
+    '.novelwarden/threads/时间线.md',
     ['---', 'calendar: 简单历', 'start: 大衍三年三月初七', '---', '', '# 时间线', '', '- 第 1 章：+0 天，傍晚〔依据：「雨下了三天」〕', '- 第 2 章：+1 天〔依据：「次日」〕', ''].join('\n')
   );
   project.invalidate();
@@ -82,16 +82,16 @@ describe('views/threads › buildTimelineOverview', () => {
     const o = await bundle.threads.buildTimelineOverview(project);
     assert.equal(o.initialized, true);
     assert.equal(o.exists, true);
-    assert.equal(o.relPath, '.novelforge/threads/时间线.md');
+    assert.equal(o.relPath, '.novelwarden/threads/时间线.md');
     assert.deepEqual(o.days.map((d) => [d.day, d.label, d.month, d.cards.map((c) => c.no)]), [
       [1, '三月初七', '大衍三年三月', [1]],
       [2, '三月初八', '大衍三年三月', [2]],
     ]);
     const [c1, c2] = o.days.map((d) => d.cards[0]);
-    assert.deepEqual([c1.title, c1.chapterPath, c1.plotPath, c1.synopsis], ['楔子', 'chapters/001-楔子.md', '.novelforge/summaries/001-楔子.md', '林昭在雨夜进了青崖镇。']);
+    assert.deepEqual([c1.title, c1.chapterPath, c1.plotPath, c1.synopsis], ['楔子', 'chapters/001-楔子.md', '.novelwarden/summaries/001-楔子.md', '林昭在雨夜进了青崖镇。']);
     assert.ok(c1.detail.includes('细纲写的时间地点：傍晚，青崖镇'), c1.detail.join('\n'));
     assert.equal(c2.title, '入镇（改）');
-    assert.equal(c2.plotPath, '.novelforge/summaries/第一卷/002-入镇.md');
+    assert.equal(c2.plotPath, '.novelwarden/summaries/第一卷/002-入镇.md');
     assert.deepEqual(c2.events, [{ thread: '青崖旧案', color: 0, type: '推进', what: '找到令牌', evidence: '令牌' }]);
     assert.equal(c2.synopsis, undefined);
     assert.deepEqual(o.threads, [{ name: '青崖旧案', color: 0 }]);
@@ -110,7 +110,7 @@ describe('views/threads › buildTimelineOverview', () => {
   });
 
   test('还不是小说工程：initialized 为 false，其余都是空的', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-timeline-overview-bare-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-timeline-overview-bare-'));
     try {
       const o = await bundle.threads.buildTimelineOverview(bundle.project.NovelProject.open(dir));
       assert.deepEqual([o.initialized, o.exists, o.days, o.issues, o.threads], [false, false, [], [], []]);

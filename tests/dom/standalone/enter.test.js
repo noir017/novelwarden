@@ -156,7 +156,7 @@ describe('回车：非正文', { skip: JSDOM_SKIP }, () => {
   });
 
   test('Markdown 列表接着写：- 照抄', () => {
-    h.open('.novelforge/characters/林昭.md', '- 身份：渔家子', 'character');
+    h.open('.novelwarden/characters/林昭.md', '- 身份：渔家子', 'character');
     h.select(h.area().value.length);
     h.enter();
     assert.equal(h.area().value, '- 身份：渔家子\n- ');
@@ -164,21 +164,21 @@ describe('回车：非正文', { skip: JSDOM_SKIP }, () => {
   });
 
   test('有序列表递增，缩进照抄', () => {
-    h.open('.novelforge/outline.md', '  1. 入宗', 'outline');
+    h.open('.novelwarden/outline.md', '  1. 入宗', 'outline');
     h.select(h.area().value.length);
     h.enter();
     assert.equal(h.area().value, '  1. 入宗\n  2. ');
   });
 
   test('* 列表也接着写', () => {
-    h.open('.novelforge/lore/宗门.md', '* 外门', 'lore');
+    h.open('.novelwarden/lore/宗门.md', '* 外门', 'lore');
     h.select(4);
     h.enter();
     assert.equal(h.area().value, '* 外门\n* ');
   });
 
   test('空的列表项上回车：去掉标记、结束列表', () => {
-    h.open('.novelforge/characters/苏晚.md', '- 身份\n- ', 'character');
+    h.open('.novelwarden/characters/苏晚.md', '- 身份\n- ', 'character');
     h.select(h.area().value.length);
     h.enter();
     assert.equal(h.area().value, '- 身份\n');
@@ -186,14 +186,14 @@ describe('回车：非正文', { skip: JSDOM_SKIP }, () => {
   });
 
   test('Markdown 里不是列表的行：沿用行首空白，不按正文缩进', () => {
-    h.open('.novelforge/world.md', '  缩进的说明', 'setting');
+    h.open('.novelwarden/world.md', '  缩进的说明', 'setting');
     h.select(h.area().value.length);
     h.enter();
     assert.equal(h.area().value, '  缩进的说明\n  ');
   });
 
   test('分隔线不是列表', () => {
-    h.open('.novelforge/premise.md', '* * *', 'setting');
+    h.open('.novelwarden/premise.md', '* * *', 'setting');
     h.select(5);
     h.enter();
     assert.equal(h.area().value, '* * *\n');
@@ -221,7 +221,7 @@ describe('回车：非正文', { skip: JSDOM_SKIP }, () => {
   });
 
   test('非正文的回车也是一步撤销', () => {
-    h.open('.novelforge/characters/陈伯.md', '- 身份：渔家子', 'character');
+    h.open('.novelwarden/characters/陈伯.md', '- 身份：渔家子', 'character');
     h.select(h.area().value.length);
     h.enter();
     h.undo();

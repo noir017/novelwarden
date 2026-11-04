@@ -1031,7 +1031,7 @@ export function checkOrganizePlan(
   const seen = new Set<string>();
   for (const item of Array.isArray(obj.moves) ? obj.moves : []) {
     const m = item && typeof item === 'object' ? (item as Record<string, unknown>) : {};
-    const from = typeof m.from === 'string' ? m.from.trim().replace(/^\.novelforge\/lore\//, '').replace(/\.md$/i, '') : '';
+    const from = typeof m.from === 'string' ? m.from.trim().replace(/^\.(?:novelwarden|novelforge|novel)\/lore\//, '').replace(/\.md$/i, '') : '';
     const entry = bySlug.get(from) ?? byTitle.get(normalizeLoreName(from));
     if (!entry) {
       dropped.push(`「${from}」不是这一批里的条目`);

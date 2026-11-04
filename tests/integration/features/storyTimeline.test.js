@@ -28,10 +28,10 @@ let fake;
 let t;
 let project;
 
-const TIMELINE = '.novelforge/threads/时间线.md';
+const TIMELINE = '.novelwarden/threads/时间线.md';
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 const text = (no) => `# 第${no}章\n\n第${no}章那天的清晨，林昭走进青崖镇。\n\n两日后的夜里，沈氏翻开名册。\n\n第${no}章的末尾，灯灭了。\n`;
 
 const TIME_MARK = '你是小说的时间校对员';

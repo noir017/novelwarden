@@ -1,7 +1,7 @@
 /**
  * 情节大纲在 VS Code 里怎么打开。磁盘上没有 `outline.md`——情节大纲是各章细纲「梗概」的汇总
  * （docs/design/plans/2026-10-22-outline-from-plots.md），VS Code 的编辑器却只认文件。于是给它一个只有这一份文件的
- * 虚拟文件系统（`novelforge:` scheme），读写都经 core 的网关：读就是汇总，存就是按章号拆回各章细纲（守卫、记账与
+ * 虚拟文件系统（`novelwarden:` scheme），读写都经 core 的网关：读就是汇总，存就是按章号拆回各章细纲（守卫、记账与
  * 独立版的内置编辑器同一条路，`review: false`——作者手里那份就是他要存的东西）。
  *
  * 细纲改了（`summaries/` 下的 .md 变了），汇总跟着变：`touch` 通知编辑器重读（没改过的标签直接换新，改过的由 VS Code
@@ -13,9 +13,9 @@ import * as vscode from 'vscode';
 import { NovelProject } from '../../core/model/project';
 import { Workspace } from '../../core/workspace';
 
-export const OUTLINE_SCHEME = 'novelforge';
+export const OUTLINE_SCHEME = 'novelwarden';
 
-/** 情节大纲在虚拟文件系统里的地址：路径与工程里那个身份路径一样（`.novelforge/outline.md`）。 */
+/** 情节大纲在虚拟文件系统里的地址：路径与工程里那个身份路径一样（`.novelwarden/outline.md`）。 */
 export function outlineUri(root: string): vscode.Uri {
   const project = NovelProject.open(root);
   return vscode.Uri.from({ scheme: OUTLINE_SCHEME, path: `/${project.relPath(project.outlinePath)}` });

@@ -6,7 +6,7 @@ import { NovelProject } from '../../core/model/project';
 import { Attachment } from '../../core/model/session';
 
 /**
- * 终端形态的 Host：`novelforge init` 用它。
+ * 终端形态的 Host：`novelwarden init` 用它。
  *
  * 为什么要有这个东西——从前 `main.ts` 的 init 分支自己 readline 问作品名与作者，
  * 那是「初始化工程」这条流程的**第二份实现**（第一份是 core/actions.ts 的
@@ -27,7 +27,7 @@ export class TerminalHost implements Host {
   /**
    * 整个进程共用一个 readline。
    *
-   * **不能每问一句就新建一个再关掉**：关掉之后管道输入（`printf … | novelforge init`）
+   * **不能每问一句就新建一个再关掉**：关掉之后管道输入（`printf … | novelwarden init`）
    * 里剩下的行就读不到了，第二问直接拿到 EOF，看起来像是程序自己跑完了。
    * 交互式终端下这个毛病看不出来，正是这种问题最难查的地方。
    */

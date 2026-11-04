@@ -44,26 +44,26 @@ before(async () => {
   project = t.project;
 
   t.write(
-    '.novelforge/characters/林昭.md',
+    '.novelwarden/characters/林昭.md',
     '---\nname: 林昭\naliases: [阿昭, 小林]\n---\n\n# 林昭\n\n## 身份\n青云宗外门弟子，十七岁。父母早亡，由李叔带大。\n'
   );
-  t.write('.novelforge/characters/配角/李叔.md', '---\ntags: [镇上铁匠, 长辈]\n---\n\n# 李叔\n');
-  t.write('.novelforge/characters/沈怀山.md', '---\nname: 沈怀山（老沈）\naliases: [沈, 沈先生]\n---\n\n# 沈怀山\n');
+  t.write('.novelwarden/characters/配角/李叔.md', '---\ntags: [镇上铁匠, 长辈]\n---\n\n# 李叔\n');
+  t.write('.novelwarden/characters/沈怀山.md', '---\nname: 沈怀山（老沈）\naliases: [沈, 沈先生]\n---\n\n# 沈怀山\n');
   t.write(
-    '.novelforge/lore/门派/青云宗.md',
+    '.novelwarden/lore/门派/青云宗.md',
     '---\ntitle: 青云宗\nkeywords: [青云门, 宗门, 宗]\nbrief: 正道第一大宗，坐落在青云山上\n---\n\n# 青云宗\n'
   );
-  t.write('.novelforge/lore/地点/青崖镇.md', '# 青崖镇\n\n## 概要\n\n青云山脚下的小镇。镇上多铁匠。\n');
-  t.write('.novelforge/lore/天书.md', '---\ntitle: 天书\n---\n\n# 天书\n');
+  t.write('.novelwarden/lore/地点/青崖镇.md', '# 青崖镇\n\n## 概要\n\n青云山脚下的小镇。镇上多铁匠。\n');
+  t.write('.novelwarden/lore/天书.md', '---\ntitle: 天书\n---\n\n# 天书\n');
 
   // 两章定稿过的细纲：黑水河没有条目（未建），青云宗有，林昭是人（不算设定）。
   t.write('chapters/001-楔子.md', '# 楔子\n\n雨下了三天。');
   t.write(
-    '.novelforge/summaries/001-楔子.md',
+    '.novelwarden/summaries/001-楔子.md',
     finalizedPlot(1, '楔子', '- 黑水河〔地点〕：镇外那条终年发黑的河\n- 青云宗〔门派〕：收徒\n- 林昭〔人物〕：主角')
   );
   t.write('chapters/002-入镇.md', '# 入镇\n\n他走进镇子。');
-  t.write('.novelforge/summaries/002-入镇.md', finalizedPlot(2, '入镇', '- 黑水河〔地点〕：河上起了雾\n- 照骨镜〔物品〕'));
+  t.write('.novelwarden/summaries/002-入镇.md', finalizedPlot(2, '入镇', '- 黑水河〔地点〕：河上起了雾\n- 照骨镜〔物品〕'));
   project.invalidate();
 });
 
@@ -89,13 +89,13 @@ describe('views/nameIndex › 名词表', () => {
       source: 'character',
       category: '',
       brief: '青云宗外门弟子，十七岁。',
-      path: '.novelforge/characters/林昭.md',
+      path: '.novelwarden/characters/林昭.md',
     });
   });
 
   test('没写「身份」的卡：一句话取标签', () => {
     assert.equal(byName('李叔').brief, '镇上铁匠、长辈');
-    assert.equal(byName('李叔').path, '.novelforge/characters/配角/李叔.md');
+    assert.equal(byName('李叔').path, '.novelwarden/characters/配角/李叔.md');
   });
 
   test('名字里括号内外各一截都当别名；一个字的别名不要', () => {
@@ -109,7 +109,7 @@ describe('views/nameIndex › 名词表', () => {
       source: 'lore',
       category: '门派',
       brief: '正道第一大宗，坐落在青云山上',
-      path: '.novelforge/lore/门派/青云宗.md',
+      path: '.novelwarden/lore/门派/青云宗.md',
     });
   });
 
@@ -154,7 +154,7 @@ describe('views/nameIndex › 卡改了会更新', () => {
   test('改了一张卡的别名：表里换成新的，指纹跟着变', async () => {
     const before = bundle.names.nameIndexSig(await bundle.names.buildNameIndex(project));
     t.write(
-      '.novelforge/characters/林昭.md',
+      '.novelwarden/characters/林昭.md',
       '---\nname: 林昭\naliases: [阿昭, 小林, 林师兄]\n---\n\n# 林昭\n\n## 身份\n青云宗外门弟子，十七岁。父母早亡，由李叔带大。\n'
     );
     const index = await bundle.names.buildNameIndex(project);
@@ -163,7 +163,7 @@ describe('views/nameIndex › 卡改了会更新', () => {
   });
 
   test('新建一条设定：表里有了', async () => {
-    t.write('.novelforge/lore/物品/照骨镜.md', '---\ntitle: 照骨镜\nbrief: 照得出人骨相的铜镜\n---\n\n# 照骨镜\n');
+    t.write('.novelwarden/lore/物品/照骨镜.md', '---\ntitle: 照骨镜\nbrief: 照得出人骨相的铜镜\n---\n\n# 照骨镜\n');
     project.invalidate();
     const index = await bundle.names.buildNameIndex(project);
     const entry = index.names.find((n) => n.name === '照骨镜');
@@ -173,7 +173,7 @@ describe('views/nameIndex › 卡改了会更新', () => {
   });
 
   test('删掉一张卡：表里没了', async () => {
-    fs.rmSync(t.rel('.novelforge/characters/沈怀山.md'));
+    fs.rmSync(t.rel('.novelwarden/characters/沈怀山.md'));
     const index = await bundle.names.buildNameIndex(project);
     assert.equal(index.names.some((n) => n.name.startsWith('沈怀山')), false);
   });
@@ -203,15 +203,15 @@ describe('views/nameIndex › 读盘', () => {
     await Promise.all([project.listChapters(), project.listPlots()]);
     const reads = await measure();
     assert.deepEqual(
-      [...zone(reads, '.novelforge/characters/'), ...zone(reads, '.novelforge/lore/'), ...zone(reads, '.novelforge/summaries/'), ...zone(reads, 'chapters/')],
+      [...zone(reads, '.novelwarden/characters/'), ...zone(reads, '.novelwarden/lore/'), ...zone(reads, '.novelwarden/summaries/'), ...zone(reads, 'chapters/')],
       []
     );
   });
 
   test('改了一张卡：卡与条目各重读一次，正文一章都不读', async () => {
-    t.write('.novelforge/characters/配角/李叔.md', '---\ntags: [镇上铁匠, 长辈, 话少]\n---\n\n# 李叔\n');
+    t.write('.novelwarden/characters/配角/李叔.md', '---\ntags: [镇上铁匠, 长辈, 话少]\n---\n\n# 李叔\n');
     const reads = await measure();
-    assert.ok(reads.get('.novelforge/characters/配角/李叔.md') === 1);
+    assert.ok(reads.get('.novelwarden/characters/配角/李叔.md') === 1);
     assert.deepEqual([...reads].filter(([, n]) => n > 1).map(([f]) => f), []);
     assert.deepEqual(zone(reads, 'chapters/'), []);
   });
@@ -219,10 +219,10 @@ describe('views/nameIndex › 读盘', () => {
 
 describe('views/nameIndex › 还不是小说工程', () => {
   test('initialized: false，表是空的', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-name-index-bare-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-name-index-bare-'));
     try {
-      fs.mkdirSync(path.join(dir, '.novelforge', 'characters'), { recursive: true });
-      fs.writeFileSync(path.join(dir, '.novelforge', 'characters', '林昭.md'), '# 林昭\n');
+      fs.mkdirSync(path.join(dir, '.novelwarden', 'characters'), { recursive: true });
+      fs.writeFileSync(path.join(dir, '.novelwarden', 'characters', '林昭.md'), '# 林昭\n');
       const bare = bundle.project.NovelProject.open(dir);
       assert.deepEqual(await bundle.names.buildNameIndex(bare), { initialized: false, names: [] });
     } finally {
@@ -258,7 +258,7 @@ describe('controller › requestNameIndex', () => {
 
   test('have 对不上（卡改过）：照发整张表', async () => {
     const first = posted.find((m) => m.type === 'nameIndex' && m.requestId === 'nm-1');
-    t.write('.novelforge/lore/天书.md', '---\ntitle: 天书\nbrief: 无字之书\n---\n\n# 天书\n');
+    t.write('.novelwarden/lore/天书.md', '---\ntitle: 天书\nbrief: 无字之书\n---\n\n# 天书\n');
     await controller.handle({ type: 'requestNameIndex', requestId: 'nm-3', have: first.sig });
     const reply = posted.find((m) => m.type === 'nameIndex' && m.requestId === 'nm-3');
     assert.notEqual(reply.sig, first.sig);

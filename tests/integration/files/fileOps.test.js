@@ -79,9 +79,9 @@ describe('fileOps.ts', () => {
       write('chapters/第一卷/002-入镇.md', '# 入镇\n\n他走进青崖镇。\n');
       write('chapters/第一卷/深处/003-夜访.md', '# 夜访\n\n三更时分。\n');
       write('chapters/第一卷/笔记.txt', '没有数字前缀，不是章节');
-      write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n');
-      write('.novelforge/characters/配角/李叔.md', '---\nname: 李叔\n---\n\n# 李叔\n');
-      write('.novelforge/lore/势力/玄门七宗.md', '---\ntitle: 玄门七宗\nkeywords: [玄门]\n---\n\n# 玄门七宗\n');
+      write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n');
+      write('.novelwarden/characters/配角/李叔.md', '---\nname: 李叔\n---\n\n# 李叔\n');
+      write('.novelwarden/lore/势力/玄门七宗.md', '---\ntitle: 玄门七宗\nkeywords: [玄门]\n---\n\n# 玄门七宗\n');
       project.invalidate();
 
       chapters = await project.listChapters();
@@ -89,7 +89,7 @@ describe('fileOps.ts', () => {
       lore = await project.listLore();
 
       // .trash 里的东西不能被扫回来，否则「删除」等于没删。
-      write('.novelforge/.trash/.novelforge/characters/已删.md', '---\nname: 已删\n---\n');
+      write('.novelwarden/.trash/.novelwarden/characters/已删.md', '---\nname: 已删\n---\n');
       afterTrash = await project.listCharacters();
     });
 
@@ -195,7 +195,7 @@ describe('fileOps.ts', () => {
 
     test('给出各区根目录', () => {
       assert.equal(tree.chaptersRoot, 'chapters', tree.chaptersRoot);
-      assert.equal(tree.charactersRoot, '.novelforge/characters', tree.charactersRoot);
+      assert.equal(tree.charactersRoot, '.novelwarden/characters', tree.charactersRoot);
     });
 
     test('角色区顶层：一个文件夹 + 一个文件', () => {
@@ -247,13 +247,13 @@ describe('fileOps.ts', () => {
 
     test('识别角色区', () => {
       assert.equal(
-        fileOps.sectionOf(project, '.novelforge/characters/林昭.md').section,
+        fileOps.sectionOf(project, '.novelwarden/characters/林昭.md').section,
         'characters'
       );
     });
 
     test('区外路径无归属', () => {
-      assert.equal(fileOps.sectionOf(project, '.novelforge/style.md'), undefined);
+      assert.equal(fileOps.sectionOf(project, '.novelwarden/style.md'), undefined);
     });
 
     test('越界路径无归属', () => {
@@ -341,21 +341,21 @@ describe('fileOps.ts', () => {
       chapterTitle = nextOrder && nextOrder.title;
 
       h.expect('沈氏');
-      await charactersMod.newCharacter(project, '.novelforge/characters/配角');
-      cardCreated = fs.existsSync(rel('.novelforge/characters/配角/沈氏.md'));
+      await charactersMod.newCharacter(project, '.novelwarden/characters/配角');
+      cardCreated = fs.existsSync(rel('.novelwarden/characters/配角/沈氏.md'));
 
       h.expect('崖字令牌');
-      await charactersMod.newLore(project, '.novelforge/lore/势力');
-      loreCreated = fs.existsSync(rel('.novelforge/lore/势力/崖字令牌.md'));
+      await charactersMod.newLore(project, '.novelwarden/lore/势力');
+      loreCreated = fs.existsSync(rel('.novelwarden/lore/势力/崖字令牌.md'));
 
       h.expect('青崖镇');
       await charactersMod.newLore(project, '../../外面');
-      loreEscaped = fs.existsSync(rel('.novelforge/lore/青崖镇.md'));
+      loreEscaped = fs.existsSync(rel('.novelwarden/lore/青崖镇.md'));
 
       h.expect('');
       escaped = await actionsMod.newChapterFlow(project, '../../../外面');
       h.expect('');
-      crossed = await actionsMod.newChapterFlow(project, '.novelforge/characters');
+      crossed = await actionsMod.newChapterFlow(project, '.novelwarden/characters');
     });
 
     test('章节建到指定目录，名字留空就只有序号', () => {
@@ -474,7 +474,7 @@ describe('fileOps.ts', () => {
       rootErred = h.erred();
 
       h.expect('随便什么');
-      outside = await fileOps.renameEntry(project, '.novelforge/style.md');
+      outside = await fileOps.renameEntry(project, '.novelwarden/style.md');
       outsideErred = h.erred();
     });
 
@@ -574,7 +574,7 @@ describe('fileOps.ts', () => {
       bodyAfter = read('chapters/第二卷/001-楔子.md');
 
       h.expect();
-      cross = await fileOps.moveEntry(project, 'chapters/第二卷/001-楔子.md', '.novelforge/characters');
+      cross = await fileOps.moveEntry(project, 'chapters/第二卷/001-楔子.md', '.novelwarden/characters');
       crossErred = h.erred();
 
       h.expect();
@@ -674,7 +674,7 @@ describe('fileOps.ts', () => {
       h.expect('删除');
       ok = await fileOps.deleteEntry(project, 'chapters/009-待删.md');
       sourceEmptied = !fs.existsSync(rel('chapters/009-待删.md'));
-      trashed = fs.existsSync(rel('.novelforge/.trash/chapters/009-待删.md'));
+      trashed = fs.existsSync(rel('.novelwarden/.trash/chapters/009-待删.md'));
       project.invalidate();
       countAfter = (await project.listChapters()).length;
 
@@ -684,8 +684,8 @@ describe('fileOps.ts', () => {
       h.expect('删除');
       await fileOps.deleteEntry(project, 'chapters/009-待删.md');
       noOverwrite =
-        fs.existsSync(rel('.novelforge/.trash/chapters/009-待删-2.md')) &&
-        read('.novelforge/.trash/chapters/009-待删.md').includes('第一份内容');
+        fs.existsSync(rel('.novelwarden/.trash/chapters/009-待删-2.md')) &&
+        read('.novelwarden/.trash/chapters/009-待删.md').includes('第一份内容');
 
       h.expect(undefined);
       cancelled = await fileOps.deleteEntry(project, 'chapters/第一卷');
@@ -694,7 +694,7 @@ describe('fileOps.ts', () => {
       h.expect('删除');
       dirDeleted = await fileOps.deleteEntry(project, 'chapters/第一卷');
       dirGone = !fs.existsSync(rel('chapters/第一卷'));
-      subtreeTrashed = fs.existsSync(rel('.novelforge/.trash/chapters/第一卷/深处/003-夜访.md'));
+      subtreeTrashed = fs.existsSync(rel('.novelwarden/.trash/chapters/第一卷/深处/003-夜访.md'));
       project.invalidate();
       orderGone = !(await project.listChapters()).some((c) => c.order === 3);
 
@@ -768,7 +768,7 @@ describe('fileOps.ts', () => {
    * （`finalized: false`），定稿之后正文又改过标「已过期」，否则作者会照着旧档案做判断。
    */
   describe('单章细纲视图（悬停浮窗的数据源）', () => {
-    const PLOT = '.novelforge/summaries/030-夜行.md';
+    const PLOT = '.novelwarden/summaries/030-夜行.md';
     let planned;
     let view;
     let staleAfterEdit;
@@ -811,10 +811,10 @@ describe('fileOps.ts', () => {
       none = await projectView.buildPlotSummaryView(project, 'chapters/031-没细纲.md');
 
       // 不存在的章：不抛异常，退化成「没有细纲」。
-      ghost = await projectView.buildPlotSummaryView(project, '.novelforge/summaries/999-不存在.md');
+      ghost = await projectView.buildPlotSummaryView(project, '.novelwarden/summaries/999-不存在.md');
 
       // 作者手写细纲、一个 `## 小节` 都没有 → 退回全文，不给空浮窗。
-      write('.novelforge/summaries/031-没细纲.md', '---\nno: 31\n---\n\n# 第31章 没细纲\n\n我自己写的一段话。\n');
+      write('.novelwarden/summaries/031-没细纲.md', '---\nno: 31\n---\n\n# 第31章 没细纲\n\n我自己写的一段话。\n');
       project.invalidate();
       handEdited = await projectView.buildPlotSummaryView(project, 'chapters/031-没细纲.md');
 
@@ -965,7 +965,7 @@ describe('fileOps.ts', () => {
       created = await wsOf(project).writePlot({
         no: NO, title: '', upstreamHash: '', done: false,
         sections: { ...plotFile.emptyPlotSections(), 梗概: '进宗门', 关键事件: '甲乙丙' },
-      }, undefined, '.novelforge/summaries/040.md');
+      }, undefined, '.novelwarden/summaries/040.md');
 
       // 纯序号名（新建出来的样子）的第一次命名：还没有正文，文件名跟着标题走。
       h.expect('入宗风波');
@@ -1000,9 +1000,9 @@ describe('fileOps.ts', () => {
 
       h.expect('删除');
       deleted = await fileOps.deletePlot(project, renamed);
-      plotTrashed = has('.novelforge/.trash/.novelforge/summaries/040-入宗风波.md');
+      plotTrashed = has('.novelwarden/.trash/.novelwarden/summaries/040-入宗风波.md');
       chapterKept = has(CHAPTER) && read(CHAPTER) === CHAPTER_TEXT;
-      chapterTrashed = has(`.novelforge/.trash/${CHAPTER}`);
+      chapterTrashed = has(`.novelwarden/.trash/${CHAPTER}`);
 
       // 已经删掉的细纲再删一次：报错退出，不抛。
       h.expect('删除');
@@ -1016,7 +1016,7 @@ describe('fileOps.ts', () => {
     });
 
     test('改名保留序号前缀', () => {
-      assert.equal(renamed, '.novelforge/summaries/040-入宗风波.md', String(renamed));
+      assert.equal(renamed, '.novelwarden/summaries/040-入宗风波.md', String(renamed));
     });
 
     test('旧文件不再并存', () => {

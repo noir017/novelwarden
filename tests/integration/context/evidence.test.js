@@ -36,7 +36,7 @@ const config = (extra = {}) => ({
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 function chapterText(no, extra = '') {
   return [
@@ -102,7 +102,7 @@ async function setup(prefix, n, summarized, opts = {}) {
   }
   t.write(PLOT(n + 1), plotText(n + 1));
   t.write(
-    '.novelforge/characters/林昭.md',
+    '.novelwarden/characters/林昭.md',
     `---\nname: 林昭\naliases: [阿昭]\ntags: [主角]\nstateThrough: ${opts.stateThrough ?? 6}\n---\n\n# 林昭\n\n## 身份\n\n孤儿\n`
   );
   t.project.invalidate();

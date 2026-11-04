@@ -24,7 +24,7 @@ export interface CheckTermsView {
    * **与写正文时写完数一遍的是同一份**（`views/checkTerms.ts` 的 `readBannedTerms`，`generate.ts` 也调它）。
    */
   banned: string[];
-  /** 自定义敏感词表（`.novelforge/sensitive.txt`）。文件不在时是空的。 */
+  /** 自定义敏感词表（`.novelwarden/sensitive.txt`）。文件不在时是空的。 */
   sensitive: CheckSensitiveTerm[];
   /** 敏感词表在工程里的相对路径（「编辑敏感词表…」打开的就是它）。 */
   sensitivePath: string;

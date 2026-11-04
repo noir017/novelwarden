@@ -24,7 +24,7 @@ let controller;
 let posted;
 let ws;
 
-const PLOT = '.novelforge/summaries/010-夜渡.md';
+const PLOT = '.novelwarden/summaries/010-夜渡.md';
 const CHAPTER = 'chapters/010-夜渡.md';
 
 /** 第 10 章的细纲（七节），判「排过没有」只看「关键事件」。 */

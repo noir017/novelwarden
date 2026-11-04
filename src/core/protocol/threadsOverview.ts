@@ -128,7 +128,7 @@ export interface ThreadsOverviewGroup {
 }
 
 export interface ThreadsOverview {
-  /** 还不是小说工程（没有 `.novelforge/project.json`）时为 false，其余都是空的。 */
+  /** 还不是小说工程（没有 `.novelwarden/project.json`）时为 false，其余都是空的。 */
   initialized: boolean;
   /** 第 1 章起一章一列。 */
   chapters: ThreadsOverviewChapter[];

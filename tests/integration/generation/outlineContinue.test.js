@@ -28,7 +28,7 @@ let gates;
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 const PLOT3 = { kind: 'plot', plotRelPath: PLOT(3) };
 const OUTLINE = { kind: 'outline' };
 /** `/续写大纲` 发出来的样子：带着情节大纲的阶段与目标，不带区间。 */
@@ -93,7 +93,7 @@ before(async () => {
   });
   t = await makeTempProject(bundle.project, { prefix: 'outlineContinue', title: '天机录' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
+  t.write('.novelwarden/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
   t.write(CH(1), '# 第1章\n\n第1章的正文。\n');
   t.write(CH(2), '# 第2章\n\n第2章的正文。\n');
   for (const no of [1, 2, 3]) {
@@ -187,7 +187,7 @@ describe('拦下', () => {
   });
 
   test('要续的那一段里已经有正文：不调模型，指去从已写正文补齐', async () => {
-    t.write('.novelforge/config.md', '---\ngenre: 武侠\ntotalChapters: 60\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
+    t.write('.novelwarden/config.md', '---\ngenre: 武侠\ntotalChapters: 60\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
     t.write(CH(31), '# 第31章\n\n先写了的第31章。\n');
     project.invalidate();
     const before0 = controller.current.turns.length;

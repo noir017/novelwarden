@@ -19,7 +19,7 @@ const { loadModule } = require('../../helpers/load');
 const { SHORTCUTS, formatKey, matchesKey, parseKey, shortcutLabel } = loadModule('media/src/editor/shortcuts.ts');
 
 const SHIMS = ['pointerCapture', 'confirm', 'scrollIntoView', 'clipboard'];
-const S = '.novelforge/summaries';
+const S = '.novelwarden/summaries';
 const CH = 'chapters/003-夜访.md';
 const TEXT = '# 第三章 夜访\n\n雨下了三天。\n\n林昭推门进来。\n\n- 一\n- 二\n';
 const chapterRow = (no, title) => ({
@@ -35,7 +35,7 @@ const chapterRow = (no, title) => ({
   stage: 'done',
 });
 const INDEX = [chapterRow(2, '入镇'), chapterRow(3, '夜访'), chapterRow(4, '北行')];
-const NAMES = [{ name: '林昭', aliases: [], source: 'character', category: '', brief: '', path: '.novelforge/characters/林昭.md' }];
+const NAMES = [{ name: '林昭', aliases: [], source: 'character', category: '', brief: '', path: '.novelwarden/characters/林昭.md' }];
 
 const SHIFTED = { '/': '?', '=': '+', '-': '_', ',': '<', '.': '>', ';': ':', "'": '"', '[': '{', ']': '}', '\\': '|', '`': '~' };
 const DIGIT_SHIFTED = ')!@#$%^&*(';

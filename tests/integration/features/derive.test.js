@@ -28,7 +28,7 @@ const projects = [];
 const TITLES = ['入宗', '雪夜', '旧案', '夜探', '执法堂', '下山', '渡口'];
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-${TITLES[no - 1]}.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
 /** 第 no 章的正文：长短不一，好看出每章字数取的是已写各章的平均。 */
 const text = (no) => `林昭第${no}次见到沈青。${'山门很高。'.repeat(40 + no * 10)}门外有人敲了三下。`;
 
@@ -254,7 +254,7 @@ describe('从已写正文补齐 · 全套', () => {
   });
 
   test('叙事线：排出的线里记下了七章的推进，水位推到第 7 章', async () => {
-    const raw = t.read('.novelforge/threads/青云旧案.md');
+    const raw = t.read('.novelwarden/threads/青云旧案.md');
     for (let no = 1; no <= 7; no++) {
       assert.ok(raw.includes(`第 ${no} 章 · 推进：第 ${no} 章又见沈青 〔证据：「林昭第${no}次见到沈青。」〕`), raw);
     }
@@ -274,7 +274,7 @@ describe('从已写正文补齐 · 全套', () => {
     const book = await t.project.readBookConfig();
     assert.equal(book.totalChapters, 100);
     assert.ok(book.wordsPerChapter >= 100 && book.wordsPerChapter % 100 === 0, String(book.wordsPerChapter));
-    assert.ok(t.has('.novelforge/characters/林昭.md') && t.has('.novelforge/characters/沈青.md'));
+    assert.ok(t.has('.novelwarden/characters/林昭.md') && t.has('.novelwarden/characters/沈青.md'));
   });
 
   test('大纲覆盖到已写的最后一章', async () => {
@@ -391,7 +391,7 @@ describe('从已写正文补齐 · 设定条目（从名录建）', () => {
   test('条目建在名录给的分类目录里：标题、关键词、一句话、机器写的指纹、水位到最后一章定稿', async () => {
     t.project.invalidate();
     const entries = await t.project.listLore();
-    assert.ok(entries.some((e) => e.relPath === '.novelforge/lore/地域/山门.md'));
+    assert.ok(entries.some((e) => e.relPath === '.novelwarden/lore/地域/山门.md'));
     const e = entries.find((e) => e.title === '山门');
     assert.equal(e.category, '地域');
     assert.equal(e.brief, '青云宗的山门');
@@ -404,7 +404,7 @@ describe('从已写正文补齐 · 设定条目（从名录建）', () => {
 
   test('完成提示报出建了几条；没有挂失败', () => {
     assert.ok(h.toasts.some((x) => x.includes('设定条目 2 条')), h.toasts.join('|'));
-    assert.equal(failures['.novelforge/lore'], undefined);
+    assert.equal(failures['.novelwarden/lore'], undefined);
   });
 
   test('之后名录里两条都有了条目，没有未建条目', async () => {
@@ -438,7 +438,7 @@ describe('从已写正文补齐 · 设定条目没建成也不停', () => {
   });
 
   test('黄 ❗ 挂在「设定清单」那一行（设定目录）上；一条都没建', async () => {
-    const onLore = failures['.novelforge/lore'] ?? [];
+    const onLore = failures['.novelwarden/lore'] ?? [];
     assert.ok(onLore.some((f) => f.severity === 'warn' && f.message.includes('设定条目一条都没建成')), JSON.stringify(failures));
     assert.deepEqual(await t.project.listLore(), []);
   });
@@ -482,8 +482,8 @@ describe('从已写正文补齐 · 只补空白', () => {
   let planText;
   before(async () => {
     t = await fresh('derive-blank');
-    t.write('.novelforge/config.md', '---\ntotalChapters: 50\nwordsPerChapter: 2000\n---\n\n# 小说配置\n\n## 核心梗概\n\n作者自己写的梗概。\n');
-    t.write('.novelforge/premise.md', '# 故事前提\n\n## 一句话前提\n\n作者写的前提。\n\n## 核心冲突链\n\n作者写的冲突链。\n');
+    t.write('.novelwarden/config.md', '---\ntotalChapters: 50\nwordsPerChapter: 2000\n---\n\n# 小说配置\n\n## 核心梗概\n\n作者自己写的梗概。\n');
+    t.write('.novelwarden/premise.md', '# 故事前提\n\n## 一句话前提\n\n作者写的前提。\n\n## 核心冲突链\n\n作者写的冲突链。\n');
     const ch2 = (await t.project.listChapters()).find((c) => c.order === 2);
     finalizedText = [
       '---', 'no: 2', 'title: 作者的标题', `sourceHash: ${ch2.contentHash}`, 'cast: [林昭, 沈青]', '---', '',
@@ -505,8 +505,8 @@ describe('从已写正文补齐 · 只补空白', () => {
   test('配置与前提已经有了：不问总章数、不调那两件', () => {
     assert.equal(h.inputs.length, 0);
     assert.ok(!kinds().includes('config') && !kinds().includes('premise'), kinds().join(','));
-    assert.match(t.read('.novelforge/config.md'), /作者自己写的梗概/);
-    assert.match(t.read('.novelforge/premise.md'), /作者写的冲突链/);
+    assert.match(t.read('.novelwarden/config.md'), /作者自己写的梗概/);
+    assert.match(t.read('.novelwarden/premise.md'), /作者写的冲突链/);
   });
 
   test('定稿过、对得上正文的第 2 章不算在内：只给 6 章整理细纲', () => {
@@ -523,7 +523,7 @@ describe('从已写正文补齐 · 只补空白', () => {
   });
 
   test('第 3 章的计划原样进了回收站', () => {
-    assert.equal(t.read(`.novelforge/.trash/${PLOT(3)}`), planText);
+    assert.equal(t.read(`.novelwarden/.trash/${PLOT(3)}`), planText);
   });
 
   test('第 3 章反向更新之后：作者起的标题与目标字数留着', async () => {
@@ -558,7 +558,7 @@ describe('从已写正文补齐 · 一件失败就停', () => {
 
   test('失败挂在世界观上，提示说清停在哪、前面补上了什么', async () => {
     const failures = await bundle.errorLog.listActiveFailures(t.project);
-    const onWorld = failures['.novelforge/world.md'] ?? [];
+    const onWorld = failures['.novelwarden/world.md'] ?? [];
     assert.ok(onWorld.some((f) => f.message.includes('世界观')), JSON.stringify(failures));
     assert.ok(
       h.toasts.some((x) => x.startsWith('error:') && x.includes('小说配置') && x.includes('世界观没补上')),

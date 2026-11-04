@@ -34,7 +34,7 @@ const CHAPTER = [A, B].join('\n\n');
 const TRIMMED = [A.replace('格外', ''), B.replace('狠狠', '')].join('\n\n');
 const GOOD = `[1] ${A.replace('格外', '')}\n\n[2] ${B.replace('狠狠', '')}`;
 
-const plotOf = (no) => `.novelforge/summaries/00${no}-第${no}章.md`;
+const plotOf = (no) => `.novelwarden/summaries/00${no}-第${no}章.md`;
 
 async function write(no) {
   script = [{ text: CHAPTER, stop: 'end' }, { text: GOOD, stop: 'end' }];

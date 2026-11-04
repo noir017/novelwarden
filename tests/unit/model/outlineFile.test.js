@@ -273,7 +273,7 @@ describe('mergeOutline · 按章号合并', () => {
 /** 一份细纲（只给汇总、拆分用得到的那几样）。 */
 function plot(no, synopsis, extra = {}) {
   const sections = { 梗概: synopsis, 出场人物: '', 时间地点: '', 关键事件: '', 看点: '', 状态变更: '', 连续性事实: '', ...(extra.sections ?? {}) };
-  return { relPath: `.novelforge/summaries/${String(no).padStart(3, '0')}.md`, no, title: extra.title ?? `标题${no}`, sections, sourceHash: extra.sourceHash ?? '', lore: extra.lore };
+  return { relPath: `.novelwarden/summaries/${String(no).padStart(3, '0')}.md`, no, title: extra.title ?? `标题${no}`, sections, sourceHash: extra.sourceHash ?? '', lore: extra.lore };
 }
 
 describe('从细纲汇总（docs/design/plans/2026-10-22-outline-from-plots.md）', () => {

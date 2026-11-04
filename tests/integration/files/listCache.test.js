@@ -50,7 +50,7 @@ before(async () => {
     const p = String(args[0]).replace(/\\/g, '/');
     if (p.includes('/chapters/')) {
       chapterReads++;
-    } else if (p.includes('/.novelforge/summaries/')) {
+    } else if (p.includes('/.novelwarden/summaries/')) {
       plotReads++;
     }
     return original.apply(fsp, args);
@@ -73,7 +73,7 @@ before(async () => {
   }
   for (let i = 1; i <= PLOTS; i++) {
     const n = String(i).padStart(3, '0');
-    t.write(`.novelforge/summaries/${n}-第${i}章.md`, `---\nno: ${i}\n---\n\n## 关键事件\n事件。\n`);
+    t.write(`.novelwarden/summaries/${n}-第${i}章.md`, `---\nno: ${i}\n---\n\n## 关键事件\n事件。\n`);
   }
 });
 
@@ -184,12 +184,12 @@ describe('细纲列表缓存', () => {
     const inFlight = project.listPlots();
     project.invalidate();
     await inFlight;
-    t.write('.novelforge/summaries/013-新章.md', '---\nno: 13\n---\n\n## 关键事件\n新排的。\n');
+    t.write('.novelwarden/summaries/013-新章.md', '---\nno: 13\n---\n\n## 关键事件\n新排的。\n');
     try {
       const plots = await project.listPlots();
       assert.equal(plots.length, PLOTS + 1, '缓存里应当没有那份过期结果');
     } finally {
-      t.remove('.novelforge/summaries/013-新章.md');
+      t.remove('.novelwarden/summaries/013-新章.md');
       project.invalidate();
     }
   });
@@ -202,7 +202,7 @@ describe('细纲列表缓存', () => {
       const plots = await project.listPlots();
       assert.ok(plots.some((p) => p.no === 99), plots.map((p) => p.no).join('|'));
     } finally {
-      t.remove('.novelforge/summaries/099-新写的.md');
+      t.remove('.novelwarden/summaries/099-新写的.md');
       project.invalidate();
     }
   });
@@ -213,9 +213,9 @@ describe('细纲列表缓存', () => {
       await project.listPlots();
       await wsOf(project).writePlot({ no: 99, title: '改过的名字', sections: { 关键事件: '事件' } });
       const found = (await project.listPlots()).find((p) => p.no === 99);
-      assert.equal(found?.relPath, '.novelforge/summaries/099-改过的名字.md', found?.relPath);
+      assert.equal(found?.relPath, '.novelwarden/summaries/099-改过的名字.md', found?.relPath);
     } finally {
-      t.remove('.novelforge/summaries/099-改过的名字.md');
+      t.remove('.novelwarden/summaries/099-改过的名字.md');
       project.invalidate();
     }
   });
@@ -223,7 +223,7 @@ describe('细纲列表缓存', () => {
   test('deletePlot 之后读不到了', async () => {
     await wsOf(project).writePlot({ no: 99, title: '待删', sections: { 关键事件: '事件' } });
     await project.listPlots();
-    await wsOf(project).deletePlot('.novelforge/summaries/099-待删.md');
+    await wsOf(project).deletePlot('.novelwarden/summaries/099-待删.md');
     const plots = await project.listPlots();
     assert.ok(!plots.some((p) => p.no === 99), plots.map((p) => p.no).join('|'));
   });

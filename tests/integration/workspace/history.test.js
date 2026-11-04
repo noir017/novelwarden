@@ -52,17 +52,17 @@ async function fresh(prefix) {
 
 /** 这份文件的快照文件名，新的在前。 */
 function snaps(t, rel) {
-  const dir = t.rel('.novelforge/history', rel);
+  const dir = t.rel('.novelwarden/history', rel);
   return fs.existsSync(dir) ? bundle.history.sortSnapshotNames(fs.readdirSync(dir)) : [];
 }
 
 function snapText(t, rel, name) {
-  return fs.readFileSync(t.rel('.novelforge/history', rel, name), 'utf8');
+  return fs.readFileSync(t.rel('.novelwarden/history', rel, name), 'utf8');
 }
 
 /** 把这份文件的快照整体往前挪 `minutes` 分钟（改文件名里的时间），模拟「最新快照已经是一阵子之前的了」。 */
 function age(t, rel, minutes) {
-  const dir = t.rel('.novelforge/history', rel);
+  const dir = t.rel('.novelwarden/history', rel);
   for (const name of fs.readdirSync(dir)) {
     const at = bundle.history.parseSnapshotFileName(name);
     if (at) {
@@ -84,7 +84,7 @@ describe('网关覆盖一份创作产物之前存旧版', () => {
   });
 
   test('新建不存（没有被覆盖的东西）', () => {
-    assert.equal(fs.existsSync(t.rel('.novelforge/history')), false);
+    assert.equal(fs.existsSync(t.rel('.novelwarden/history')), false);
   });
 
   test('覆盖：存下磁盘上的旧内容，新内容照常落盘', async () => {
@@ -100,7 +100,7 @@ describe('网关覆盖一份创作产物之前存旧版', () => {
   });
 
   test('第一次存时放一个 .gitignore（内容 *）', () => {
-    assert.equal(t.read('.novelforge/history/.gitignore'), '*\n');
+    assert.equal(t.read('.novelwarden/history/.gitignore'), '*\n');
   });
 
   test('写一样的内容不存', async () => {
@@ -195,7 +195,7 @@ describe('每份文件最多留 50 个，多的删掉最旧的', () => {
   });
 
   test('.gitignore 不算在 50 个里，也不被裁掉', () => {
-    assert.equal(t.read('.novelforge/history/.gitignore'), '*\n');
+    assert.equal(t.read('.novelwarden/history/.gitignore'), '*\n');
   });
 });
 
@@ -209,7 +209,7 @@ describe('存快照失败绝不挡住保存', () => {
     ({ t, ws } = await fresh('hist-fail'));
     await ws.write(rel, { text: BIG }, { mode: 'create' });
     // 历史根被一个同名文件占了：mkdir 必然失败。
-    t.write('.novelforge/history', '不是目录');
+    t.write('.novelwarden/history', '不是目录');
     bundle.logger.clearLogs();
     result = await overwrite(ws, rel, '照样写进去了。');
   });
@@ -226,7 +226,7 @@ describe('存快照失败绝不挡住保存', () => {
   });
 
   test('占位的那个文件原样没动', () => {
-    assert.equal(t.read('.novelforge/history'), '不是目录');
+    assert.equal(t.read('.novelwarden/history'), '不是目录');
   });
 });
 
@@ -239,13 +239,13 @@ describe('.gitignore 只在建出历史目录那一次放', () => {
     ({ t, ws } = await fresh('hist-gitignore'));
     await ws.write(rel, { text: BIG }, { mode: 'create' });
     await overwrite(ws, rel, '第二版');
-    fs.rmSync(t.rel('.novelforge/history/.gitignore'));
+    fs.rmSync(t.rel('.novelwarden/history/.gitignore'));
     await overwrite(ws, rel, BIG + BIG);
   });
 
   test('作者删掉之后不再补回来（他想让 Git 收这些快照）', () => {
     assert.equal(snaps(t, rel).length, 2);
-    assert.equal(fs.existsSync(t.rel('.novelforge/history/.gitignore')), false);
+    assert.equal(fs.existsSync(t.rel('.novelwarden/history/.gitignore')), false);
   });
 });
 
@@ -260,7 +260,7 @@ describe('范围：只管创作产物', () => {
   test('other（工程根的随手记）不存', async () => {
     await ws.write('随手记.md', { text: '一' }, { mode: 'create' });
     await overwrite(ws, '随手记.md', '二');
-    assert.equal(fs.existsSync(t.rel('.novelforge/history')), false);
+    assert.equal(fs.existsSync(t.rel('.novelwarden/history')), false);
   });
 
   test('不存的文件，historyUnavailable 说得出为什么', async () => {
@@ -270,9 +270,9 @@ describe('范围：只管创作产物', () => {
 
   test('细纲、角色卡、设定、草稿都存（各在自己的镜像目录里）', async () => {
     const files = [
-      '.novelforge/summaries/001-雪夜.md',
-      '.novelforge/characters/林昭.md',
-      '.novelforge/lore/青云宗.md',
+      '.novelwarden/summaries/001-雪夜.md',
+      '.novelwarden/characters/林昭.md',
+      '.novelwarden/lore/青云宗.md',
       'drafts/001-雪夜.md',
     ];
     for (const rel of files) {
@@ -285,18 +285,18 @@ describe('范围：只管创作产物', () => {
 
   // 情节大纲没有文件（各章细纲梗概的汇总）：存回去时改了梗概的那一章细纲存一版，outline.md 自己没有历史。
   test('情节大纲存回去：改了梗概的那一章细纲存一版旧的', async () => {
-    const plot = '.novelforge/summaries/002-入镇.md';
+    const plot = '.novelwarden/summaries/002-入镇.md';
     t.write(plot, '---\nno: 2\ntitle: 入镇\n---\n\n# 第2章 入镇\n\n## 梗概\n\n旧的梗概。\n');
     t.project.invalidate();
-    const doc = (await ws.read('.novelforge/outline.md')).text;
-    await overwrite(ws, '.novelforge/outline.md', doc.replace('旧的梗概。', '新的梗概。'));
+    const doc = (await ws.read('.novelwarden/outline.md')).text;
+    await overwrite(ws, '.novelwarden/outline.md', doc.replace('旧的梗概。', '新的梗概。'));
     assert.equal(snaps(t, plot).length, 1);
     assert.match(snapText(t, plot, snaps(t, plot)[0]), /旧的梗概。/);
     assert.match(t.read(plot), /新的梗概。/);
-    assert.equal(snaps(t, '.novelforge/outline.md').length, 0);
+    assert.equal(snaps(t, '.novelwarden/outline.md').length, 0);
   });
 
-  test('还不是小说工程（没有 .novelforge/）的目录里不存，也不替作者建出历史目录', async () => {
+  test('还不是小说工程（没有 .novelwarden/）的目录里不存，也不替作者建出历史目录', async () => {
     const d = makeTempDir('hist-noproject');
     dirs.push(d.dir);
     const project = bundle.project.NovelProject.open(d.dir);
@@ -305,7 +305,7 @@ describe('范围：只管创作产物', () => {
     assert.match(await bundle.history.historyUnavailable(project, 'chapters/001-雪夜.md'), /还不是小说工程/);
     await overwrite(plain, 'chapters/001-雪夜.md', '新的');
     assert.equal(d.read('chapters/001-雪夜.md'), '新的');
-    assert.equal(fs.existsSync(d.rel('.novelforge/history')), false);
+    assert.equal(fs.existsSync(d.rel('.novelwarden/history')), false);
   });
 });
 
@@ -332,15 +332,15 @@ describe('各条覆盖路径都存：编辑器保存、MCP 的 edit、领域写�
   });
 
   test('领域写入器：重写角色卡、文风、叙事线', async () => {
-    t.write('.novelforge/characters/林昭.md', '# 林昭\n\n旧卡。');
+    t.write('.novelwarden/characters/林昭.md', '# 林昭\n\n旧卡。');
     await ws.writeCharacter({ slug: '林昭', name: '林昭', aliases: [], tags: [], sections: {} });
-    assert.equal(snapText(t, '.novelforge/characters/林昭.md', snaps(t, '.novelforge/characters/林昭.md')[0]), '# 林昭\n\n旧卡。');
+    assert.equal(snapText(t, '.novelwarden/characters/林昭.md', snaps(t, '.novelwarden/characters/林昭.md')[0]), '# 林昭\n\n旧卡。');
 
-    t.write('.novelforge/style.md', '# 文风指南\n\n旧的文风。');
+    t.write('.novelwarden/style.md', '# 文风指南\n\n旧的文风。');
     await ws.writeStyleGuide('新的文风。');
-    assert.equal(snaps(t, '.novelforge/style.md').length, 1);
+    assert.equal(snaps(t, '.novelwarden/style.md').length, 1);
 
-    const thread = '.novelforge/threads/玉佩.md';
+    const thread = '.novelwarden/threads/玉佩.md';
     t.write(thread, '# 玉佩\n\n旧的。');
     await ws.updateThread(thread, (raw) => `${raw}\n- 新的一条\n`);
     assert.equal(snapText(t, thread, snaps(t, thread)[0]), '# 玉佩\n\n旧的。');
@@ -349,7 +349,7 @@ describe('各条覆盖路径都存：编辑器保存、MCP 的 edit、领域写�
   test('叙事线：新建一条不存历史（没覆盖任何东西），同名已在就一个字节不动', async () => {
     const plan = { name: '沈家旧案', kind: '支线', origin: '计划', intent: '十年前那把火。', foreshadowing: [] };
     const rel = await ws.createThread(plan);
-    assert.equal(rel, '.novelforge/threads/沈家旧案.md');
+    assert.equal(rel, '.novelwarden/threads/沈家旧案.md');
     assert.equal(snaps(t, rel).length, 0);
     t.write(rel, '作者改过的。');
     assert.equal(await ws.createThread(plan), undefined);
@@ -357,8 +357,8 @@ describe('各条覆盖路径都存：编辑器保存、MCP 的 edit、领域写�
   });
 
   test('叙事线：改写只认叙事线目录里的文件', async () => {
-    await assert.rejects(() => ws.updateThread('.novelforge/style.md', (raw) => `${raw}x`), /不是叙事线目录里的文件/);
-    await assert.rejects(() => ws.updateThread('.novelforge/threads.md', (raw) => `${raw}x`), /不是叙事线目录里的文件/);
+    await assert.rejects(() => ws.updateThread('.novelwarden/style.md', (raw) => `${raw}x`), /不是叙事线目录里的文件/);
+    await assert.rejects(() => ws.updateThread('.novelwarden/threads.md', (raw) => `${raw}x`), /不是叙事线目录里的文件/);
   });
 
   test('写细纲覆盖已有那份', async () => {
@@ -395,7 +395,7 @@ describe('各条覆盖路径都存：编辑器保存、MCP 的 edit、领域写�
   });
 
   test('只改 frontmatter 一个键的记账（recordWrittenFrom）不存', async () => {
-    const plotRel = '.novelforge/summaries/030-记账.md';
+    const plotRel = '.novelwarden/summaries/030-记账.md';
     t.write(plotRel, '---\nno: 30\ntitle: 记账\n---\n\n## 梗概\n\n梗概。\n');
     await ws.recordWrittenFrom(plotRel, 'abcdef0123456789');
     assert.equal(snaps(t, plotRel).length, 0);
@@ -405,7 +405,7 @@ describe('各条覆盖路径都存：编辑器保存、MCP 的 edit、领域写�
     const rel = 'chapters/012-换行.txt';
     fs.writeFileSync(t.rel(rel), Buffer.from('第一行\r\n第二行\r\n', 'utf8'));
     await overwrite(ws, rel, '全换了。'.repeat(100));
-    assert.deepEqual(fs.readFileSync(t.rel('.novelforge/history', rel, snaps(t, rel)[0])), Buffer.from('第一行\r\n第二行\r\n', 'utf8'));
+    assert.deepEqual(fs.readFileSync(t.rel('.novelwarden/history', rel, snaps(t, rel)[0])), Buffer.from('第一行\r\n第二行\r\n', 'utf8'));
   });
 });
 
@@ -419,12 +419,12 @@ describe('不进上下文、不触发重扫、删不掉', () => {
     ({ t, ws } = await fresh('hist-isolate'));
     await ws.write(rel, { text: `那盏灯的铜绿斑驳了一层。${BIG}` }, { mode: 'create' });
     await overwrite(ws, rel, '灯灭了。');
-    snapRel = `.novelforge/history/${rel}/${snaps(t, rel)[0]}`;
+    snapRel = `.novelwarden/history/${rel}/${snaps(t, rel)[0]}`;
   });
 
   test('kindOfPath 把历史目录里的东西判成 other（装配器只按种类读，碰不到它）', () => {
     assert.equal(bundle.kind.kindOfPath(t.project, snapRel).kind, 'other');
-    assert.equal(bundle.kind.kindOfPath(t.project, '.novelforge/history/.novelforge/summaries/001-雪夜.md/x.txt').kind, 'other');
+    assert.equal(bundle.kind.kindOfPath(t.project, '.novelwarden/history/.novelwarden/summaries/001-雪夜.md/x.txt').kind, 'other');
   });
 
   test('全文检索跳过历史版本（搜出来的不是现在的书）', async () => {
@@ -438,20 +438,20 @@ describe('不进上下文、不触发重扫、删不掉', () => {
   });
 
   test('历史目录是固定目录：网关删不掉、搬不走', async () => {
-    assert.equal(bundle.guard.isProtectedPath(t.project, '.novelforge/history'), true);
-    await assert.rejects(ws.remove('.novelforge/history'), (e) => e.code === 'protected');
-    await assert.rejects(ws.move('.novelforge/history', '旧稿'), (e) => e.code === 'protected');
+    assert.equal(bundle.guard.isProtectedPath(t.project, '.novelwarden/history'), true);
+    await assert.rejects(ws.remove('.novelwarden/history'), (e) => e.code === 'protected');
+    await assert.rejects(ws.move('.novelwarden/history', '旧稿'), (e) => e.code === 'protected');
     assert.equal(fs.existsSync(t.rel(snapRel)), true);
   });
 
   test('工程页的类文件操作删不到它（不在三个区里）', async () => {
     h.expect('删除');
-    assert.equal(await bundle.fileOps.deleteEntry(t.project, '.novelforge/history'), false);
+    assert.equal(await bundle.fileOps.deleteEntry(t.project, '.novelwarden/history'), false);
     assert.equal(fs.existsSync(t.rel(snapRel)), true);
   });
 
   test('「文件」页照常列得出来', async () => {
-    const names = (await ws.list('.novelforge')).map((e) => e.name);
+    const names = (await ws.list('.novelwarden')).map((e) => e.name);
     assert.ok(names.includes('history'), names.join('、'));
   });
 });
@@ -464,12 +464,12 @@ describe('不进上下文、不触发重扫、删不掉', () => {
 function seed(t, rel, items) {
   return items.map(([ms, text, dup]) => {
     const name = bundle.history.snapshotFileName(new Date(ms), dup);
-    t.write(`.novelforge/history/${rel}/${name}`, text);
+    t.write(`.novelwarden/history/${rel}/${name}`, text);
     return name;
   });
 }
 
-const histDir = (t, rel) => t.rel('.novelforge/history', rel);
+const histDir = (t, rel) => t.rel('.novelwarden/history', rel);
 
 describe('改名 / 搬家：快照跟着走', () => {
   let t;
@@ -496,20 +496,20 @@ describe('改名 / 搬家：快照跟着走', () => {
 
   test('章节改名时细纲、草稿跟着改名，它们的快照也跟着走', async () => {
     await ws.write('chapters/002-旧.md', { text: BIG }, { mode: 'create' });
-    for (const rel of ['.novelforge/summaries/002-旧.md', 'drafts/002-旧.md']) {
+    for (const rel of ['.novelwarden/summaries/002-旧.md', 'drafts/002-旧.md']) {
       t.write(rel, `${rel} 的旧内容`);
       await overwrite(ws, rel, `${rel} 的新内容`);
     }
     await ws.move('chapters/002-旧.md', 'chapters/002-新.md');
-    assert.ok(t.has('.novelforge/summaries/002-新.md') && t.has('drafts/002-新.md'));
-    assert.equal(snapText(t, '.novelforge/summaries/002-新.md', snaps(t, '.novelforge/summaries/002-新.md')[0]), '.novelforge/summaries/002-旧.md 的旧内容');
+    assert.ok(t.has('.novelwarden/summaries/002-新.md') && t.has('drafts/002-新.md'));
+    assert.equal(snapText(t, '.novelwarden/summaries/002-新.md', snaps(t, '.novelwarden/summaries/002-新.md')[0]), '.novelwarden/summaries/002-旧.md 的旧内容');
     assert.equal(snapText(t, 'drafts/002-新.md', snaps(t, 'drafts/002-新.md')[0]), 'drafts/002-旧.md 的旧内容');
-    assert.equal(fs.existsSync(histDir(t, '.novelforge/summaries/002-旧.md')), false);
+    assert.equal(fs.existsSync(histDir(t, '.novelwarden/summaries/002-旧.md')), false);
     assert.equal(fs.existsSync(histDir(t, 'drafts/002-旧.md')), false);
   });
 
   test('整个分卷目录改名：下面每份文件（连同伴生的细纲、草稿）的快照都跟着走', async () => {
-    const files = ['chapters/第一卷/003-雪.md', 'chapters/第一卷/004-风.txt', '.novelforge/summaries/第一卷/003-雪.md', 'drafts/第一卷/003-雪.md'];
+    const files = ['chapters/第一卷/003-雪.md', 'chapters/第一卷/004-风.txt', '.novelwarden/summaries/第一卷/003-雪.md', 'drafts/第一卷/003-雪.md'];
     for (const rel of files) {
       t.write(rel, `${rel} 的旧内容`);
       await overwrite(ws, rel, `${rel} 的新内容`);
@@ -561,7 +561,7 @@ describe('改名 / 搬家：快照跟着走', () => {
     await overwrite(ws, 'chapters/007-残灯.md', '灯灭了。');
     await ws.remove('chapters/007-残灯.md');
     assert.equal(snaps(t, 'chapters/007-残灯.md').length, 1);
-    fs.renameSync(t.rel('.novelforge/.trash/chapters/007-残灯.md'), t.rel('chapters/007-残灯.md'));
+    fs.renameSync(t.rel('.novelwarden/.trash/chapters/007-残灯.md'), t.rel('chapters/007-残灯.md'));
     assert.equal((await bundle.history.listSnapshots(t.project, 'chapters/007-残灯.md')).length, 1);
   });
 
@@ -595,7 +595,7 @@ describe('搬快照失败绝不挡住搬家', () => {
     await ws.write(from, { text: BIG }, { mode: 'create' });
     await overwrite(ws, from, '改过一版。');
     // 新路径的快照目录被一个同名文件占了：搬不过去。
-    t.write(`.novelforge/history/${to}`, '不是目录');
+    t.write(`.novelwarden/history/${to}`, '不是目录');
     bundle.logger.clearLogs();
     result = await ws.move(from, to);
   });
@@ -612,7 +612,7 @@ describe('搬快照失败绝不挡住搬家', () => {
   });
 
   test('占位的那个文件原样没动', () => {
-    assert.equal(t.read(`.novelforge/history/${to}`), '不是目录');
+    assert.equal(t.read(`.novelwarden/history/${to}`), '不是目录');
   });
 
   test('记一条 warn，说清搬家照常', () => {

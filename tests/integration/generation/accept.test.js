@@ -39,8 +39,8 @@ const PLOT_JSON = JSON.stringify({
   看点: '第三块令牌',
 });
 
-const P1 = '.novelforge/summaries/001-夜入青云.md';
-const P2 = '.novelforge/summaries/002-藏书阁.md';
+const P1 = '.novelwarden/summaries/001-夜入青云.md';
+const P2 = '.novelwarden/summaries/002-藏书阁.md';
 
 /** 一份只有梗概、还没排过（关键事件空着）的细纲：落盘前后的「排过没有」由它对照。 */
 function blankPlot(no, title) {
@@ -507,8 +507,8 @@ describe('写正文 → 当场问一句 → 落到同号章节', () => {
  * `plotPathOfNo(N)`）。细纲按产物带的标题落盘，文件名于是与占位路径不同。
  */
 describe('拆细纲落在占位路径上', () => {
-  const PLACEHOLDER = '.novelforge/summaries/003.md';
-  const REAL = '.novelforge/summaries/003-雪夜.md';
+  const PLACEHOLDER = '.novelwarden/summaries/003.md';
+  const REAL = '.novelwarden/summaries/003-雪夜.md';
   let r;
   let pipe;
 

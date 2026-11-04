@@ -494,7 +494,7 @@ git commit -m "refactor(llm): 13 个调用点迁到 collectText，删掉 chatStr
 
 ## 给接手 agent 的提示词
 
-> 你在 novel-forge 仓库里执行「零期：事件流 provider」。
+> 你在 novelwarden 仓库里执行「零期：事件流 provider」。
 >
 > 先读 `AGENTS.md`（23 条产品承诺）与 `docs/design/specs/2026-08-15-agent-architecture-design.md` 的 L0 一节，再读 `src/core/llm/` 下的四个文件与 `src/shells/vscode/vscodeLmProvider.ts`。
 >

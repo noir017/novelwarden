@@ -93,11 +93,11 @@ before(async () => {
   });
   t = await makeTempProject(bundle.project, { prefix: 'lorelist', title: '青云剑录' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ngenre: 仙侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭入青云宗查旧案。\n');
-  t.write('.novelforge/premise.md', '# 故事前提\n\n## 核心冲突链\n\n灭门 → 入宗 → 查案。\n');
-  t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n北境诸镇凭过所出入，崖字令能开镇口的卡子。\n');
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
-  t.write('.novelforge/lore/宗门/青云宗.md', QINGYUN);
+  t.write('.novelwarden/config.md', '---\ngenre: 仙侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭入青云宗查旧案。\n');
+  t.write('.novelwarden/premise.md', '# 故事前提\n\n## 核心冲突链\n\n灭门 → 入宗 → 查案。\n');
+  t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n北境诸镇凭过所出入，崖字令能开镇口的卡子。\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
+  t.write('.novelwarden/lore/宗门/青云宗.md', QINGYUN);
   project.invalidate();
   controller = new bundle.controller.ChatController(project);
   attach();
@@ -159,7 +159,7 @@ describe('设定清单 · 两段式落盘', () => {
 
   test('新条目建在分类目录里：一句话、关键词含标题、机器写的指纹、水位 0', () => {
     const town = entries.find((e) => e.title === '青崖镇');
-    assert.equal(town.relPath, '.novelforge/lore/地域/青崖镇.md');
+    assert.equal(town.relPath, '.novelwarden/lore/地域/青崖镇.md');
     assert.equal(town.brief, '偏僻小镇，镇口设卡查过所');
     assert.deepEqual(town.keywords, ['青崖镇', '青崖']);
     assert.equal(town.updatedThrough, 0);
@@ -170,10 +170,10 @@ describe('设定清单 · 两段式落盘', () => {
 
   // 第 3 条：名字（这里是关键词）撞上已有条目的，一条一审；关键词并起来，一句话新的优先，正文换新、归机器。
   test('撞上已有条目的走覆盖审阅，采纳后合并', () => {
-    assert.deepEqual(h.reviewed.map((r) => r.relPath), ['.novelforge/lore/宗门/青云宗.md']);
+    assert.deepEqual(h.reviewed.map((r) => r.relPath), ['.novelwarden/lore/宗门/青云宗.md']);
     assert.equal(h.reviewed[0].name, '设定「青云宗」');
     const qy = entries.find((e) => e.title === '青云宗');
-    assert.equal(qy.relPath, '.novelforge/lore/宗门/青云宗.md');
+    assert.equal(qy.relPath, '.novelwarden/lore/宗门/青云宗.md');
     assert.deepEqual(qy.keywords, ['青云门', '青云']);
     assert.equal(qy.brief, '正道大宗，执掌北境');
     assert.ok(qy.body.includes('青云宗的规矩。') && !qy.body.includes('作者写的'), qy.body);
@@ -190,9 +190,9 @@ describe('设定清单 · 覆盖审阅放弃了', () => {
   let before2;
 
   before(async () => {
-    t.write('.novelforge/lore/宗门/青云宗.md', QINGYUN);
+    t.write('.novelwarden/lore/宗门/青云宗.md', QINGYUN);
     project.invalidate();
-    before2 = t.read('.novelforge/lore/宗门/青云宗.md');
+    before2 = t.read('.novelwarden/lore/宗门/青云宗.md');
     fake.reset([
       {
         text: JSON.stringify({
@@ -216,11 +216,11 @@ describe('设定清单 · 覆盖审阅放弃了', () => {
 
   test('作者那一条一个字不动', () => {
     assert.equal(h.reviewed.length, 1);
-    assert.equal(t.read('.novelforge/lore/宗门/青云宗.md'), before2);
+    assert.equal(t.read('.novelwarden/lore/宗门/青云宗.md'), before2);
   });
 
   test('新条目照建，并说出保留了哪一条', async () => {
-    assert.ok((await project.listLore()).some((e) => e.relPath === '.novelforge/lore/宗门/藏经阁.md'));
+    assert.ok((await project.listLore()).some((e) => e.relPath === '.novelwarden/lore/宗门/藏经阁.md'));
     const toasts = posted.filter((m) => m.type === 'toast').map((m) => m.message);
     assert.ok(toasts.some((m) => m.includes('新建 1 条设定条目') && m.includes('保留原样的 青云宗')), toasts.join('|'));
   });
@@ -271,7 +271,7 @@ describe('设定清单 · 名录里另记着的名字', () => {
     project.invalidate();
     const [ch] = await project.listChapters();
     t.write(
-      '.novelforge/summaries/001-第1章.md',
+      '.novelwarden/summaries/001-第1章.md',
       `---\nno: 1\ntitle: 第1章\nsourceHash: ${ch.contentHash}\n---\n\n# 第1章 第1章\n\n## 设定\n\n- 寒冰锁〔法术〕：缚住对手的冰锁\n`
     );
     project.invalidate();

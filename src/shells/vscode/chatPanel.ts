@@ -20,7 +20,7 @@ export class ChatPanel implements ViewHost {
     }
     const panel = vscode.window.createWebviewPanel(
       'novelForge.chatPanel',
-      'Novel Forge',
+      'Novelwarden',
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,

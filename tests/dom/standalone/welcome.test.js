@@ -65,10 +65,10 @@ describe('独立版空窗口欢迎页', { skip: JSDOM_SKIP }, () => {
     assert.equal(ui.doc.body.classList.contains('no-workspace'), false);
     // 宽屏露完整目录、窄屏露书名（文件夹名）：两份都写着，CSS 按宽度挑（窄屏上整条路径只露得出开头那一截）。
     const titleText = ui.doc.getElementById('wbTitleText');
-    assert.equal(titleText.querySelector('.wb-title-full').textContent, '/tmp/my-book - Novel Forge');
+    assert.equal(titleText.querySelector('.wb-title-full').textContent, '/tmp/my-book - Novelwarden');
     assert.equal(titleText.querySelector('.wb-title-short').textContent, 'my-book');
     assert.equal(titleText.title, '/tmp/my-book');
-    assert.equal(ui.doc.title, 'my-book - Novel Forge');
+    assert.equal(ui.doc.title, 'my-book - Novelwarden');
     assert.equal(ui.doc.getElementById('input').disabled, false);
   });
 

@@ -11,7 +11,7 @@
 | [tools/](tools/README.md) | ★ **工具层**：契约、schema 校验、注册表与 `novel/` 的工具；没有删除 / 改名 / 移动。 |
 | [mcp/](mcp/README.md) | ★ **把工具端给外部 agent**：MCP 协议与 Streamable HTTP，执行端在 `controller/mcp.ts`；本项目不自带循环。 |
 | [features/](features/README.md) | 功能编排：批量流水线、定稿、叙事线、预检、全文大纲、角色卡、设定名录、文风、拆书。 |
-| [skills/](skills/README.md) | 写作技能：三个来源、从 GitHub 先检查再安装、阶段绑定（`.novelforge/skills.json`）。 |
+| [skills/](skills/README.md) | 写作技能：三个来源、从 GitHub 先检查再安装、阶段绑定（`.novelwarden/skills.json`）。 |
 | [llm/](llm/README.md) | 模型接入：`LlmProvider` 接口、OpenAI / Anthropic 协议实现、provider 注册表 |
 | [files/](files/) | ★ 工程文件能力的交互流程（三区界限、输入框、提示文案、目录列举与 `@` 候选），落盘一律转调 `workspace/`。 |
 | [views/](views/README.md) | ★ 只读聚合与界面快照，只从磁盘取数、不写盘；`model/pipeline.ts` 是纯状态机，不迁入 `views/`。 |
@@ -30,7 +30,7 @@
 | [host.ts](host.ts) | core 对宿主的唯一依赖面（窄接口）：弹窗/选择/进度/文件监听/打开文件等，两个壳各实现一份。 |
 | [actions.ts](actions.ts) | 工程级交互流程（初始化、新建一章、粘进现成的一章、新建一本书），命令面板与网页共用。 |
 | [config.ts](config.ts) | `readConfig` / `readBudgetFallback` / `updateSettings`，数据源由宿主注入的 `ConfigStore` 提供。 |
-| [stores.ts](stores.ts) | 文件后端的配置/密钥存储（`~/.novelforge/`），双壳共用。环境变量 `NOVELFORGE_HOME` 能把它挪走：Android 壳的家目录是放书的公共目录，密钥指回 app 私有目录。 |
+| [stores.ts](stores.ts) | 文件后端的配置/密钥存储（`~/.novelwarden/`），双壳共用。环境变量 `NOVELWARDEN_HOME` 能把它挪走：Android 壳的家目录是放书的公共目录，密钥指回 app 私有目录。 |
 
 ## 已知约定
 
@@ -39,9 +39,9 @@
 - **日志三条硬约束**（对应 `runtime/logger.ts` 的实现）：① 所有文本过 `redact`，API Key 绝不落进日志——它会被用户复制进 issue；② sink 抛异常只被吞掉，日志坏了不能带崩正事；③ 只记条数与字数，**绝不记 prompt / 正文全文**——一次正文生成的 prompt 有十万字，进了缓冲会把此前所有日志挤没（见 `features/creation.ts` 的 `logAssembly`）。
 - **降级与丢弃必须同时进日志**：「不静默截断」这条产品承诺过去只落在界面的上下文明细里，折叠着不点开就看不见。现在装配器的降级项、定稿与同步细纲跳过的章、超预算被截断的正文都会打一条 `warn`。新加截断逻辑时记得跟上。
 - **失败还要留在出错的东西身上，不只是日志**：日志与 toast 都要求用户「恰好在看」。角色卡/章/设定失败时经 `runtime/errorLog.ts` 记一条（`severity: 'error'` = 目标一字未改，`'warn'` = 部分完成、下次重来），工程页那一行就挂上感叹号，一直挂到成功。**成功路径必须 `clearFailures`**——修好了还挂着比一开始不报错更糟，用户会学会无视它。`targetKey` 一律用 relPath（名字会被作者改，路径才是当下的身份，而且前端的树本来就按 relPath 索引）。
-- **库不可用不是错误路径**：`runtime/db.ts` / `runtime/errorLog.ts` 的每个 API 都自己吞异常并降级为「没有库」。纯读取的调用方（`listActiveFailures`、`clearFailures`、`readLogHistory`）必须带 `{ create: false }`——否则光是打开工程页就会在作者的 `.novelforge/` 里凭空生出一个 db 文件。写日志失败**绝不能再打日志**（会递归刷屏），只往 stderr 说一次然后彻底静默。
+- **库不可用不是错误路径**：`runtime/db.ts` / `runtime/errorLog.ts` 的每个 API 都自己吞异常并降级为「没有库」。纯读取的调用方（`listActiveFailures`、`clearFailures`、`readLogHistory`）必须带 `{ create: false }`——否则光是打开工程页就会在作者的 `.novelwarden/` 里凭空生出一个 db 文件。写日志失败**绝不能再打日志**（会递归刷屏），只往 stderr 说一次然后彻底静默。
 - `readConfig` / `readBudgetFallback` 位于 `config.ts`，数据源由宿主注入的 `ConfigStore` 提供。模型预算在模型条目上配置；`readBudgetFallback` 只为未填写的模型与旧版全局值兜底，不是设置页配置项。
-- **一条轴：细纲号 = 章号**：章节顺序永远由文件名的数字前缀决定，与它在第几层子目录无关；分卷目录只是收纳，不重置编号。细纲**镜像正文在章节根下的相对路径**，扩展名换成 `.md`（`chapters/第一卷/003-深处.txt` ↔ `.novelforge/summaries/第一卷/003-深处.md`，与草稿同一套镜像）：`summaries/` 递归扫描，各级子目录里数字开头的 `.md` 都是细纲（`global.md` 是全文大纲，老工程的 `plots/` 判 `other`、不读）。有正文的章**按路径**认它的细纲（`NovelProject.plotFor` / `plotOfChapter`），还没有正文的计划按文件名的章号认，正文照它的路径反推着落（`chapterPathForPlot`）。章节在工具里改名/移动时细纲跟着搬（`workspace/handlers/chapter.ts` 的 `carryPlot`）；在外面改了正文的名，旧细纲不冒认。定稿照正文反向更新**同一份**细纲，不另存一份。上下文装配的正文只取 `chapters/`，定稿过没有、定稿之后正文改没改（细纲的 `sourceHash` 对正文的 hash）一律按 `chapters/` 算。工程页每层内**正序**展示（第 1 章在上，与文件名顺序一致）。
+- **一条轴：细纲号 = 章号**：章节顺序永远由文件名的数字前缀决定，与它在第几层子目录无关；分卷目录只是收纳，不重置编号。细纲**镜像正文在章节根下的相对路径**，扩展名换成 `.md`（`chapters/第一卷/003-深处.txt` ↔ `.novelwarden/summaries/第一卷/003-深处.md`，与草稿同一套镜像）：`summaries/` 递归扫描，各级子目录里数字开头的 `.md` 都是细纲（`global.md` 是全文大纲，老工程的 `plots/` 判 `other`、不读）。有正文的章**按路径**认它的细纲（`NovelProject.plotFor` / `plotOfChapter`），还没有正文的计划按文件名的章号认，正文照它的路径反推着落（`chapterPathForPlot`）。章节在工具里改名/移动时细纲跟着搬（`workspace/handlers/chapter.ts` 的 `carryPlot`）；在外面改了正文的名，旧细纲不冒认。定稿照正文反向更新**同一份**细纲，不另存一份。上下文装配的正文只取 `chapters/`，定稿过没有、定稿之后正文改没改（细纲的 `sourceHash` 对正文的 hash）一律按 `chapters/` 算。工程页每层内**正序**展示（第 1 章在上，与文件名顺序一致）。
 - **细纲正文不进 `ProjectTree`**：那棵树每次文件变动都全量重推（`pushState` → `buildProjectTree`），一本两百章的书每章带上千字细纲，等于每保存一次正文就推几百 KB。悬停浮窗要的细纲走单独的 `requestSummary` / `summary` 一问一答（`buildPlotSummaryView`），前端按行路径缓存、收到新树即作废。往树上加字段前先想想它会不会把这条推送撑爆。（`failures` 是有意的例外：一条几十字，**且只有出错的目标才有**，正常工程是空对象。）
 - **草稿不是可管理区**：`drafts/` 不在 `files/fileOps.ts` 的三个区里（工程页上也没有它的节点），但它是**可打开的**——`files/fileEditing.ts` 只看工程根包含 + 扩展名/章节规则 + 大小，草稿天然满足。草稿路径由 `NovelProject.draftRelPathFor` 从章节路径推导，别在别处另拼一份。
 - **草稿永不自动注入**：`context/builder.ts` 里没有任何一处读 `drafts/`，草稿只能经 `resolveAttachment`（作者显式 `@` 引用）进 prompt。加功能时别打破这条——它是「不偷偷烧 token」的一部分。

@@ -86,7 +86,7 @@ export async function deleteSession(c: ChatController, id: string): Promise<void
   const pick = await getHost().confirm(
     `删除对话「${target?.title ?? id}」？`,
     ['删除'],
-    { modal: true, detail: '会移到 .novelforge/.trash/，可手动找回。' }
+    { modal: true, detail: '会移到 .novelwarden/.trash/，可手动找回。' }
   );
   if (pick !== '删除') {
     return;

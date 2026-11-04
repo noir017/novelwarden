@@ -9,7 +9,7 @@
  * ## 布局
  *
  * ```
- * .novelforge/checkpoints/
+ * .novelwarden/checkpoints/
  * ├── .gitignore                                第一次建这个目录时放进来，内容 `*`（同历史版本）
  * ├── objects/3f/a9c1…                          文件内容，按 sha256 寻址：前两位当目录，余下 62 位当文件名；字节原样
  * └── points/2026-10-20_22-30-05+0800.json      一个存档点一份清单（名字的格式同历史版本的快照，去掉 `.txt`）
@@ -23,7 +23,7 @@
  * ## 存哪些（{@link trackedFiles}）
  *
  * `kindOfPath` 不是 `other` 的——与历史版本同一个口径（章节、草稿、细纲、角色卡、设定、架构、大纲、文风、叙事线、
- * 全文大纲、技能、敏感词表）。只扫章节根、草稿根与 `.novelforge/` 三处，不扫整个工程根；隐藏目录、会话、回收站、
+ * 全文大纲、技能、敏感词表）。只扫章节根、草稿根与 `.novelwarden/` 三处，不扫整个工程根；隐藏目录、会话、回收站、
  * 历史版本、存档点自己都不进。超过网关大小上限（2 MB）的单份不存，记进清单的 `skipped`，界面上说出来（第 2 条）。
  *
  * ## 保留（{@link checkpointsToPrune}）
@@ -34,7 +34,7 @@
  *
  * ## 内部文件
  *
- * 整个目录是 Novel Forge 的内部文件（`guard.ts` 的 `isInternalPath`）：搜不到、读当不存在、写搬删都拒；监听也挡掉它
+ * 整个目录是 Novelwarden 的内部文件（`guard.ts` 的 `isInternalPath`）：搜不到、读当不存在、写搬删都拒；监听也挡掉它
  * （`watchPolicy.ts`）。这里的写盘都是这一层自己的（与 `history.ts` 一样在网关里），不经 `Workspace.write`。
  *
  * ## 排队
@@ -237,13 +237,13 @@ const objectPathOf = (project: NovelProject, sha: string) => path.join(objectsDi
 
 /** 能不能存存档点。能就给 undefined，不能给一句给人看的原因。 */
 export async function checkpointUnavailable(project: NovelProject): Promise<string | undefined> {
-  return (await isDir(project.novelDir)) ? undefined : '这个目录还不是小说工程（没有 .novelforge/），存不了存档点。';
+  return (await isDir(project.novelDir)) ? undefined : '这个目录还不是小说工程（没有 .novelwarden/），存不了存档点。';
 }
 
 // ---------------------------------------------------------------- 扫
 
 /**
- * 要进存档点的文件（工程内相对路径，排好序）。只扫章节根、草稿根与 `.novelforge/`；隐藏目录（含回收站）、
+ * 要进存档点的文件（工程内相对路径，排好序）。只扫章节根、草稿根与 `.novelwarden/`；隐藏目录（含回收站）、
  * 会话、历史版本、存档点自己都不进；符号链接不跟。种类是 `other` 的不要；情节大纲也不要（它没有文件，是各章细纲梗概的汇总，
  * 细纲在存档点里就退得回；磁盘上残留的老 `outline.md` 不是现在的书）。
  */
@@ -281,7 +281,7 @@ export async function trackedFiles(project: NovelProject): Promise<string[]> {
       }
     }
   };
-  // 三个根各自从里面开始走：`.novelforge/` 本身是隐藏目录，从工程根走过来会被跳过。草稿根在章节根下面时
+  // 三个根各自从里面开始走：`.novelwarden/` 本身是隐藏目录，从工程根走过来会被跳过。草稿根在章节根下面时
   // （`chaptersDir` 配成 `.`）走章节根时跳过它，单独再走一遍。
   await walk(project.chaptersDir, 1);
   await walk(project.draftsDir, 1);

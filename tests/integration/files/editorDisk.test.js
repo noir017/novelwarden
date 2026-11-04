@@ -39,7 +39,7 @@ const hostWith = (sent) => new FileHost(new bundle.stores.FileConfigStore(), (m)
 before(() => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-editor-disk-'));
   put('chapters/001-雨夜.md', '# 雨夜\n\n林昭推开客栈的门。\n');
-  put('.novelforge/summaries/001-雨夜.md', '# 雨夜\n\n## 梗概\n林昭进客栈。\n');
+  put('.novelwarden/summaries/001-雨夜.md', '# 雨夜\n\n## 梗概\n林昭进客栈。\n');
   put('notes.txt', '随手记\n');
   put('pic.png', 'not really a png');
   fs.mkdirSync(abs('chapters/002-目录'), { recursive: true });

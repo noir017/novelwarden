@@ -28,9 +28,11 @@ temp/**
 
 # 独立版的单文件可执行（113 MB/个）。它是另一条发布路径的产物，不属于扩展。
 # 用通配是因为 release workflow 出的是带平台后缀的名字
-# （novelforge-linux-x64 / novelforge-windows-x64.exe），而 `npm run dist`
-# 出的是不带后缀的 novelforge/novelforge.exe——两种都要挡住。
+# （novelwarden-linux-x64 / novelwarden-windows-x64.exe），而 `npm run dist`
+# 出的是不带后缀的 novelwarden/novelwarden.exe——两种都要挡住。
+# 旧名产物也一并排除，免得本地还留着旧构建时被塞进扩展包。
 # dist/ 其余内容（extension.js 与 media/）是扩展本体，不能一起排除。
+dist/novelwarden*
 dist/novelforge*
 
 esbuild.js

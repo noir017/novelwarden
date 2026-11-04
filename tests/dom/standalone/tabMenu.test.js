@@ -134,7 +134,7 @@ describe('标签右键：定位、复制路径、重新打开', { skip: JSDOM_SK
     ui.window.navigator.clipboard = { writeText: (t) => (copied.push(t), Promise.resolve()) };
     ui.post({ type: 'editorOpen', file: file('chapters/第一卷/003-夜访.md', '正文') });
     ui.post({ type: 'editorOpen', file: file('notes.md', '笔记') });
-    ui.post({ type: 'editorOpen', file: file('.novelforge/summaries/003-夜访.md', '细纲'), pane: 'draft' });
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/summaries/003-夜访.md', '细纲'), pane: 'draft' });
     ui.post({ type: 'editorOpen', file: file('drafts/003-夜访.md', '草稿'), pane: 'draft' });
   });
 

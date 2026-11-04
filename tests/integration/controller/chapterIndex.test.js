@@ -44,7 +44,7 @@ before(async () => {
   t = await makeTempProject(bundle.project, { prefix: 'chapter-index', title: '青云剑录' });
   t.write('chapters/001-雨夜.md', '# 雨夜\n\n他推开门。\n');
   t.write('chapters/第一卷/002-入镇.md', '# 入镇\n\n镇上起了雾。\n');
-  t.write('.novelforge/summaries/003-北行.md', '---\ntargetWords: 3000\n---\n# 第3章 北行\n\n## 关键事件\n\n- 出城\n');
+  t.write('.novelwarden/summaries/003-北行.md', '---\ntargetWords: 3000\n---\n# 第3章 北行\n\n## 关键事件\n\n- 出城\n');
   controller = new bundle.controller.ChatController(t.project);
   controller.attach({
     kind: 'sidebar',
@@ -89,17 +89,17 @@ describe('chapterIndex：连上就推，哪个页签都推', () => {
     assert.deepEqual(
       rows.map((r) => [r.chapterPath, r.plotPath, r.plotExists]),
       [
-        ['chapters/001-雨夜.md', '.novelforge/summaries/001-雨夜.md', false],
+        ['chapters/001-雨夜.md', '.novelwarden/summaries/001-雨夜.md', false],
         // 分卷的正文：细纲镜像它的相对路径（第 8 条）。
-        ['chapters/第一卷/002-入镇.md', '.novelforge/summaries/第一卷/002-入镇.md', false],
-        ['', '.novelforge/summaries/003-北行.md', true],
+        ['chapters/第一卷/002-入镇.md', '.novelwarden/summaries/第一卷/002-入镇.md', false],
+        ['', '.novelwarden/summaries/003-北行.md', true],
       ]
     );
   });
 
   test('只排了细纲的那一章：主路径是细纲、目标字数取细纲的', () => {
     const row = lastOf('chapterIndex').chapters[2];
-    assert.equal(row.relPath, '.novelforge/summaries/003-北行.md');
+    assert.equal(row.relPath, '.novelwarden/summaries/003-北行.md');
     assert.equal(row.targetWords, 3000);
     assert.equal(row.wordCount, 0);
     assert.equal(row.label, '第 3 章《北行》');
@@ -149,7 +149,7 @@ describe('chapterIndex：变了才推', () => {
   // 编辑器状态栏的「距目标」只认这个字段：它必须与写正文时判「写够没有」的目标是同一个数——
   // 细纲的 targetWords，没写就是 config.md 的每章字数（controller/chat.ts 的 targetWordsOf 同一个式子）。
   test('细纲没写目标字数的章：目标取小说配置的每章字数；细纲写了的照旧取细纲的', async () => {
-    t.write('.novelforge/config.md', '---\nwordsPerChapter: 2500\n---\n# 小说配置\n');
+    t.write('.novelwarden/config.md', '---\nwordsPerChapter: 2500\n---\n# 小说配置\n');
     posted = [];
     await controller.pushState();
     const rows = lastOf('chapterIndex').chapters;

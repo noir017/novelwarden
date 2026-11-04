@@ -6,7 +6,7 @@
  * 伴生的事：
  *
  * 1. **草稿与细纲跟随**（原 `fileOps.carryDraft`）：两样都按章节在 `chapters/` 之下的
- *    相对路径镜像（草稿在 `drafts/`，细纲在 `.novelforge/summaries/`），章节路径一变归属路径就跟着变。
+ *    相对路径镜像（草稿在 `drafts/`，细纲在 `.novelwarden/summaries/`），章节路径一变归属路径就跟着变。
  *    不搬的话旧位置的东西成了孤儿，新位置又读不到，**而界面上一切正常**。
  * 2. **manifest 同步**：章节列表与字数索引跟着刷新。
  *
@@ -17,7 +17,7 @@
  *
  * 只有经网关的改名、移动才搬得动伴生：作者在外面直接给正文改名，细纲留在原处，那就是一章新的。
  *
- * 伴生的草稿、细纲搬过去之后，它们的历史版本（`.novelforge/history/` 下的快照目录）也跟着挪（`history.ts` 的
+ * 伴生的草稿、细纲搬过去之后，它们的历史版本（`.novelwarden/history/` 下的快照目录）也跟着挪（`history.ts` 的
  * `moveHistory`）；正文自己的快照由 `Workspace.move` 挪。
  */
 import * as fs from 'node:fs/promises';

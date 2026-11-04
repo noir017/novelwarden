@@ -10,7 +10,7 @@
  * 大纲一章一句，细纲里本来就有「梗概」，同一件事存两份（docs/design/plans/2026-10-22-outline-from-plots.md）。
  * 现在磁盘上没有 `outline.md`：读的时候把各章细纲的梗概拼成一章一条（{@link outlineEntriesOf}），存的时候按章号拆回
  * 各章细纲（{@link planOutlineSplit}）——只有梗概、别的几节都空的细纲是「空壳」：大纲排到了，细纲还没拆。
- * `.novelforge/outline.md` 这个路径仍是情节大纲的身份，网关（`workspace/`）接住它的读写。
+ * `.novelwarden/outline.md` 这个路径仍是情节大纲的身份，网关（`workspace/`）接住它的读写。
  *
  * ## 为什么一章一条
  *

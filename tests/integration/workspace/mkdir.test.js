@@ -47,7 +47,7 @@ before(async () => {
   project = t.project;
   ws = new bundle.ws.Workspace(project);
   t.write('chapters/001-楔子.md', '# 楔子\n');
-  t.write('.novelforge/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt', '旧稿\n');
+  t.write('.novelwarden/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt', '旧稿\n');
   t.write('notes/备忘.txt', '随手记。\n');
   project.invalidate();
 });
@@ -64,8 +64,8 @@ describe('Workspace.mkdir', () => {
   });
 
   test('一次建几层', async () => {
-    await ws.mkdir('.novelforge/lore/宗门/正道');
-    assert.ok(fs.statSync(t.rel('.novelforge/lore/宗门/正道')).isDirectory());
+    await ws.mkdir('.novelwarden/lore/宗门/正道');
+    assert.ok(fs.statSync(t.rel('.novelwarden/lore/宗门/正道')).isDirectory());
   });
 
   test('已有同名目录：exists', async () => {
@@ -78,18 +78,18 @@ describe('Workspace.mkdir', () => {
   });
 
   const refused = [
-    ['回收站里', '.novelforge/.trash/新目录', 'inTrash'],
-    ['回收站本身', '.novelforge/.trash', 'inTrash'],
-    ['会话目录里', '.novelforge/sessions/新目录', 'protected'],
-    ['历史版本里', '.novelforge/history/新目录', 'inHistory'],
-    ['某份文件的快照目录里', '.novelforge/history/chapters/001-楔子.md/新目录', 'inHistory'],
+    ['回收站里', '.novelwarden/.trash/新目录', 'inTrash'],
+    ['回收站本身', '.novelwarden/.trash', 'inTrash'],
+    ['会话目录里', '.novelwarden/sessions/新目录', 'protected'],
+    ['历史版本里', '.novelwarden/history/新目录', 'inHistory'],
+    ['某份文件的快照目录里', '.novelwarden/history/chapters/001-楔子.md/新目录', 'inHistory'],
     ['工程根之外', '../外面', 'outOfRoot'],
     ['绝对路径', '/tmp/外面', 'outOfRoot'],
   ];
   for (const [name, rel, code] of refused) {
     test(`${name}建不了（${code}），什么都没建`, async () => {
       assert.equal(await codeOf(() => ws.mkdir(rel)), code);
-      if (code !== 'outOfRoot' && rel !== '.novelforge/.trash') {
+      if (code !== 'outOfRoot' && rel !== '.novelwarden/.trash') {
         assert.equal(t.has(rel), false, rel);
       }
     });
@@ -138,11 +138,11 @@ describe('新建文件夹经网关建', () => {
 });
 
 describe('文件写不进、搬不进历史版本（读得到）', () => {
-  const SNAP = '.novelforge/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt';
+  const SNAP = '.novelwarden/history/chapters/001-楔子.md/2026-10-18_14-32-05+0800.txt';
 
   test('write 新建被拒', async () => {
-    assert.equal(await codeOf(() => ws.write('.novelforge/history/伪造.txt', { text: '假快照' }, { mode: 'create' })), 'inHistory');
-    assert.equal(t.has('.novelforge/history/伪造.txt'), false);
+    assert.equal(await codeOf(() => ws.write('.novelwarden/history/伪造.txt', { text: '假快照' }, { mode: 'create' })), 'inHistory');
+    assert.equal(t.has('.novelwarden/history/伪造.txt'), false);
   });
 
   test('write 覆盖一份快照被拒，快照一字不动', async () => {
@@ -151,7 +151,7 @@ describe('文件写不进、搬不进历史版本（读得到）', () => {
   });
 
   test('move 进历史版本被拒，原文件留在原处', async () => {
-    assert.equal(await codeOf(() => ws.move('notes/备忘.txt', '.novelforge/history/chapters/备忘.txt')), 'inHistory');
+    assert.equal(await codeOf(() => ws.move('notes/备忘.txt', '.novelwarden/history/chapters/备忘.txt')), 'inHistory');
     assert.ok(t.has('notes/备忘.txt'));
   });
 

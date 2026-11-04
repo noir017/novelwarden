@@ -56,14 +56,14 @@ async function fresh(prefix) {
   dirs.push(t.dir);
   t.write('chapters/001-雨夜.md', '# 雨夜\n\n他推开门。\n');
   t.write('chapters/第一卷/002-深处.md', '# 深处\n\n山很深。\n');
-  t.write('.novelforge/summaries/001-雨夜.md', '---\nno: 1\nupstreamHash: aaaa\n---\n\n## 梗概\n\n雨夜。\n');
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\n---\n\n## 一句话\n\n剑客。\n');
+  t.write('.novelwarden/summaries/001-雨夜.md', '---\nno: 1\nupstreamHash: aaaa\n---\n\n## 梗概\n\n雨夜。\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\n---\n\n## 一句话\n\n剑客。\n');
   t.write('drafts/001-雨夜.md', '草稿：先写门。\n');
   return { t, ws: new bundle.ws.Workspace(t.project) };
 }
 
 const objectCount = (t) => {
-  const root = t.rel('.novelforge/checkpoints/objects');
+  const root = t.rel('.novelwarden/checkpoints/objects');
   if (!fs.existsSync(root)) return 0;
   return fs.readdirSync(root).reduce((n, d) => n + fs.readdirSync(path.join(root, d)).filter((f) => !f.endsWith('.tmp')).length, 0);
 };
@@ -87,21 +87,21 @@ describe('存哪些', () => {
   before(async () => {
     ({ t } = await fresh('cp-tracked'));
     t.write('README.md', '工程根的随手记\n');
-    t.write('.novelforge/sessions/s1.json', '{}');
-    t.write('.novelforge/history/chapters/001-雨夜.md/2026-10-01_10-00-00+0800.txt', '旧稿');
-    t.write('.novelforge/.trash/chapters/009-删掉的.md', '删掉的');
+    t.write('.novelwarden/sessions/s1.json', '{}');
+    t.write('.novelwarden/history/chapters/001-雨夜.md/2026-10-01_10-00-00+0800.txt', '旧稿');
+    t.write('.novelwarden/.trash/chapters/009-删掉的.md', '删掉的');
     files = await cp.trackedFiles(t.project);
   });
 
   test('章节（含卷目录里的）、细纲、角色卡、草稿、架构模板都在', () => {
-    for (const rel of ['chapters/001-雨夜.md', 'chapters/第一卷/002-深处.md', '.novelforge/summaries/001-雨夜.md', '.novelforge/characters/林昭.md', 'drafts/001-雨夜.md']) {
+    for (const rel of ['chapters/001-雨夜.md', 'chapters/第一卷/002-深处.md', '.novelwarden/summaries/001-雨夜.md', '.novelwarden/characters/林昭.md', 'drafts/001-雨夜.md']) {
       assert.ok(files.includes(rel), `${rel} 不在：${files.join('、')}`);
     }
-    assert.ok(files.some((f) => f.startsWith('.novelforge/') && /config|premise|world|outline/.test(f)), files.join('、'));
+    assert.ok(files.some((f) => f.startsWith('.novelwarden/') && /config|premise|world|outline/.test(f)), files.join('、'));
   });
 
   test('会话、历史版本、回收站、manifest、工程根的随手记都不在', () => {
-    for (const bad of ['README.md', '.novelforge/sessions/s1.json', '.novelforge/project.json']) {
+    for (const bad of ['README.md', '.novelwarden/sessions/s1.json', '.novelwarden/project.json']) {
       assert.ok(!files.includes(bad), bad);
     }
     assert.ok(!files.some((f) => f.includes('/history/') || f.includes('.trash')), files.join('、'));
@@ -127,10 +127,10 @@ describe('存：去重、自动不刷屏、.gitignore、太大的不存', () => 
   });
 
   test('.gitignore 只在建目录那一次放；删掉之后不再补', async () => {
-    assert.equal(t.read('.novelforge/checkpoints/.gitignore'), '*\n');
-    t.remove('.novelforge/checkpoints/.gitignore');
+    assert.equal(t.read('.novelwarden/checkpoints/.gitignore'), '*\n');
+    t.remove('.novelwarden/checkpoints/.gitignore');
     await cp.createCheckpoint(t.project, { note: '', auto: false });
-    assert.equal(t.has('.novelforge/checkpoints/.gitignore'), false);
+    assert.equal(t.has('.novelwarden/checkpoints/.gitignore'), false);
   });
 
   test('第二个：只多存改过的那一份', async () => {
@@ -184,7 +184,7 @@ describe('存：去重、自动不刷屏、.gitignore、太大的不存', () => 
     const p = bundle.project.NovelProject.open(dir.dir);
     assert.match(await cp.checkpointUnavailable(p), /还不是小说工程/);
     await assert.rejects(cp.createCheckpoint(p, { note: '', auto: false }), /还不是小说工程/);
-    assert.equal(fs.existsSync(path.join(dir.dir, '.novelforge')), false);
+    assert.equal(fs.existsSync(path.join(dir.dir, '.novelwarden')), false);
   });
 });
 
@@ -199,24 +199,24 @@ describe('内部文件：读不到、写不进、列不出、搜不到、监听�
   });
 
   test('读清单当不存在；往里写、建目录都拒', async () => {
-    await assert.rejects(ws.read(`.novelforge/checkpoints/points/${id}.json`), (e) => e.code === 'notFound');
-    await assert.rejects(ws.write('.novelforge/checkpoints/x.md', { text: 'x' }), (e) => e.code === 'protected');
-    await assert.rejects(ws.mkdir('.novelforge/checkpoints/new'), (e) => e.code === 'protected');
-    await assert.rejects(ws.remove('.novelforge/checkpoints'), (e) => ['protected', 'notFound'].includes(e.code));
+    await assert.rejects(ws.read(`.novelwarden/checkpoints/points/${id}.json`), (e) => e.code === 'notFound');
+    await assert.rejects(ws.write('.novelwarden/checkpoints/x.md', { text: 'x' }), (e) => e.code === 'protected');
+    await assert.rejects(ws.mkdir('.novelwarden/checkpoints/new'), (e) => e.code === 'protected');
+    await assert.rejects(ws.remove('.novelwarden/checkpoints'), (e) => ['protected', 'notFound'].includes(e.code));
   });
 
-  test('列 .novelforge 看不见它；全文检索搜不到对象里的字', async () => {
-    assert.ok(!(await ws.list('.novelforge')).some((e) => e.name === 'checkpoints'));
+  test('列 .novelwarden 看不见它；全文检索搜不到对象里的字', async () => {
+    assert.ok(!(await ws.list('.novelwarden')).some((e) => e.name === 'checkpoints'));
     t.remove('chapters/001-雨夜.md'); // 现在只有存档点里还有「推开门」
     const r = await ws.search('推开门');
     assert.equal(r.hits.length, 0, JSON.stringify(r.hits));
   });
 
   test('监听挡掉它的变动（相对、绝对、Windows 分隔符都认）', () => {
-    assert.equal(bundle.watch.shouldIgnoreChange('.novelforge/checkpoints/objects/3f/abc'), true);
-    assert.equal(bundle.watch.shouldIgnoreChange(t.rel('.novelforge/checkpoints/points/x.json')), true);
-    assert.equal(bundle.watch.shouldIgnoreChange('.novelforge\\checkpoints\\points\\x.json'), true);
-    assert.equal(bundle.watch.shouldIgnoreChange('.novelforge/checkpointsx.md'), false);
+    assert.equal(bundle.watch.shouldIgnoreChange('.novelwarden/checkpoints/objects/3f/abc'), true);
+    assert.equal(bundle.watch.shouldIgnoreChange(t.rel('.novelwarden/checkpoints/points/x.json')), true);
+    assert.equal(bundle.watch.shouldIgnoreChange('.novelwarden\\checkpoints\\points\\x.json'), true);
+    assert.equal(bundle.watch.shouldIgnoreChange('.novelwarden/checkpointsx.md'), false);
   });
 });
 
@@ -255,12 +255,12 @@ describe('整本退回', () => {
   before(async () => {
     ({ t } = await fresh('cp-restore'));
     fs.writeFileSync(t.rel('chapters/005-旧码.txt'), GBK);
-    plotBefore = fs.readFileSync(t.rel('.novelforge/summaries/001-雨夜.md'));
+    plotBefore = fs.readFileSync(t.rel('.novelwarden/summaries/001-雨夜.md'));
     id = (await cp.createCheckpoint(t.project, { note: '第一卷写完', auto: false })).id;
 
     t.write('chapters/001-雨夜.md', '# 雨夜\n\n全改了。\n');
     fs.writeFileSync(t.rel('chapters/005-旧码.txt'), '改成了 utf8\n');
-    t.write('.novelforge/summaries/001-雨夜.md', '---\nno: 1\nupstreamHash: bbbb\nsourceHash: cccc\n---\n\n## 梗概\n\n全变了。\n');
+    t.write('.novelwarden/summaries/001-雨夜.md', '---\nno: 1\nupstreamHash: bbbb\nsourceHash: cccc\n---\n\n## 梗概\n\n全变了。\n');
     t.remove('chapters/第一卷'); // 整个卷目录删掉
     t.write('chapters/006-之后新建.md', '# 之后新建\n\n后来写的。\n');
 
@@ -276,7 +276,7 @@ describe('整本退回', () => {
   });
 
   test('细纲连同 frontmatter 的指纹回到当时，一个字节不差（不按大纲此刻重记）', () => {
-    assert.deepEqual(fs.readFileSync(t.rel('.novelforge/summaries/001-雨夜.md')), plotBefore);
+    assert.deepEqual(fs.readFileSync(t.rel('.novelwarden/summaries/001-雨夜.md')), plotBefore);
   });
 
   test('之后新建的缺省不动', () => {
@@ -295,7 +295,7 @@ describe('整本退回', () => {
   });
 
   test('被盖掉的那一份存了一版历史', () => {
-    const dir = t.rel('.novelforge/history/chapters/001-雨夜.md');
+    const dir = t.rel('.novelwarden/history/chapters/001-雨夜.md');
     assert.ok(fs.existsSync(dir) && fs.readdirSync(dir).length > 0);
   });
 
@@ -314,26 +314,26 @@ describe('退回的闸门', () => {
     const o = await bundle.feature.restoreCheckpoint(t.project, await wholeRequest(t, id, { trashAdded: true }), { busy: false });
     assert.deepEqual(o.trashed, ['chapters/007-后来.md']);
     assert.equal(t.has('chapters/007-后来.md'), false);
-    assert.equal(t.has('.novelforge/.trash/chapters/007-后来.md'), true);
+    assert.equal(t.has('.novelwarden/.trash/chapters/007-后来.md'), true);
   });
 
   test('编辑器里有未保存修改的跳过；面板打开之后又改过的跳过；又建出来的跳过', async () => {
     const { t } = await fresh('cp-locks');
     const { id } = await cp.createCheckpoint(t.project, { note: '', auto: false });
     t.write('chapters/001-雨夜.md', '# 雨夜\n\n改一。\n');
-    t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\n---\n\n## 一句话\n\n改过。\n');
+    t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\n---\n\n## 一句话\n\n改过。\n');
     t.remove('chapters/第一卷/002-深处.md');
     const req = await wholeRequest(t, id, { dirty: ['chapters/001-雨夜.md'] });
     // 面板打开之后：角色卡又被改了一次，删掉的那一章又被建了出来。
-    t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\n---\n\n## 一句话\n\n又改了。\n');
+    t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\n---\n\n## 一句话\n\n又改了。\n');
     t.write('chapters/第一卷/002-深处.md', '# 深处\n\n别处刚写的。\n');
     const o = await bundle.feature.restoreCheckpoint(t.project, req, { busy: false });
     const reasons = Object.fromEntries(o.skipped.map((s) => [s.path, s.reason]));
     assert.equal(reasons['chapters/001-雨夜.md'], 'dirty');
-    assert.equal(reasons['.novelforge/characters/林昭.md'], 'changed');
+    assert.equal(reasons['.novelwarden/characters/林昭.md'], 'changed');
     assert.equal(reasons['chapters/第一卷/002-深处.md'], 'appeared');
     assert.equal(t.read('chapters/001-雨夜.md'), '# 雨夜\n\n改一。\n');
-    assert.match(t.read('.novelforge/characters/林昭.md'), /又改了/);
+    assert.match(t.read('.novelwarden/characters/林昭.md'), /又改了/);
     assert.match(t.read('chapters/第一卷/002-深处.md'), /别处刚写的/);
   });
 
@@ -373,7 +373,7 @@ describe('退回的闸门', () => {
     const { t, ws } = await fresh('cp-bytes');
     await assert.rejects(ws.restoreBytes('chapters/001-雨夜.md', Buffer.from('x'), { absent: true }), (e) => e.code === 'exists');
     await assert.rejects(ws.restoreBytes('chapters/001-雨夜.md', Buffer.from('x'), { baseHash: 'nope' }), (e) => e instanceof bundle.ws.WsConflictError);
-    await assert.rejects(ws.restoreBytes('.novelforge/sessions/x.json', Buffer.from('x')), (e) => e.code === 'protected');
+    await assert.rejects(ws.restoreBytes('.novelwarden/sessions/x.json', Buffer.from('x')), (e) => e.code === 'protected');
     await assert.rejects(ws.restoreBytes('../外面.md', Buffer.from('x')), (e) => e.code === 'outOfRoot');
     assert.equal(t.read('chapters/001-雨夜.md'), '# 雨夜\n\n他推开门。\n');
   });
@@ -409,8 +409,8 @@ describe('保留与清理', () => {
   test('有一份清单读不懂：整个不清（宁可多留）', async () => {
     const { t } = await fresh('cp-gc-unreadable');
     await cp.createCheckpoint(t.project, { note: '', auto: false });
-    t.write('.novelforge/checkpoints/objects/ff/' + 'f'.repeat(62), '没人用的');
-    t.write('.novelforge/checkpoints/points/2026-01-01_00-00-00+0800.json', '{坏了');
+    t.write('.novelwarden/checkpoints/objects/ff/' + 'f'.repeat(62), '没人用的');
+    t.write('.novelwarden/checkpoints/points/2026-01-01_00-00-00+0800.json', '{坏了');
     assert.equal(await cp.collectGarbage(t.project, Date.now() + 2 * 3600_000), 0);
     assert.equal((await cp.listCheckpoints(t.project)).length, 1, '读不懂的那份不进列表');
   });
@@ -429,7 +429,7 @@ describe('保留与清理', () => {
     const { id } = await cp.createCheckpoint(t.project, { note: '', auto: false });
     const info = await cp.readCheckpoint(t.project, id);
     const sha = info.files['chapters/001-雨夜.md'].sha;
-    fs.writeFileSync(t.rel('.novelforge/checkpoints/objects', sha.slice(0, 2), sha.slice(2)), '坏了');
+    fs.writeFileSync(t.rel('.novelwarden/checkpoints/objects', sha.slice(0, 2), sha.slice(2)), '坏了');
     t.write('chapters/001-雨夜.md', '# 雨夜\n\n改了。\n');
     const o = await bundle.feature.restoreCheckpoint(t.project, await wholeRequest(t, id), { busy: false });
     assert.equal(o.skipped[0].reason, 'unreadable');

@@ -24,7 +24,7 @@ const { ROOT } = require('../../helpers/load');
 
 const SHIMS = ['pointerCapture', 'confirm', 'scrollIntoView', 'clipboard'];
 const PREFS_KEY = 'novelforge.editor.prefs';
-const SENSITIVE = '.novelforge/sensitive.txt';
+const SENSITIVE = '.novelwarden/sensitive.txt';
 const CH = 'chapters/003-夜访.md';
 /** 等微任务跑完（体检在微任务里重查）。 */
 const flush = () => new Promise((resolve) => setImmediate(resolve));
@@ -177,7 +177,7 @@ describe('写作体检：只看正文', { skip: JSDOM_SKIP }, () => {
   });
 
   test('角色卡（不是正文）：不画、那一格藏起来', () => {
-    h.open('.novelforge/characters/林昭.md', TEXT, { kind: 'character' });
+    h.open('.novelwarden/characters/林昭.md', TEXT, { kind: 'character' });
     assert.deepEqual(h.checkMarks(), []);
     assert.equal(h.cellShown(), false);
   });
@@ -422,7 +422,7 @@ describe('写作体检：面板', { skip: JSDOM_SKIP }, () => {
   test('说清禁用词与写正文时数的是同一份、敏感词表在哪', () => {
     const text = h.panel().textContent;
     assert.match(text, /与写正文时写完数的是同一份/);
-    assert.match(text, /\.novelforge\/sensitive\.txt/);
+    assert.match(text, /\.novelwarden\/sensitive\.txt/);
     assert.match(text, /不调模型/);
   });
 
@@ -460,7 +460,7 @@ describe('写作体检：面板', { skip: JSDOM_SKIP }, () => {
 
   test('不是正文时那一格藏起来，开着的面板跟着收', () => {
     h.clickCell();
-    h.open('.novelforge/characters/林昭.md', '主角。', { kind: 'character' });
+    h.open('.novelwarden/characters/林昭.md', '主角。', { kind: 'character' });
     assert.equal(h.panel(), null);
   });
 

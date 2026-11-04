@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Novel Forge",
+  "productName": "Novelwarden",
   "version": "../../../package.json",
   "identifier": "com.novelforge.desktop",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Novel Forge",
+        "title": "Novelwarden",
         "url": "splash.html",
         "width": 1360,
         "height": 900,
@@ -37,7 +37,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/novelforge"],
+    "externalBin": ["binaries/novelwarden"],
     "shortDescription": "长篇小说上下文管理",
     "longDescription": "为长篇小说写作提供上下文注入、纲要扩写与角色/剧情整合总结的桌面应用。",
     "linux": {

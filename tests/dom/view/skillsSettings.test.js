@@ -41,12 +41,12 @@ const VIEW = {
   rows: [
     row({}),
     row({ id: 'user:b', source: 'user', name: 'b', label: '乙', boundTo: ['drafting'] }),
-    row({ id: 'project:c', source: 'project', name: 'c', label: '丙', compatible: false, reasons: ['依赖脚本'], relPath: '.novelforge/skills/c/SKILL.md' }),
+    row({ id: 'project:c', source: 'project', name: 'c', label: '丙', compatible: false, reasons: ['依赖脚本'], relPath: '.novelwarden/skills/c/SKILL.md' }),
     row({ id: 'builtin:d', name: 'd', label: '丁', suggestedStage: 'drafting' }),
   ],
   bindings: { drafting: 'user:b', review: 'user:gone', refinement: 'builtin:a' },
   problems: [],
-  userDir: '/home/x/.novelforge/skills',
+  userDir: '/home/x/.novelwarden/skills',
 };
 
 describe('设置页：技能', { skip: JSDOM_SKIP }, () => {
@@ -138,13 +138,13 @@ describe('设置页：技能', { skip: JSDOM_SKIP }, () => {
     $('[data-skill-id="user:b"] button').click();
     assert.deepEqual(lastSent('uninstallSkill'), { type: 'uninstallSkill', id: 'user:b' });
     $('[data-skill-id="project:c"] button').click();
-    assert.deepEqual(lastSent('openFile'), { type: 'openFile', path: '.novelforge/skills/c/SKILL.md' });
+    assert.deepEqual(lastSent('openFile'), { type: 'openFile', path: '.novelwarden/skills/c/SKILL.md' });
     $('[data-skill-id="project:c"] button.danger').click();
     assert.deepEqual(lastSent('uninstallSkill'), { type: 'uninstallSkill', id: 'project:c' });
   });
 
   test('技能库在哪写在提示里', () => {
-    assert.ok($('#skillLibraryHint').textContent.includes('/home/x/.novelforge/skills'));
+    assert.ok($('#skillLibraryHint').textContent.includes('/home/x/.novelwarden/skills'));
   });
 });
 

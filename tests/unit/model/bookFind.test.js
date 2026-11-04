@@ -53,7 +53,7 @@ describe('护住的字：frontmatter', () => {
     'sourceHash: 3c3c',
     'cast: [林晚(阿晚), 老周]',
     'status: done',
-    'generatedBy: novel-forge',
+    'generatedBy: novelwarden',
     '---',
     '',
     '# 第3章 林晚夜访',

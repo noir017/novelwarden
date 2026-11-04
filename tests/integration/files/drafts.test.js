@@ -68,8 +68,8 @@ describe('草稿', () => {
     write('chapters/004-无扩展名', '没有扩展名的一章。\n');
     write('chapters/005-封面.png', 'PNG 假装');
     write('chapters/笔记.txt', '没有数字前缀，不是章节');
-    write('.novelforge/characters/林昭.md', '---\nname: 林昭\n---\n\n# 林昭\n');
-    write('.novelforge/characters/说明.txt', '角色区不放宽扩展名');
+    write('.novelwarden/characters/林昭.md', '---\nname: 林昭\n---\n\n# 林昭\n');
+    write('.novelwarden/characters/说明.txt', '角色区不放宽扩展名');
     project.invalidate();
   });
 
@@ -110,9 +110,9 @@ describe('草稿', () => {
 
     test('章节根之外的路径没有草稿', () => {
       assert.equal(
-        project.draftRelPathFor('.novelforge/characters/林昭.md'),
+        project.draftRelPathFor('.novelwarden/characters/林昭.md'),
         undefined,
-        project.draftRelPathFor('.novelforge/characters/林昭.md')
+        project.draftRelPathFor('.novelwarden/characters/林昭.md')
       );
     });
   });
@@ -385,7 +385,7 @@ describe('草稿', () => {
     before(async () => {
       h.expect('删除');
       await fileOps.deleteEntry(project, 'chapters/归档/001-楔子改名.md');
-      trashed = has('.novelforge/.trash/chapters/归档/001-楔子改名.md');
+      trashed = has('.novelwarden/.trash/chapters/归档/001-楔子改名.md');
       draftKept = has('drafts/归档/001-楔子改名.md');
     });
 

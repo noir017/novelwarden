@@ -51,7 +51,7 @@ export const REFERENCE_STYLE_SYSTEM = `${REFERENCE_STYLE_INTRO}\n\n${STYLE_BODY}
 
 /**
  * 从参考书学写法（拆书 B）：结构与节奏层面的方法，写成一份「规划」阶段的写作技能
- * （`.novelforge/skills/<名>/SKILL.md`）。任务边界沿用上面那一份的口径；最后一节「规划时怎么用」是
+ * （`.novelwarden/skills/<名>/SKILL.md`）。任务边界沿用上面那一份的口径；最后一节「规划时怎么用」是
  * 给排大纲与细纲的人直接照做的规则——技能正文会原样放在规划那几次生成的提示词最前面。
  *
  * 「不要提到工具、脚本、文件」：写作技能只收纯提示词（`model/writingSkill.ts` 的兼容规则），

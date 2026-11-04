@@ -2,7 +2,7 @@
  * 临时工程的收尾。
  *
  * **必须先关库再删目录**：SQLite 连接开着时 Windows 上删不掉
- * `.novelforge/novelforge.db`，临时工程会全留在 temp 里（EBUSY）。迁移前这条只有
+ * `.novelwarden/novelwarden.db`，临时工程会全留在 temp 里（EBUSY）。迁移前这条只有
  * 两个脚本做对，另有一个脚本从不删目录——每跑一次泄漏一个临时工程。
  */
 const fs = require('fs');

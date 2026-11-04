@@ -52,7 +52,7 @@ const CONFIG = [
 ].join('\n');
 
 const OUTLINE = outlineOf(20, { titles: { 1: '入局' }, text: { 1: '林昭进青云宗，查出第一块令牌的来历。' } });
-const THREAD = '.novelforge/threads/青云旧案.md';
+const THREAD = '.novelwarden/threads/青云旧案.md';
 
 /** 写细纲的模型按格式写出来的一章。 */
 const prose = (no) =>
@@ -95,7 +95,7 @@ const copied = (no, over = {}) => ({
   ...over,
 });
 const json = (...items) => JSON.stringify({ blueprints: items });
-const PLOT_T = (no) => ({ kind: 'plot', plotRelPath: `.novelforge/summaries/${String(no).padStart(3, '0')}.md` });
+const PLOT_T = (no) => ({ kind: 'plot', plotRelPath: `.novelwarden/summaries/${String(no).padStart(3, '0')}.md` });
 const TRANSCRIBER = '格式转写员';
 
 function attach() {
@@ -162,7 +162,7 @@ before(async () => {
   });
   t = await makeTempProject(bundle.project, { prefix: 'transcribe', title: '青云剑录' });
   project = t.project;
-  t.write('.novelforge/config.md', CONFIG);
+  t.write('.novelwarden/config.md', CONFIG);
   writeOutline(t, OUTLINE);
   // 有一条线：批量拆细纲就不先排线。
   t.write(THREAD, '---\nkind: 主线\n---\n\n# 青云旧案\n\n## 意图\n十年前那把火。\n');

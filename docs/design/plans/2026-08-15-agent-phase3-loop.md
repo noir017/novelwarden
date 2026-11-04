@@ -447,7 +447,7 @@ toolCalls?: { callId: string; name: string; title: string; ok: boolean; summary:
 
 ## 给接手 agent 的提示词
 
-> 你在 novel-forge 仓库里执行「三期：agent 循环 + 只读四件套」。前置是零、一、二期，确认都已合入（`src/core/workspace/` 与 `src/core/generation/` 都在，`npm test` 绿）。
+> 你在 novelwarden 仓库里执行「三期：agent 循环 + 只读四件套」。前置是零、一、二期，确认都已合入（`src/core/workspace/` 与 `src/core/generation/` 都在，`npm test` 绿）。
 >
 > 先读 `AGENTS.md` 的第 2、4、11、12、19、20 条与 `docs/design/specs/2026-08-15-agent-architecture-design.md` 的 L3 一节。然后读 `src/core/model/pipeline.ts`（状态机，你要注入它的结论而不是重新判断）、`src/core/workspace/index.ts`、`src/core/generation/generate.ts`。
 >

@@ -56,31 +56,31 @@ before(async () => {
   bundle.host.initHost(makeFakeHost({ settings: () => ({}) }).host);
   t = await makeTempProject(bundle.project, { prefix: 'lorethin' });
   // 条目：天机阁是空的（关键词「天机」），镇魂钟是新建设定的占位，阁规三节全是未交代，旧事只有暗设，青崖镇写得有内容。
-  t.write('.novelforge/lore/宗门/天机阁.md', entry('天机阁', '', ['天机']));
-  t.write('.novelforge/lore/法宝/镇魂钟.md', entry('镇魂钟', '（在这里写这条设定：它是什么、有什么规矩……）'));
+  t.write('.novelwarden/lore/宗门/天机阁.md', entry('天机阁', '', ['天机']));
+  t.write('.novelwarden/lore/法宝/镇魂钟.md', entry('镇魂钟', '（在这里写这条设定：它是什么、有什么规矩……）'));
   t.write(
-    '.novelforge/lore/规矩/阁规.md',
+    '.novelwarden/lore/规矩/阁规.md',
     entry('阁规', '## 概要\n\n（未交代）\n\n## 规则与边界\n\n- （未交代）\n\n## 现状\n\n（未交代）')
   );
-  t.write('.novelforge/lore/秘闻/旧事.md', entry('旧事', '## 暗设\n\n二十年前的大火是阁主放的。'));
-  t.write('.novelforge/lore/地域/青崖镇.md', entry('青崖镇', '偏僻小镇，镇口设卡。'));
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\n---\n\n# 林昭\n');
+  t.write('.novelwarden/lore/秘闻/旧事.md', entry('旧事', '## 暗设\n\n二十年前的大火是阁主放的。'));
+  t.write('.novelwarden/lore/地域/青崖镇.md', entry('青崖镇', '偏僻小镇，镇口设卡。'));
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\n---\n\n# 林昭\n');
 
   // 第 1 章定稿过；第 2 章写了正文没定稿；第 3 章有章节文件但 0 字；第 4、5 章还没有章节文件。
   t.write('chapters/001-雨夜.md', '# 雨夜\n\n第一章的正文。\n');
   t.write('chapters/002-客栈.md', '# 客栈\n\n第二章的正文。\n');
   t.write('chapters/003-空章.md', '');
-  t.write('.novelforge/summaries/001-雨夜.md', plot(1, '雨夜', { finalized: true, lore: '- 天机阁〔宗门〕\n- 断魂香〔物品〕' }));
-  t.write('.novelforge/summaries/002-客栈.md', plot(2, '客栈', { lore: '- 黑市〔地域〕\n- 天机阁' }));
+  t.write('.novelwarden/summaries/001-雨夜.md', plot(1, '雨夜', { finalized: true, lore: '- 天机阁〔宗门〕\n- 断魂香〔物品〕' }));
+  t.write('.novelwarden/summaries/002-客栈.md', plot(2, '客栈', { lore: '- 黑市〔地域〕\n- 天机阁' }));
   t.write(
-    '.novelforge/summaries/003-空章.md',
+    '.novelwarden/summaries/003-空章.md',
     plot(3, '空章', { lore: '- 天机阁〔宗门〕\n- 九层楼〔建筑〕\n- 林昭〔人物〕' })
   );
   t.write(
-    '.novelforge/summaries/004-登楼.md',
+    '.novelwarden/summaries/004-登楼.md',
     plot(4, '登楼', { lore: '- 九层楼〔地标〕\n- 青崖镇〔地域〕\n- 镇魂钟〔法宝〕\n- 阁规' })
   );
-  t.write('.novelforge/summaries/005-旧案.md', plot(5, '旧案', { lore: '- 九层楼〔建筑〕\n- 旧事〔秘闻〕\n- 天机〔宗门〕' }));
+  t.write('.novelwarden/summaries/005-旧案.md', plot(5, '旧案', { lore: '- 九层楼〔建筑〕\n- 旧事〔秘闻〕\n- 天机〔宗门〕' }));
   t.project.invalidate();
 
   index = await bundle.lore.buildLoreIndex(t.project, {}, { thin: true });
@@ -118,7 +118,7 @@ describe('待完善：每一条给什么', () => {
   test('有条目的：名字是条目标题、分类是条目所在目录、带路径；关键词认出来的章也算它的', () => {
     const x = item('天机阁');
     assert.equal(x.category, '宗门');
-    assert.equal(x.relPath, '.novelforge/lore/宗门/天机阁.md');
+    assert.equal(x.relPath, '.novelwarden/lore/宗门/天机阁.md');
     // 第 2 章已经写了正文、第 1 章定稿过：都不算；第 5 章写的是关键词「天机」。
     assert.deepEqual(x.chapters, [3, 5]);
     assert.equal(x.first, 3);
@@ -175,7 +175,7 @@ describe('工程树快照', () => {
       ]
     );
     const tianji = tree.loreThin.find((x) => x.name === '天机阁');
-    assert.equal(tianji.relPath, '.novelforge/lore/宗门/天机阁.md');
+    assert.equal(tianji.relPath, '.novelwarden/lore/宗门/天机阁.md');
     assert.equal(tianji.kind, 'empty');
     assert.deepEqual(tianji.chapters, [3, 5]);
     assert.equal('relPath' in tree.loreThin[0], false);

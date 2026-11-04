@@ -6,7 +6,7 @@
  * `generate` 产出的 `Draft` 一个字都没写盘。它至少要活到作者在那张落盘卡片
  * 上点头的那一刻（`controller/gate.ts`），而 agent 手里的 draftId 还可能被
  * 它稍后用 `write draftId=…` 拿去写。所以：内存为主（`Map`），**随会话 JSON
- * 一起落盘**（`.novelforge/sessions/<id>.json`）——翻回一个旧会话接着让 agent
+ * 一起落盘**（`.novelwarden/sessions/<id>.json`）——翻回一个旧会话接着让 agent
  * 干活时，那几份草稿还得在。
  *
  * ## 不进 SQLite

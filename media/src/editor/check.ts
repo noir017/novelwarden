@@ -6,7 +6,7 @@
  * ## 词从哪来
  *
  * 后端推 `checkTerms`（`controller/check.ts`）：禁用词与写正文时写完数的是同一份（`views/checkTerms.ts` 的
- * `readBannedTerms`，`generate.ts` 也调它），敏感词表是 `.novelforge/sensitive.txt` 解析好的结果。`style.md`、
+ * `readBannedTerms`，`generate.ts` 也调它），敏感词表是 `.novelwarden/sensitive.txt` 解析好的结果。`style.md`、
  * `config.md`、敏感词表变了才推。比喻词与英文缩写不随书变，编辑器直接打包 core 那一份（`manuscriptCheck.ts`）。
  *
  * ## 只看正文
@@ -84,7 +84,7 @@ function setPref(key: keyof CheckPrefs, on: boolean): void {
 let vocab: CheckVocab = EMPTY_VOCAB;
 /** 敏感词表那几样说明（面板里说）。还没收到过 `checkTerms` 时 `received` 是 false。 */
 let meta: Pick<CheckTermsView, 'sensitivePath' | 'sensitiveExists' | 'sensitiveBad'> & { received: boolean } = {
-  sensitivePath: '.novelforge/sensitive.txt',
+  sensitivePath: '.novelwarden/sensitive.txt',
   sensitiveExists: false,
   sensitiveBad: [],
   received: false,

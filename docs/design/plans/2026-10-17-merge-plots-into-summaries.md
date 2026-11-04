@@ -42,7 +42,7 @@ cast: [林昭(阿昭), 沈氏]  # 定稿时记，机器读的实际出场
 status: done           # 可选：作者手工宣布这一章完成
 preflightOk: …         # 可选，不进内容指纹
 factCheckOk: true      # 可选，不进内容指纹
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 
 # 第12章 夜入青云
@@ -191,7 +191,7 @@ generatedBy: novel-forge
 - 实现过程中发现并修了一处原有 bug：`Workspace.deletePlot` 移进回收站时不加序号，而且吞掉错误，会覆盖定稿时刚复制进去的旧版。现在和其他删除动作一样走 `trashPathFor`。
 - **定稿解析不了就不写**（试跑撞上的）：第二次试跑里，第 1 章定稿时模型返回的 JSON 多了一个尾逗号。原有的三层解析里，最后一层「全文塞进梗概」把整段 JSON 原文写进了梗概，其余七节写成占位，还记上了 `sourceHash`。结果细纲被毁，这一章却显示已定稿。现在改成：先自己去掉尾逗号再解析一次（`parse.ts` 的 `stripTrailingCommas`），去掉第三层；两层都解析不出来，就走原有的失败分支（报错、挂红、细纲不动、不记定稿）。
 - 排叙事线（`planThreads`）仍然读全部细纲，包括还没定稿的计划，因为计划本来就是它的原料。出场统计和角色卡语料只认定稿过的。
-- `skills/novelforge-autopilot/scripts/nf.py` 原来写死了 `plots/`，还用「`summaries/` 下有没有同名文件」判断定稿，都改了：路径换成 `summaries/`，定稿看 frontmatter 里有没有 `sourceHash`。
+- `skills/novelwarden-autopilot/scripts/nf.py` 原来写死了 `plots/`，还用「`summaries/` 下有没有同名文件」判断定稿，都改了：路径换成 `summaries/`，定稿看 frontmatter 里有没有 `sourceHash`。
 
 **真实模型试跑**（gemini-3-flash-lite，同一句脑洞，从空工程跟着主按钮写 3 章，每章定稿。报告在 `~/workspace/project-reports/novelForge-细纲改用摘要格式-真实模型对照-gemini-3-flash-lite-20261017.md`，脚本在 `~/workspace/project-scripts/novelforge-merge-plots/`）
 

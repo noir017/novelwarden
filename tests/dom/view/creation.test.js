@@ -19,7 +19,7 @@ const {
   emptySession, pipelineView, workbenchView, viewState, sampleTree,
 } = require('../../helpers/dom');
 
-const PLOT_12 = '.novelforge/summaries/012-夜入青云.md';
+const PLOT_12 = '.novelwarden/summaries/012-夜入青云.md';
 
 describe('创作流水线条与下一步', { skip: JSDOM_SKIP }, () => {
   let ui;
@@ -128,13 +128,13 @@ describe('创作流水线条与下一步', { skip: JSDOM_SKIP }, () => {
         capability: 'generate',
         label: '拆细纲（第 1–5 章）',
         hint: '从情节大纲里把接下来几章拆成一章一份的细纲。',
-        target: { kind: 'plot', plotRelPath: '.novelforge/summaries/001-楔子.md' },
+        target: { kind: 'plot', plotRelPath: '.novelwarden/summaries/001-楔子.md' },
         range: { from: 1, to: 5 },
       },
     });
     sentStep = runStep();
     assert.equal(sentStep.payload.target.kind, 'plot', JSON.stringify(sentStep.payload));
-    assert.equal(sentStep.payload.target.plotRelPath, '.novelforge/summaries/001-楔子.md', JSON.stringify(sentStep.payload));
+    assert.equal(sentStep.payload.target.plotRelPath, '.novelwarden/summaries/001-楔子.md', JSON.stringify(sentStep.payload));
   });
 
   test('阶段与能力也跟着 step 走', () => {
@@ -473,11 +473,11 @@ describe('创作流水线条与下一步', { skip: JSDOM_SKIP }, () => {
         capability: 'generate',
         label: '写第 13 章细纲',
         hint: '先把这一章要发生什么定下来。',
-        target: { kind: 'plot', plotRelPath: '.novelforge/summaries/013.md' },
+        target: { kind: 'plot', plotRelPath: '.novelwarden/summaries/013.md' },
       },
     });
     sentStep = runStep();
-    assert.equal(sentStep.payload.target.plotRelPath, '.novelforge/summaries/013.md', JSON.stringify(sentStep.payload));
+    assert.equal(sentStep.payload.target.plotRelPath, '.novelwarden/summaries/013.md', JSON.stringify(sentStep.payload));
     assert.equal(sentStep.payload.target.kind, 'plot', JSON.stringify(sentStep.payload));
   });
 
@@ -528,7 +528,7 @@ describe('创作流水线条与下一步', { skip: JSDOM_SKIP }, () => {
     ui.post({
       type: 'session',
       session: emptySession({
-        target: { kind: 'plot', plotRelPath: '.novelforge/summaries/013-另一章.md' },
+        target: { kind: 'plot', plotRelPath: '.novelwarden/summaries/013-另一章.md' },
         stage: 'plot',
         capability: 'discuss',
       }),
@@ -1104,7 +1104,7 @@ describe('选中一章进入当前阶段', { skip: JSDOM_SKIP }, () => {
     const rows = [...ui.doc.querySelectorAll('#projectBody .row-plot:not(.row-architecture)')];
     ui.pick(ui.rightClick(rows.find((n) => n.textContent.includes('北行'))), '进入这一章');
     const fromTree = [...ui.sent].reverse().find((m) => m.type === 'selectPlot');
-    assert.equal(fromTree?.plotRelPath, '.novelforge/summaries/004-北行.md', JSON.stringify(fromTree));
+    assert.equal(fromTree?.plotRelPath, '.novelwarden/summaries/004-北行.md', JSON.stringify(fromTree));
   });
 
   // 「去写这一章」与右键「进入这一章」是同一件事，发的是同一条消息。

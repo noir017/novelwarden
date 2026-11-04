@@ -345,7 +345,7 @@ test: 独立版空窗口打开与关闭工程的 e2e
     <button class="wb-menu-btn" data-menu="file">File</button>
     …
   </nav>
-  <span class="wb-title-text" id="wbTitleText">Novel Forge</span>
+  <span class="wb-title-text" id="wbTitleText">Novelwarden</span>
   <span class="spacer"></span>
   <button class="icon-btn" id="wbEditorToggle" …>
   <button class="icon-btn" id="wbThemeBtn" …>

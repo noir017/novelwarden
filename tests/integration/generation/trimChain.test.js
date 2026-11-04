@@ -21,7 +21,7 @@ let fake;
 let t;
 let script = [];
 
-const P1 = '.novelforge/summaries/001-夜入青云.md';
+const P1 = '.novelwarden/summaries/001-夜入青云.md';
 
 /** 两段正文，每段中间夹一个可删的程度副词；第三段是对白。目标 1000 字。 */
 const A = `${filler(520, 1).slice(0, -1)}格外${filler(30, 2)}`;

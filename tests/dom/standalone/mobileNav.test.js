@@ -357,7 +357,7 @@ describe('窄屏：编辑区顶上两行', { skip: JSDOM_SKIP }, () => {
   });
 
   test('窄屏上要开在第二块的（并排的细纲、草稿）：开在主区，成了另一个标签', () => {
-    ui.post({ type: 'editorOpen', pane: 'draft', file: file('.novelforge/summaries/002-入镇.md', '# 细纲', { kind: 'plot' }) });
+    ui.post({ type: 'editorOpen', pane: 'draft', file: file('.novelwarden/summaries/002-入镇.md', '# 细纲', { kind: 'plot' }) });
     assert.equal(ui.doc.querySelector('.wb-editor-draft'), null, '不该造出第二块');
     const tabs = [...ui.doc.querySelectorAll('#edTabs .ed-tab')].map((t) => t.textContent);
     assert.equal(tabs.length, 2, tabs.join(' / '));

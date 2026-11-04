@@ -17,7 +17,7 @@ const { makeFakeHost } = require('../../helpers/fakeHost');
 const { cleanup } = require('../../helpers/teardown');
 
 /** 固定目录一律拒绝改名。 */
-const FIXED_DIRS = ['chapters', '.novelforge', 'drafts', '.novelforge/characters', '.novelforge/.trash'];
+const FIXED_DIRS = ['chapters', '.novelwarden', 'drafts', '.novelwarden/characters', '.novelwarden/.trash'];
 
 describe('projectFiles.ts', () => {
   let pf;
@@ -44,7 +44,7 @@ describe('projectFiles.ts', () => {
     ({ dir, rel, write, read, project } = t);
 
     write('chapters/001-楔子.md', '# 楔子\n\n雨下了三天。\n');
-    write('.novelforge/characters/林昭.md', '---\nname: 林昭\n---\n\n# 林昭\n');
+    write('.novelwarden/characters/林昭.md', '---\nname: 林昭\n---\n\n# 林昭\n');
     write('notes/备忘.txt', '随便记的。\n');
     project.invalidate();
   });
@@ -180,8 +180,8 @@ describe('projectFiles.ts', () => {
       intoSelf = results[0];
 
       // 垃圾箱里的东西不搬。
-      write('.novelforge/.trash/notes/旧物.txt', '删掉的。\n');
-      results = await pf.moveInto(project, ['.novelforge/.trash/notes/旧物.txt'], 'notes');
+      write('.novelwarden/.trash/notes/旧物.txt', '删掉的。\n');
+      results = await pf.moveInto(project, ['.novelwarden/.trash/notes/旧物.txt'], 'notes');
       fromTrash = results[0];
 
       // 越界落点。

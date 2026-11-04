@@ -49,7 +49,7 @@ describe('点引文：编辑区选中那一句', { skip: JSDOM_SKIP }, () => {
   before(() => {
     ui = mount({ body: 'standalone', scripts: ['view.js', 'editor.js'], shims: ['pointerCapture', 'confirm'] });
     ui.post({ type: 'editorOpen', file: file('chapters/002-入镇.md', BODY) });
-    ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭') });
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭') });
   });
 
   test('切回那一章，选区落在那一句上（标点不同也认）', () => {

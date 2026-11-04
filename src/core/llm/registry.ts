@@ -22,6 +22,9 @@ const log = scoped('模型');
  * API Key 按服务商 id 存，不再按 kind——同一种协议下可以并存
  * 多个服务商（智谱官方、OpenRouter、本地 Ollama 都是 openai 兼容），
  * 它们各有各的 Key。
+ *
+ * 键名里的 `novel-forge.` 前缀**故意不改**：它是已存进 secrets.json 的键，
+ * 跟着产品改名只会把作者录过的 Key 全丢掉。
  */
 function secretKey(providerId: string): string {
   return `novel-forge.apiKey.provider.${providerId}`;

@@ -24,7 +24,7 @@ let project;
 /** 按模型引用注入异常（fakeProvider 的 behavior）：建 provider 时现读。 */
 const behavior = {};
 
-const P2 = '.novelforge/summaries/002-客栈.md';
+const P2 = '.novelwarden/summaries/002-客栈.md';
 const TRANSCRIBER = '格式转写员';
 
 const CH2 = [

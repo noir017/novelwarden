@@ -30,7 +30,7 @@ let project;
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 function plotText(no, hash, { lore = '', facts = '', events = '- 有事发生' } = {}) {
   return [
@@ -153,7 +153,7 @@ describe('建条目', () => {
   test('建在它的分类目录里，带一句话、关键词、水位与正文指纹', async () => {
     project.invalidate();
     const inn = (await project.listLore()).find((e) => e.title === '停舟客栈');
-    assert.equal(inn.relPath, '.novelforge/lore/地域/青崖/停舟客栈.md');
+    assert.equal(inn.relPath, '.novelwarden/lore/地域/青崖/停舟客栈.md');
     assert.equal(inn.brief, '镇上唯一的客栈');
     // 模型把同一批建的「青崖镇」也写成了关键词：别的条目的标题不收（会把那一条的命中抢过来）。
     // 「后山」也在同一批：名录里另记着的名字不收关键词（recorded），否则它永远建不出自己的条目。
@@ -184,7 +184,7 @@ describe('建条目', () => {
 describe('整合', () => {
   before(async () => {
     t.write(
-      '.novelforge/lore/地域/青崖镇.md',
+      '.novelwarden/lore/地域/青崖镇.md',
       '---\ntitle: 青崖镇\nkeywords: [青崖]\nupdatedThrough: 2\n---\n\n# 青崖镇\n\n作者写的：偏僻小镇。\n'
     );
     project.invalidate();
@@ -195,7 +195,7 @@ describe('整合', () => {
       ENTRY('偏僻小镇', '## 概要\n\n偏僻小镇。\n\n## 现状\n\n七年前遭过大火。', ['青崖镇', '镇子', '城隍庙']);
     fake.reset();
     h.expect('逐条确认后开始');
-    await bundle.lore.integrateLore(project, ['.novelforge/lore/地域/青崖镇.md']);
+    await bundle.lore.integrateLore(project, ['.novelwarden/lore/地域/青崖镇.md']);
     const c = h.confirms[h.confirms.length - 1];
     assert.deepEqual(c.actions, ['逐条确认后开始']);
     assert.match(c.detail, /其中 1 条你改过/);
@@ -220,14 +220,14 @@ describe('整合', () => {
   test('没有新内容可并时说清楚停在哪一章', async () => {
     fake.reset();
     h.toasts.length = 0;
-    await bundle.lore.integrateLore(project, ['.novelforge/lore/地域/青崖镇.md']);
+    await bundle.lore.integrateLore(project, ['.novelwarden/lore/地域/青崖镇.md']);
     assert.equal(fake.callCount(), 0);
     assert.match(h.toasts.map((x) => x.message ?? x).join('\n'), /第 4 章还没同步/);
   });
 
   // 完善设定（2026-10-19）：分不清是正文全揭开了还是模型漏了，暗设不能悄悄没了。
   describe('原来有暗设的机器写条目', () => {
-    const INN = '.novelforge/lore/地域/青崖/停舟客栈.md';
+    const INN = '.novelwarden/lore/地域/青崖/停舟客栈.md';
     const BODY = '## 概要\n\n镇上唯一的客栈。\n\n## 暗设\n\n掌柜是前朝暗卫。';
     beforeEach(() => {
       t.write(
@@ -262,8 +262,8 @@ describe('整合', () => {
 describe('按目录整理', () => {
   test('校验搬家清单：认不出的条目、没建的目录、太深的目录不收，位置没变的去掉', () => {
     const batch = [
-      { slug: '过所', relPath: '.novelforge/lore/过所.md', title: '过所', category: '' },
-      { slug: '地域/后山', relPath: '.novelforge/lore/地域/后山.md', title: '后山', category: '地域' },
+      { slug: '过所', relPath: '.novelwarden/lore/过所.md', title: '过所', category: '' },
+      { slug: '地域/后山', relPath: '.novelwarden/lore/地域/后山.md', title: '后山', category: '地域' },
     ];
     const plan = bundle.lore.checkOrganizePlan(
       JSON.stringify({
@@ -272,21 +272,21 @@ describe('按目录整理', () => {
           { from: '过所', to: '制度' },
           { from: '后山', to: '地域' },
           { from: '不存在的', to: '制度' },
-          { from: '.novelforge/lore/地域/后山.md', to: '地点' },
+          { from: '.novelwarden/lore/地域/后山.md', to: '地点' },
         ],
       }),
       batch,
       ['地域']
     );
     assert.deepEqual(plan.folders, ['制度']);
-    assert.deepEqual(plan.moves, [{ from: '.novelforge/lore/过所.md', category: '', to: '制度', title: '过所' }]);
+    assert.deepEqual(plan.moves, [{ from: '.novelwarden/lore/过所.md', category: '', to: '制度', title: '过所' }]);
     assert.equal(plan.dropped.length, 3, plan.dropped.join('\n'));
   });
 
   test('先报次数，出清单给作者看，点头了才搬；只搬文件，内容一字不改', async () => {
-    t.write('.novelforge/lore/过所.md', '---\ntitle: 过所\nkeywords: [过所]\n---\n\n# 过所\n\n出入凭证。\n');
+    t.write('.novelwarden/lore/过所.md', '---\ntitle: 过所\nkeywords: [过所]\n---\n\n# 过所\n\n出入凭证。\n');
     project.invalidate();
-    const before = fs.readFileSync(t.rel('.novelforge/lore/过所.md'), 'utf8');
+    const before = fs.readFileSync(t.rel('.novelwarden/lore/过所.md'), 'utf8');
     organizeReply = () => JSON.stringify({ folders: ['制度'], moves: [{ from: '过所', to: '制度' }] });
     fake.reset();
     h.expect('开始', '照这样整理');
@@ -295,28 +295,28 @@ describe('按目录整理', () => {
     assert.match(go.message, /整理 1 条设定：分 1 批，预计 2 次调用，最多 3 次（写 1 次、转写模型照抄成 JSON 1 次/);
     assert.match(plan.message, /搬 1 条设定，新建 1 个目录。只搬文件，条目内容一个字不改。/);
     assert.match(plan.detail, /过所：未分类 → 制度/);
-    assert.ok(!t.has('.novelforge/lore/过所.md'));
-    assert.equal(fs.readFileSync(t.rel('.novelforge/lore/制度/过所.md'), 'utf8'), before);
+    assert.ok(!t.has('.novelwarden/lore/过所.md'));
+    assert.equal(fs.readFileSync(t.rel('.novelwarden/lore/制度/过所.md'), 'utf8'), before);
   });
 
   test('作者没点头就一个都不搬', async () => {
-    t.write('.novelforge/lore/黑市.md', '---\ntitle: 黑市\nkeywords: []\n---\n\n# 黑市\n\n地下交易。\n');
+    t.write('.novelwarden/lore/黑市.md', '---\ntitle: 黑市\nkeywords: []\n---\n\n# 黑市\n\n地下交易。\n');
     project.invalidate();
     organizeReply = () => JSON.stringify({ folders: [], moves: [{ from: '黑市', to: '地域' }] });
     fake.reset();
     h.expect('开始', undefined);
     await bundle.lore.organizeLore(project, 'unfiled');
-    assert.ok(t.has('.novelforge/lore/黑市.md'));
+    assert.ok(t.has('.novelwarden/lore/黑市.md'));
   });
 
   // 从前搬家之前先直接 `fs.mkdir` 建出清单上的新目录（绕过网关，第 7 条）；`ws.move` 落盘前本来就会补齐父目录，
   // 那一步唯一的效果是：搬不成的时候留下一个空目录。现在新目录只在真有条目搬进去时由网关建出来。
   test('搬不成就不留下空目录：新目录由搬家时经网关补齐，不先建', async () => {
-    t.write('.novelforge/lore/令牌.md', '---\ntitle: 令牌\nkeywords: []\n---\n\n# 令牌\n\n出入用。\n');
+    t.write('.novelwarden/lore/令牌.md', '---\ntitle: 令牌\nkeywords: []\n---\n\n# 令牌\n\n出入用。\n');
     project.invalidate();
     // 模型答完清单、作者点头之前，这一条被作者在别处删了：搬家必然失败。
     organizeReply = () => {
-      fs.rmSync(t.rel('.novelforge/lore/令牌.md'));
+      fs.rmSync(t.rel('.novelwarden/lore/令牌.md'));
       return JSON.stringify({ folders: ['信物'], moves: [{ from: '令牌', to: '信物' }] });
     };
     fake.reset();
@@ -324,7 +324,7 @@ describe('按目录整理', () => {
     await bundle.lore.organizeLore(project, 'unfiled');
     const plan = h.confirms.at(-1);
     assert.match(plan.message, /新建 1 个目录/);
-    assert.equal(t.has('.novelforge/lore/信物'), false);
+    assert.equal(t.has('.novelwarden/lore/信物'), false);
     assert.match(h.toasts.map((x) => x.message ?? x).join('\n'), /1 条没搬/);
   });
 });

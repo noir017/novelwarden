@@ -1,6 +1,6 @@
 # android — Android 壳
 
-手机上的 Novel Forge。和桌面壳一样是**一层纯壳**：页面就是独立版的那一个（`src/shells/standalone/page.ts` 吐出来的，
+手机上的 Novelwarden。和桌面壳一样是**一层纯壳**：页面就是独立版的那一个（`src/shells/standalone/page.ts` 吐出来的，
 窄屏布局），壳只决定打开哪个地址，没有一行 TS。
 
 两种模式，缺省本机，要连远程在返回键弹的菜单里点「服务端设置…」换（返回键先交给页面收菜单、弹窗、正文，见下）：
@@ -29,12 +29,12 @@
 ```bash
 npm install
 src/shells/android/scripts/build.sh            # debug 包：app/build/outputs/apk/debug/app-debug.apk
-src/shells/android/scripts/build.sh release    # 设了 NOVELFORGE_KEYSTORE（路径）/ NOVELFORGE_KEYSTORE_PASSWORD / NOVELFORGE_KEY_ALIAS（缺省 novelforge）就用发版密钥签
+src/shells/android/scripts/build.sh release    # 设了 NOVELFORGE_KEYSTORE（路径）/ NOVELFORGE_KEYSTORE_PASSWORD / NOVELFORGE_KEY_ALIAS（缺省 novelforge，沿用旧名：签名与 CI secret 不改）就用发版密钥签
 ```
 
 日常在 CI 上编：Google 的 aapt2 只出 x86_64，arm64 的开发机要编得改用 Debian 13 的 `aapt` 包，并在 `~/.gradle/gradle.properties` 里设 `android.aapt2FromMavenOverride`。
 
-- `.github/workflows/android.yml`：手动点出包（artifact `android`），发版时 `release.yml` 调它，附件名 `NovelForge-<版本>-android-arm64.apk`。
+- `.github/workflows/android.yml`：手动点出包（artifact `android`），发版时 `release.yml` 调它，附件名 `Novelwarden-<版本>-android-arm64.apk`。
 - 两种都用发版密钥签名（仓库 secrets `NOVELFORGE_KEYSTORE_BASE64` / `NOVELFORGE_KEYSTORE_PASSWORD`，别名 `novelforge`），
   手动点出来的包和 Release 里的可以互相覆盖安装。CI 上的 debug 签名每次构建都是新生成的一把，用它的话每试一次都得先卸载、
   app 私有目录里的配置与 API Key 跟着没了，所以只在手动点又没有密钥时退回它；**发版时缺密钥整个 Release 停下**。
@@ -54,8 +54,8 @@ libnode.so --use-bundled-ca --disable-warning=ExperimentalWarning files/server/s
 | 环境变量 | 值 | 为什么 |
 |---|---|---|
 | `HOME` | 放书的目录 | 「新建一本书」的缺省位置、「打开文件夹」的起点都是家目录 |
-| `NOVELFORGE_HOME` | `files/novelforge`（app 私有） | 配置与 API Key 不能跟着家目录落到别的 app 也读得到的公共目录（`src/core/stores.ts`） |
-| `NOVELFORGE_TOKEN` | 每台设备随机 48 位 hex，存在 SharedPreferences | 手机上任何 app 都能连回环地址，包括 `/mcp` |
+| `NOVELWARDEN_HOME` | `files/novelforge`（app 私有；旧名 `NOVELFORGE_HOME` 仍认） | 配置与 API Key 不能跟着家目录落到别的 app 也读得到的公共目录（`src/core/stores.ts`） |
+| `NOVELWARDEN_TOKEN` | 每台设备随机 48 位 hex，存在 SharedPreferences（旧名 `NOVELFORGE_TOKEN` 仍认） | 手机上任何 app 都能连回环地址，包括 `/mcp` |
 | `LD_LIBRARY_PATH` | `nativeLibraryDir` | node 依赖的 `libssl_3.so` 等都在那里 |
 | `TMPDIR` / `TZ` | 缓存目录 / 系统时区 | node 在 Android 上取不到这两样 |
 

@@ -77,8 +77,8 @@ describe('三个来源', () => {
     home.write('skills/scene-craft/SKILL.md', skillMd('scene-craft'));
     home.write('skills/no-file/README.md', 'x');
     home.write('skills/bad name/SKILL.md', skillMd('bad'));
-    t.write('.novelforge/skills/去AI味/SKILL.md', skillMd('anything-else', '少用「仿佛」。'));
-    t.write('.novelforge/skills/scene-craft/SKILL.md', skillMd('scene-craft', '工程里的那一份。'));
+    t.write('.novelwarden/skills/去AI味/SKILL.md', skillMd('anything-else', '少用「仿佛」。'));
+    t.write('.novelwarden/skills/scene-craft/SKILL.md', skillMd('scene-craft', '工程里的那一份。'));
     try {
       fs.symlinkSync(home.rel('skills/scene-craft'), home.rel('skills/linked'), 'dir');
     } catch {
@@ -101,7 +101,7 @@ describe('三个来源', () => {
       skills.loadSkill('user:scene-craft'),
       skills.loadSkill('project:scene-craft', t.project),
     ]);
-    assert.deepEqual([user.relPath, own.relPath], [undefined, '.novelforge/skills/scene-craft/SKILL.md']);
+    assert.deepEqual([user.relPath, own.relPath], [undefined, '.novelwarden/skills/scene-craft/SKILL.md']);
   });
 
   test('没给工程就认不出本工程的技能', async () => {
@@ -301,9 +301,9 @@ describe('卸载', () => {
 });
 
 describe('阶段绑定', () => {
-  const bindingsText = () => t.read('.novelforge/skills.json');
+  const bindingsText = () => t.read('.novelwarden/skills.json');
 
-  test('绑上一份：写进 .novelforge/skills.json', async () => {
+  test('绑上一份：写进 .novelwarden/skills.json', async () => {
     await skills.saveSkillBinding(t.project, ws, 'drafting', 'builtin:plain-prose');
     assert.deepEqual(JSON.parse(bindingsText()), { version: 1, bindings: { drafting: 'builtin:plain-prose' } });
   });
@@ -322,7 +322,7 @@ describe('阶段绑定', () => {
   });
 
   test('不兼容的技能绑不上', async () => {
-    t.write('.novelforge/skills/needs-tool/SKILL.md', skillMd('needs-tool', '先调用检索工具。'));
+    t.write('.novelwarden/skills/needs-tool/SKILL.md', skillMd('needs-tool', '先调用检索工具。'));
     await assert.rejects(skills.saveSkillBinding(t.project, ws, 'review', 'project:needs-tool'), /不兼容/);
   });
 
@@ -332,20 +332,20 @@ describe('阶段绑定', () => {
   });
 
   test('绑着的技能后来不见了：说找不到，不抛', async () => {
-    t.write('.novelforge/skills.json', JSON.stringify({ version: 1, bindings: { review: 'user:gone' } }));
+    t.write('.novelwarden/skills.json', JSON.stringify({ version: 1, bindings: { review: 'user:gone' } }));
     const r = await skills.boundSkillFor(t.project, 'review');
     assert.equal(r.status, 'problem');
     assert.ok(r.note.includes('user:gone') && r.note.includes('找不到了'), r.note);
   });
 
   test('绑着的技能后来变得不兼容：说不兼容', async () => {
-    t.write('.novelforge/skills.json', JSON.stringify({ version: 1, bindings: { review: 'project:needs-tool' } }));
+    t.write('.novelwarden/skills.json', JSON.stringify({ version: 1, bindings: { review: 'project:needs-tool' } }));
     const r = await skills.boundSkillFor(t.project, 'review');
     assert.ok(r.status === 'problem' && r.note.includes('不兼容'), JSON.stringify(r));
   });
 
   test('绑定文件读不懂：装配器说读不懂；改绑定拒绝改写', async () => {
-    t.write('.novelforge/skills.json', '{ 坏了');
+    t.write('.novelwarden/skills.json', '{ 坏了');
     const r = await skills.boundSkillFor(t.project, 'planning');
     assert.ok(r.status === 'problem' && r.note.includes('读不懂'), JSON.stringify(r));
     await assert.rejects(skills.saveSkillBinding(t.project, ws, 'planning', 'builtin:plain-prose'), /先手动修好或删掉/);
@@ -353,13 +353,13 @@ describe('阶段绑定', () => {
   });
 
   test('只有别的阶段那一项读不懂：这个阶段照常', async () => {
-    t.write('.novelforge/skills.json', JSON.stringify({ version: 1, bindings: { review: 3, drafting: 'builtin:plain-prose' } }));
+    t.write('.novelwarden/skills.json', JSON.stringify({ version: 1, bindings: { review: 3, drafting: 'builtin:plain-prose' } }));
     assert.equal((await skills.boundSkillFor(t.project, 'drafting')).status, 'ok');
     assert.equal((await skills.boundSkillFor(t.project, 'planning')).status, 'none');
   });
 
   test('卸载之后把指向它的绑定一起解掉', async () => {
-    t.write('.novelforge/skills.json', JSON.stringify({ version: 1, bindings: { review: 'user:x', drafting: 'user:x', planning: 'builtin:plain-prose' } }));
+    t.write('.novelwarden/skills.json', JSON.stringify({ version: 1, bindings: { review: 'user:x', drafting: 'user:x', planning: 'builtin:plain-prose' } }));
     const stages = await skills.unbindSkillEverywhere(t.project, ws, 'user:x');
     assert.deepEqual(stages.sort(), ['drafting', 'review']);
     assert.deepEqual(JSON.parse(bindingsText()).bindings, { planning: 'builtin:plain-prose' });

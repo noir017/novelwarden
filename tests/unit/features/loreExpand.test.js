@@ -19,10 +19,10 @@ const E = loadModule('src/core/features/loreExpand.ts');
 const A = loadModule('src/core/features/artifact.ts');
 const F = loadModule('src/core/model/loreFile.ts');
 
-const REL = '.novelforge/lore/宗门/天机阁.md';
+const REL = '.novelwarden/lore/宗门/天机阁.md';
 const entry = (title, keywords = [], over = {}) => ({
   slug: title,
-  relPath: `.novelforge/lore/${title}.md`,
+  relPath: `.novelwarden/lore/${title}.md`,
   title,
   keywords,
   brief: '',

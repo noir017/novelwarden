@@ -94,7 +94,7 @@ describe('分卷画法', { skip: JSDOM_SKIP }, () => {
   test('「去写这一章」照旧挂在下一章上', () => {
     const go = [...chaptersGroup(ui).querySelectorAll('.row-go')];
     assert.equal(go.length, 1);
-    assert.equal(go[0].closest('.row-plot').dataset.plot, '.novelforge/summaries/004-北行.md');
+    assert.equal(go[0].closest('.row-plot').dataset.plot, '.novelwarden/summaries/004-北行.md');
   });
 });
 

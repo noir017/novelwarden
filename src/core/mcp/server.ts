@@ -199,7 +199,7 @@ export class McpServer {
     return {
       protocolVersion: PROTOCOL_VERSIONS.includes(asked) ? asked : PROTOCOL_VERSIONS[0],
       capabilities: { tools: { listChanged: false } },
-      serverInfo: { name: 'novel-forge', version: this.opts.version },
+      serverInfo: { name: 'novelwarden', version: this.opts.version },
       instructions: this.opts.instructions,
     };
   }
@@ -222,8 +222,8 @@ export class McpServer {
     const backend = this.opts.backend(session.project);
     if (!backend) {
       const text = session.project
-        ? `Novel Forge 里没有打开这个小说工程：${session.project}。请作者先在 Novel Forge 里打开它。`
-        : 'Novel Forge 现在没有打开任何小说工程。请作者先在 Novel Forge 里打开一个工程。';
+        ? `Novelwarden 里没有打开这个小说工程：${session.project}。请作者先在 Novelwarden 里打开它。`
+        : 'Novelwarden 现在没有打开任何小说工程。请作者先在 Novelwarden 里打开一个工程。';
       return toCallResult({ text, isError: true });
     }
 

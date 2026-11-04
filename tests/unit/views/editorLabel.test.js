@@ -5,7 +5,7 @@
  * | 断言 | 为什么 |
  * |---|---|
  * | 同一章的正文 / 细纲 / 草稿三份短标记各不相同、名字一样 | 从前三个标签都只写「003-夜访.md」 |
- * | 面包屑写「第 3 章 夜访」，分卷目录各占一段且可点 | 原始路径 `.novelforge/summaries/…` 看不懂 |
+ * | 面包屑写「第 3 章 夜访」，分卷目录各占一段且可点 | 原始路径 `.novelwarden/summaries/…` 看不懂 |
  * | 架构几件、大纲、文风是中文称呼 | `config.md` 在标签上叫 config 等于没说 |
  * | 认不出的文件扩展名留着 | `project.json` 去掉扩展名就认不出了 |
  * | 越界、空串不抛 | 输入是前端传上来的路径 |
@@ -57,11 +57,11 @@ describe('editorLabel · 正文 / 细纲 / 草稿', () => {
   });
 
   test('细纲带「细纲」，面包屑从细纲根起、卷目录照样一段', () => {
-    const l = describeFile('.novelforge/summaries/第一卷/003-夜访.md');
+    const l = describeFile('.novelwarden/summaries/第一卷/003-夜访.md');
     assert.deepEqual({ tag: l.tag, title: l.title }, { tag: '细纲', title: '003-夜访' });
     assert.equal(
-      crumbs('.novelforge/summaries/第一卷/003-夜访.md'),
-      '细纲[.novelforge/summaries] › 第一卷[.novelforge/summaries/第一卷] › 第 3 章 夜访'
+      crumbs('.novelwarden/summaries/第一卷/003-夜访.md'),
+      '细纲[.novelwarden/summaries] › 第一卷[.novelwarden/summaries/第一卷] › 第 3 章 夜访'
     );
   });
 
@@ -72,7 +72,7 @@ describe('editorLabel · 正文 / 细纲 / 草稿', () => {
   });
 
   test('同一章的三份：名字一样、短标记各不相同', () => {
-    const tags = ['chapters/003-夜访.md', '.novelforge/summaries/003-夜访.md', 'drafts/003-夜访.md'].map(
+    const tags = ['chapters/003-夜访.md', '.novelwarden/summaries/003-夜访.md', 'drafts/003-夜访.md'].map(
       (p) => describeFile(p).tag
     );
     assert.equal(new Set(tags).size, 3, JSON.stringify(tags));
@@ -90,67 +90,67 @@ describe('editorLabel · 正文 / 细纲 / 草稿', () => {
 
 describe('editorLabel · 角色与设定', () => {
   test('角色卡：角色 › 林晚', () => {
-    const l = describeFile('.novelforge/characters/林晚.md');
+    const l = describeFile('.novelwarden/characters/林晚.md');
     assert.deepEqual({ tag: l.tag, title: l.title }, { tag: '角色', title: '林晚' });
-    assert.equal(crumbs('.novelforge/characters/林晚.md'), '角色[.novelforge/characters] › 林晚');
+    assert.equal(crumbs('.novelwarden/characters/林晚.md'), '角色[.novelwarden/characters] › 林晚');
   });
 
   test('子目录里的角色卡：子目录一段', () => {
     assert.equal(
-      crumbs('.novelforge/characters/配角/李叔.md'),
-      '角色[.novelforge/characters] › 配角[.novelforge/characters/配角] › 李叔'
+      crumbs('.novelwarden/characters/配角/李叔.md'),
+      '角色[.novelwarden/characters] › 配角[.novelwarden/characters/配角] › 李叔'
     );
   });
 
   test('设定条目：设定 › 地点 › 青石镇', () => {
-    const l = describeFile('.novelforge/lore/地点/青石镇.md');
+    const l = describeFile('.novelwarden/lore/地点/青石镇.md');
     assert.equal(l.tag, '设定');
-    assert.equal(crumbs('.novelforge/lore/地点/青石镇.md'), '设定[.novelforge/lore] › 地点[.novelforge/lore/地点] › 青石镇');
+    assert.equal(crumbs('.novelwarden/lore/地点/青石镇.md'), '设定[.novelwarden/lore] › 地点[.novelwarden/lore/地点] › 青石镇');
   });
 });
 
 describe('editorLabel · 有中文称呼的固定文件', () => {
   test('小说配置：标签上是中文称呼、不带短标记，面包屑归在故事架构', () => {
-    const l = describeFile('.novelforge/config.md');
+    const l = describeFile('.novelwarden/config.md');
     assert.deepEqual({ tag: l.tag, title: l.title }, { tag: '', title: '小说配置' });
-    assert.equal(crumbs('.novelforge/config.md'), '故事架构[.novelforge] › 小说配置');
+    assert.equal(crumbs('.novelwarden/config.md'), '故事架构[.novelwarden] › 小说配置');
   });
 
   test('故事前提、世界观、情节大纲', () => {
-    assert.equal(describeFile('.novelforge/premise.md').title, '故事前提');
-    assert.equal(describeFile('.novelforge/world.md').title, '世界观');
-    assert.equal(crumbs('.novelforge/outline.md'), '故事架构[.novelforge] › 情节大纲');
+    assert.equal(describeFile('.novelwarden/premise.md').title, '故事前提');
+    assert.equal(describeFile('.novelwarden/world.md').title, '世界观');
+    assert.equal(crumbs('.novelwarden/outline.md'), '故事架构[.novelwarden] › 情节大纲');
   });
 
   test('文风指南、全文大纲归在文风与摘要（与工程页、「转到…」同一个叫法）', () => {
-    assert.equal(describeFile('.novelforge/style.md').title, '文风指南');
-    assert.equal(describeFile('.novelforge/summaries/global.md').title, '全文大纲');
+    assert.equal(describeFile('.novelwarden/style.md').title, '文风指南');
+    assert.equal(describeFile('.novelwarden/summaries/global.md').title, '全文大纲');
   });
 
   test('叙事线一条线一个文件：标签是线名、短标记「叙事线」，面包屑从叙事线目录起', () => {
-    const l = describeFile('.novelforge/threads/林昭与沈青.md');
+    const l = describeFile('.novelwarden/threads/林昭与沈青.md');
     assert.deepEqual({ tag: l.tag, title: l.title }, { tag: '叙事线', title: '林昭与沈青' });
-    assert.equal(crumbs('.novelforge/threads/林昭与沈青.md'), '叙事线[.novelforge/threads] › 林昭与沈青');
-    assert.equal(describeFile('.novelforge/threads.md').title, 'threads.md', '七期的单文件是 other');
+    assert.equal(crumbs('.novelwarden/threads/林昭与沈青.md'), '叙事线[.novelwarden/threads] › 林昭与沈青');
+    assert.equal(describeFile('.novelwarden/threads.md').title, 'threads.md', '七期的单文件是 other');
   });
 
   test('敏感词表（写作体检用）也是中文称呼、归在文风与摘要', () => {
-    const l = describeFile('.novelforge/sensitive.txt');
+    const l = describeFile('.novelwarden/sensitive.txt');
     assert.deepEqual({ tag: l.tag, title: l.title }, { tag: '', title: '敏感词表' });
-    assert.equal(crumbs('.novelforge/sensitive.txt'), '文风与摘要[.novelforge] › 敏感词表');
+    assert.equal(crumbs('.novelwarden/sensitive.txt'), '文风与摘要[.novelwarden] › 敏感词表');
   });
 });
 
 describe('editorLabel · 其他文件', () => {
   test('写作技能：SKILL.md 叫技能目录的名字', () => {
-    const l = describeFile('.novelforge/skills/快节奏/SKILL.md');
+    const l = describeFile('.novelwarden/skills/快节奏/SKILL.md');
     assert.deepEqual({ tag: l.tag, title: l.title }, { tag: '技能', title: '快节奏' });
   });
 
   test('认不出的文件：原文件名、扩展名留着、目录一段一段', () => {
-    const l = describeFile('.novelforge/project.json');
+    const l = describeFile('.novelwarden/project.json');
     assert.deepEqual({ tag: l.tag, title: l.title }, { tag: '', title: 'project.json' });
-    assert.equal(crumbs('.novelforge/project.json'), '.novelforge[.novelforge] › project.json');
+    assert.equal(crumbs('.novelwarden/project.json'), '.novelwarden[.novelwarden] › project.json');
   });
 
   test('工程根下的随手文件只有一段', () => {

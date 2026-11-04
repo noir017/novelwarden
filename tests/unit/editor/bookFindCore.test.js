@@ -23,9 +23,9 @@ const file = (path, scope, hits, extra = {}) => ({ path, scope, label: path, has
 
 const files = [
   file('chapters/001.md', 'chapter', [hit(0, 2), hit(10, 12)]),
-  file('.novelforge/characters/林晚.md', 'character', [hit(5, 7)]),
+  file('.novelwarden/characters/林晚.md', 'character', [hit(5, 7)]),
   file('chapters/002.md', 'chapter', [hit(3, 5)]),
-  file('.novelforge/summaries/001.md', 'plot', [hit(1, 3)]),
+  file('.novelwarden/summaries/001.md', 'plot', [hit(1, 3)]),
 ];
 const result = { files, listed: 5, scanned: 9, skipped: [] };
 
@@ -34,8 +34,8 @@ describe('分组', () => {
     const groups = core.groupByScope(files);
     assert.deepEqual(groups.map((g) => [g.scope, g.label, g.files.map((f) => f.path), g.hits]), [
       ['chapter', '正文', ['chapters/001.md', 'chapters/002.md'], 3],
-      ['plot', '细纲', ['.novelforge/summaries/001.md'], 1],
-      ['character', '角色卡', ['.novelforge/characters/林晚.md'], 1],
+      ['plot', '细纲', ['.novelwarden/summaries/001.md'], 1],
+      ['character', '角色卡', ['.novelwarden/characters/林晚.md'], 1],
     ]);
   });
 });
@@ -79,7 +79,7 @@ describe('替换请求', () => {
       scopes: ['chapter', 'plot', 'character'],
       files: [
         { path: 'chapters/001.md', hash: 'h-chapters/001.md', hits: [{ start: 0, end: 2 }] },
-        { path: '.novelforge/characters/林晚.md', hash: 'h-.novelforge/characters/林晚.md', hits: [{ start: 5, end: 7 }] },
+        { path: '.novelwarden/characters/林晚.md', hash: 'h-.novelwarden/characters/林晚.md', hits: [{ start: 5, end: 7 }] },
         { path: 'chapters/002.md', hash: 'h-chapters/002.md', hits: [{ start: 3, end: 5 }] },
       ],
       dirty: [],
@@ -134,8 +134,8 @@ describe('汇总', () => {
     plotOnly: ['第 2 章 下山'],
     bodyOnly: ['第 3 章 夜访'],
     renamedCards: [
-      { path: '.novelforge/characters/林晚.md', label: '角色 · 林晚', name: '林婉', nameChanged: true },
-      { path: '.novelforge/characters/老周.md', label: '角色 · 老周', name: '老周', nameChanged: false },
+      { path: '.novelwarden/characters/林晚.md', label: '角色 · 林晚', name: '林婉', nameChanged: true },
+      { path: '.novelwarden/characters/老周.md', label: '角色 · 老周', name: '老周', nameChanged: false },
     ],
   };
 

@@ -37,7 +37,7 @@ const log = scoped('技能');
 
 const TIMEOUT_MS = 10_000;
 const MAX_URL_LENGTH = 2048;
-const USER_AGENT = 'novel-forge';
+const USER_AGENT = 'novelwarden';
 /** 检查过、还没装的地址最多记多少个。 */
 const MAX_PENDING = 32;
 

@@ -66,7 +66,7 @@ describe('errorLog · db', () => {
 
     before(async () => {
       project = await newProject('driver');
-      dbFile = path.join(project.root, '.novelforge', 'novelforge.db');
+      dbFile = path.join(project.root, '.novelwarden', 'novelwarden.db');
       handle = await db.openDatabase(project);
 
       // 建表是幂等的：每次开库都会跑一遍 CREATE TABLE IF NOT EXISTS。
@@ -104,7 +104,7 @@ describe('errorLog · db', () => {
       assert.ok(handle);
     });
 
-    test('库文件落在 .novelforge/ 下', () => {
+    test('库文件落在 .novelwarden/ 下', () => {
       assert.ok(fs.existsSync(dbFile), dbFile);
     });
 
@@ -147,7 +147,7 @@ describe('errorLog · db', () => {
 
     before(async () => {
       project = await newProject('readonly');
-      const dbFile = path.join(project.root, '.novelforge', 'novelforge.db');
+      const dbFile = path.join(project.root, '.novelwarden', 'novelwarden.db');
 
       // 一个从没出过错的工程，光是刷新工程页不该生出 db 文件。
       empty = await errorLog.listActiveFailures(project);
@@ -199,7 +199,7 @@ describe('errorLog · db', () => {
   });
 
   describe('失败记录的生命周期', () => {
-    const CARD = '.novelforge/characters/林昭.md';
+    const CARD = '.novelwarden/characters/林昭.md';
     let project;
     let first;
     let afterRetries;
@@ -333,7 +333,7 @@ describe('errorLog · db', () => {
     before(async () => {
       project = await newProject('tree');
       fs.writeFileSync(
-        path.join(project.root, '.novelforge', 'characters', '林昭.md'),
+        path.join(project.root, '.novelwarden', 'characters', '林昭.md'),
         '---\nname: 林昭\n---\n\n# 林昭\n',
         'utf8'
       );
@@ -344,7 +344,7 @@ describe('errorLog · db', () => {
       await errorLog.recordFailure(project, {
         scope: '角色卡',
         targetKind: 'character',
-        targetKey: '.novelforge/characters/林昭.md',
+        targetKey: '.novelwarden/characters/林昭.md',
         severity: 'error',
         op: 'updateCard',
         message: '解析失败，角色卡未改动',
@@ -359,7 +359,7 @@ describe('errorLog · db', () => {
     });
 
     test('失败记录进了工程页快照', () => {
-      assert.ok(after1.failures['.novelforge/characters/林昭.md'], JSON.stringify(after1.failures));
+      assert.ok(after1.failures['.novelwarden/characters/林昭.md'], JSON.stringify(after1.failures));
     });
   });
 
@@ -481,7 +481,7 @@ describe('errorLog · db', () => {
     before(async () => {
       const project = await newProject('broken');
       // 用一个**目录**占住库文件的位置：SQLite 打不开它，于是走降级路径。
-      const dbFile = path.join(project.root, '.novelforge', 'novelforge.db');
+      const dbFile = path.join(project.root, '.novelwarden', 'novelwarden.db');
       fs.mkdirSync(dbFile, { recursive: true });
 
       try {
@@ -544,6 +544,32 @@ describe('errorLog · db', () => {
 
     test('开库失败只是 warn 不是 error', () => {
       assert.ok(warned.every((e) => e.level === 'warn'));
+    });
+  });
+
+  // 改名前的库是**可丢弃的痕迹**：新库用新名字，旧文件原样留着，绝不顺手删。
+  describe('旧库文件名', () => {
+    let project;
+    let legacyFile;
+    let freshExists;
+    let legacyAfter;
+
+    before(async () => {
+      project = await newProject('legacy-db');
+      legacyFile = path.join(project.root, '.novelwarden', 'novelforge.db');
+      fs.writeFileSync(legacyFile, 'SQLite format 3\0旧痕迹');
+      await db.openDatabase(project);
+      freshExists = fs.existsSync(path.join(project.root, '.novelwarden', 'novelwarden.db'));
+      legacyAfter = fs.readFileSync(legacyFile, 'utf8');
+      db.closeDatabase(project);
+    });
+
+    test('新库落在 novelwarden.db', () => {
+      assert.equal(freshExists, true);
+    });
+
+    test('旧的 novelforge.db 一字不动', () => {
+      assert.equal(legacyAfter, 'SQLite format 3\0旧痕迹');
     });
   });
 });

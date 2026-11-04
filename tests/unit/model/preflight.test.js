@@ -185,7 +185,7 @@ describe('preflight.ts · 永久放行', () => {
     const base = { no: 8, title: '渡口', upstreamHash: '', done: false, sections: { ...empty, 出场人物: '沈秋', 关键事件: '事' } };
     const withOk = plotFile.renderPlotFile({ ...base, preflightOk: [{ name: '沈秋', reason: '回忆' }] });
     assert.match(withOk, /preflightOk: \[沈秋：回忆\]/);
-    assert.deepEqual(JSON.parse(JSON.stringify(plotFile.parsePlotFile(withOk, '.novelforge/summaries/008-渡口.md').preflightOk)), [{ name: '沈秋', reason: '回忆' }]);
+    assert.deepEqual(JSON.parse(JSON.stringify(plotFile.parsePlotFile(withOk, '.novelwarden/summaries/008-渡口.md').preflightOk)), [{ name: '沈秋', reason: '回忆' }]);
     assert.doesNotMatch(plotFile.renderPlotFile(base), /preflightOk/);
   });
 });

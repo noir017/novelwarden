@@ -254,7 +254,7 @@ function buildHead(turn: SerializedTurn): HTMLElement {
   if (turn.mcp) {
     // 经 MCP 接进来的调用（Claude Code 之类）：它说的话不在这里，这里只有它做的事。
     const tag = mk('span', 'msg-tag', 'MCP');
-    tag.title = '外部 agent 经 MCP 调用 Novel Forge 的工具留下的记录';
+    tag.title = '外部 agent 经 MCP 调用 Novelwarden 的工具留下的记录';
     head.appendChild(tag);
   } else if (turn.builtinAgent) {
     const tag = mk('span', 'msg-tag', '已移除');
@@ -528,7 +528,7 @@ function isGenerate(call: SerializedToolCall): boolean {
  *
  * ```
  * ┌ ✨ generate                              23.6s ▾ ┐
- * │ ✓ 情节大纲 · 6104 字 · 已写入 .novelforge/outline.md│
+ * │ ✓ 情节大纲 · 6104 字 · 已写入 .novelwarden/outline.md│
  * ├──────────────────────────────────────────────────┤
  * │ ### 全书结构一览                                  │
  * │ **第一卷 活着**：半世界陷入病灾…                   │ ← 限高，卡内滚动

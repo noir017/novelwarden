@@ -49,7 +49,7 @@ let project;
 let planReply;
 
 /** 叙事线目录：一条线一个文件。 */
-const THREADS = '.novelforge/threads';
+const THREADS = '.novelwarden/threads';
 const file = (name) => `${THREADS}/${name}.md`;
 /** 目录里有哪几条线（文件名）。 */
 const names = () => (t.has(THREADS) ? require('fs').readdirSync(t.rel(THREADS)).sort() : []);
@@ -57,7 +57,7 @@ const names = () => (t.has(THREADS) ? require('fs').readdirSync(t.rel(THREADS)).
 /** 写一份还没定稿的细纲（计划）：七节里只填几节，钩子写在「看点」里。 */
 function plot(no, title, events, highlight) {
   t.write(
-    `.novelforge/summaries/00${no}-${title}.md`,
+    `.novelwarden/summaries/00${no}-${title}.md`,
     `---\nno: ${no}\ntitle: ${title}\ntargetWords: 3000\n---\n\n# 第${no}章 ${title}\n\n## 梗概\n\n第${no}章的梗概\n\n## 关键事件\n\n${events}\n\n## 看点\n\n- ${highlight}\n`
   );
 }
@@ -112,7 +112,7 @@ after(() => {
 describe('排叙事线 · 还没有情节大纲', () => {
   // 情节大纲是各章细纲梗概的汇总：细纲排了、梗概却空着，大纲里就没有这一章。
   test('不调模型、不弹确认框，说清先排大纲（细纲排了、梗概空着也不算）', async () => {
-    t.write('.novelforge/summaries/001-雪夜.md', '---\nno: 1\ntitle: 雪夜\n---\n\n# 第1章 雪夜\n\n## 关键事件\n\n林昭在雪夜里被人追杀。\n');
+    t.write('.novelwarden/summaries/001-雪夜.md', '---\nno: 1\ntitle: 雪夜\n---\n\n# 第1章 雪夜\n\n## 关键事件\n\n林昭在雪夜里被人追杀。\n');
     project.invalidate();
     h.expect('开始排');
     fake.reset();
@@ -153,18 +153,18 @@ describe('排叙事线', () => {
 
   before(async () => {
     t.write(
-      '.novelforge/config.md',
+      '.novelwarden/config.md',
       '---\ngenre: 玄幻\ntotalChapters: 20\nwordsPerChapter: 3000\n---\n# 设定\n\n## 一句话\n\n少年背着旧案入宗。\n'
     );
-    t.write('.novelforge/premise.md', '# 故事前提\n\n## 悬念骨架\n\n谁放的那把火。\n');
+    t.write('.novelwarden/premise.md', '# 故事前提\n\n## 悬念骨架\n\n谁放的那把火。\n');
     writeOutline(t, OUTLINE);
     t.write(
-      '.novelforge/characters/沈青.md',
+      '.novelwarden/characters/沈青.md',
       '---\nname: 沈青\n---\n\n# 沈青\n\n## 身份\n\n青云宗外门弟子\n\n## 人物关系\n\n与林昭互相猜忌\n\n## 暗设\n\n她是沈家遗孤\n'
     );
     // 老卡（叙事线重做第 10 个提交之前）：「未收伏笔」是认不出的小节，排线不读。
     t.write(
-      '.novelforge/characters/李叔.md',
+      '.novelwarden/characters/李叔.md',
       '---\nname: 李叔\n---\n\n# 李叔\n\n## 身份\n\n镇口守卫\n\n## 未收伏笔\n\n他认得那块令牌\n'
     );
     plot(2, '入宗', '林昭拜入青云宗。', '有人认出了他');
@@ -388,12 +388,12 @@ describe('定稿 · 叙事线：认事件、归并、当前进度', () => {
     plot(4, '夜谈', '沈青与林昭夜谈，玉佩的来历揭开。', '院外有人');
     // 二期细纲删了「新增伏笔」：老细纲里留着的那一节当认不出的小节，定稿时不读、不当本章计划。
     t.write(
-      '.novelforge/summaries/004-夜谈.md',
-      t.read('.novelforge/summaries/004-夜谈.md').replace('## 看点', '## 新增伏笔\n\n- 院外的提灯人\n\n## 看点')
+      '.novelwarden/summaries/004-夜谈.md',
+      t.read('.novelwarden/summaries/004-夜谈.md').replace('## 看点', '## 新增伏笔\n\n- 院外的提灯人\n\n## 看点')
     );
     t.write(CH4, `# 第4章 夜谈\n\n${CH4_TEXT}\n`);
     // 出场的人都没有卡：角色状态那一步不调，次数好数。
-    t.remove('.novelforge/characters');
+    t.remove('.novelwarden/characters');
     writeThreads();
     findReply = () =>
       JSON.stringify({
@@ -513,7 +513,7 @@ describe('定稿 · 叙事线：认事件、归并、当前进度', () => {
     assert.ok(!text.includes('从今往后'), text);
     assert.equal((text.match(/沈青坐在廊下/g) ?? []).length, 1, text);
     assert.ok(text.includes('收〈玉佩的来历〉'), '证据还在的不动');
-    assert.ok(t.has('.novelforge/history/.novelforge/threads/林昭与沈青.md'), '改之前存了一版历史');
+    assert.ok(t.has('.novelwarden/history/.novelwarden/threads/林昭与沈青.md'), '改之前存了一版历史');
     assert.ok(bundle.finalize.describeFinalize(4, again).includes('清掉 1 条证据已经不在正文里的旧记录'));
   });
 
@@ -739,7 +739,7 @@ describe('定稿 · 未归属的伏笔被收时挪到线上', () => {
 
   before(async () => {
     t.write(CH4, `# 第4章 夜谈\n\n${CH4_TEXT}\n`);
-    t.remove('.novelforge/characters');
+    t.remove('.novelwarden/characters');
     writeThreads();
     t.write(file('未归属的伏笔'), UNFILED);
     project.invalidate();

@@ -297,7 +297,7 @@ function render(): void {
   }
   if (!data.initialized) {
     v.meta.textContent = '';
-    showNote('这个目录还不是小说工程（没有 .novelforge/），没有时间线。');
+    showNote('这个目录还不是小说工程（没有工程元数据目录），没有时间线。');
     return;
   }
   v.meta.textContent = data.meta;

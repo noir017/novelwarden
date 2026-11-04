@@ -47,7 +47,7 @@ const IDLE_MS = 60_000;
 export interface WorkspaceHubOptions {
   /** 所有窗口共用的设置读写。 */
   config: FileHost['config'];
-  /** window.json 所在目录。测试注入，缺省为 ~/.novelforge。 */
+  /** window.json 所在目录。测试注入，缺省为 ~/.novelwarden。 */
   windowDir?: string;
   /** 没有窗口的工程多久之后关。测试注入。 */
   idleMs?: number;

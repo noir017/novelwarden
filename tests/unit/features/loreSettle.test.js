@@ -25,7 +25,7 @@ const LP = loadModule('src/core/context/loreSettlePrompt.ts');
 
 const entry = (title, keywords = [], over = {}) => ({
   slug: title,
-  relPath: `.novelforge/lore/${over.category ? `${over.category}/` : ''}${title}.md`,
+  relPath: `.novelwarden/lore/${over.category ? `${over.category}/` : ''}${title}.md`,
   title,
   keywords,
   brief: '',
@@ -134,21 +134,21 @@ describe('认已有条目', () => {
     const d = S.decodeLoreSettle(settle([row('青云门')]), KNOWN);
     const [e] = d.value.entries;
     assert.equal(e.title, '青云宗');
-    assert.equal(e.relPath, '.novelforge/lore/宗门/青云宗.md');
+    assert.equal(e.relPath, '.novelwarden/lore/宗门/青云宗.md');
     assert.ok(d.warnings.some((w) => w.includes('「青云门」认成了已有条目「青云宗」')), d.warnings.join('|'));
   });
 
   test('同名不同分类：按分类挑，挑不出取第一条', () => {
     const pick = (category) => S.findSettledEntry(KNOWN.entries, { title: '后山', category });
-    assert.equal(pick('青云宗').relPath, '.novelforge/lore/青云宗/后山.md');
-    assert.equal(pick('地域').relPath, '.novelforge/lore/地域/后山.md');
-    assert.equal(pick('别处').relPath, '.novelforge/lore/地域/后山.md');
+    assert.equal(pick('青云宗').relPath, '.novelwarden/lore/青云宗/后山.md');
+    assert.equal(pick('地域').relPath, '.novelwarden/lore/地域/后山.md');
+    assert.equal(pick('别处').relPath, '.novelwarden/lore/地域/后山.md');
   });
 
   test('给了路径且那条还在：按路径认（作者改了名也认得出）', () => {
     const renamed = { ...TJG, title: '天机楼阁' };
     assert.equal(S.findSettledEntry([renamed], { relPath: TJG.relPath, title: '天机阁', category: '' }).title, '天机楼阁');
-    assert.equal(S.findSettledEntry([renamed], { relPath: '.novelforge/lore/没了.md', title: '鬼市', category: '' }), undefined);
+    assert.equal(S.findSettledEntry([renamed], { relPath: '.novelwarden/lore/没了.md', title: '鬼市', category: '' }), undefined);
   });
 
   // 真跑：讨论只提到、没改的条目，模型照抄正文、顺手改了一句话或关键词——一次落定弹了三张没意思的对比。

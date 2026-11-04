@@ -31,9 +31,9 @@ let gateAnswer = 'proceed';
 let script = [];
 
 const pad3 = (n) => String(n).padStart(3, '0');
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const DIR = '.novelforge/threads';
+const DIR = '.novelwarden/threads';
 
 /** 一份细纲：`sourceHash` 给了就是定稿过的。 */
 function plotText(no, { cast = '林昭', sourceHash } = {}) {
@@ -144,7 +144,7 @@ before(async () => {
     t.write(PLOT(no), plotText(no, { sourceHash: hash, ...(no === 7 ? { cast: '林昭、沈秋' } : {}) }));
   }
   t.write(
-    '.novelforge/characters/沈秋.md',
+    '.novelwarden/characters/沈秋.md',
     ['---', 'name: 沈秋', 'stateThrough: 4', '---', '', '# 沈秋', '', '## 当前状态', '', '已死亡（第 4 章被刺杀）', ''].join('\n')
   );
   t.write(`${DIR}/青崖旧案.md`, MAIN);

@@ -21,7 +21,7 @@ const log = scoped('文件');
  * 1. **不越界**：每个操作都锁在它所属的区（chapters/ 、characters/ 、lore/）里。
  *    章节挪不进角色目录，任何路径也出不了工程根——`..` 一律拒绝。
  * 2. **不静默覆盖**：目标已存在就报错退出，绝不覆盖作者的文件。
- * 3. **不真删**：删除是搬进 `.novelforge/.trash/`，与会话删除同一套做法。
+ * 3. **不真删**：删除是搬进 `.novelwarden/.trash/`，与会话删除同一套做法。
  *
  * 章节改名/移动时，`drafts/` 里对应的草稿与 `summaries/` 里对应的细纲一并搬走（由网关的
  * chapter handler 做）——两样都不是可管理区，但位置都由章节路径推导，章节动了就必须跟着动。
@@ -205,7 +205,7 @@ export async function deletePlot(project: NovelProject, relPath: string): Promis
       // 说出来免得作者以为正文也没了。
       '这一章的正文不受影响。',
       ...(plans > 0 ? [`它写进叙事线里的 ${plans} 条计划（第 ${plot.no} 章）一起删掉，各条线改之前存一版历史。`] : []),
-      '会移到 .novelforge/.trash/，可手动找回。',
+      '会移到 .novelwarden/.trash/，可手动找回。',
     ].join('\n'),
   });
   if (pick !== '删除') {
@@ -539,7 +539,7 @@ async function pickDestination(
 // ---------------------------------------------------------------- 删除
 
 /**
- * 删除文件或文件夹：搬进 `.novelforge/.trash/`，不真删。
+ * 删除文件或文件夹：搬进 `.novelwarden/.trash/`，不真删。
  * 目录连同里面的东西整体搬走，垃圾箱里保留原来的相对路径以便找回。
  */
 export async function deleteEntry(project: NovelProject, relPath: string): Promise<boolean> {
@@ -555,7 +555,7 @@ export async function deleteEntry(project: NovelProject, relPath: string): Promi
   const draftNote = await describeDraft(project, rel, info.section);
   const pick = await getHost().confirm(`删除${isDir ? '文件夹' : ''}「${path.basename(rel)}」？`, ['删除'], {
     modal: true,
-    detail: [detail, draftNote, '会移到 .novelforge/.trash/，可手动找回。'].filter(Boolean).join('\n'),
+    detail: [detail, draftNote, '会移到 .novelwarden/.trash/，可手动找回。'].filter(Boolean).join('\n'),
   });
   if (pick !== '删除') {
     log.info(`用户取消了删除 ${rel}`);

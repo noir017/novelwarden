@@ -218,7 +218,7 @@ describe('成对符号：别的文件', { skip: JSDOM_SKIP }, () => {
   });
 
   test('Markdown（角色卡）也补', () => {
-    h.open('.novelforge/characters/林昭.md', '口头禅：', 'character');
+    h.open('.novelwarden/characters/林昭.md', '口头禅：', 'character');
     h.select(4);
     h.type('“');
     assert.equal(h.area().value, '口头禅：“”');

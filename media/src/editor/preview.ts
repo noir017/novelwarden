@@ -127,7 +127,7 @@ function linkNode(token: string, fromPath: string, openLink: OpenLink): HTMLElem
   return btn;
 }
 
-/** `.novelforge/characters/a.md` + `../lore/b.md` → `.novelforge/lore/b.md` */
+/** `.novelwarden/characters/a.md` + `../lore/b.md` → `.novelwarden/lore/b.md` */
 export function resolveRelative(fromPath: string, href: string): string {
   const target = decodeURI(href.split('#')[0]);
   if (!fromPath || target.startsWith('/')) {

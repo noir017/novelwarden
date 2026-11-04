@@ -16,7 +16,7 @@ describe('markdown.ts', () => {
 
   before(() => {
     md = loadModule('src/core/model/markdown.ts');
-    const raw = fs.readFileSync(path.join(SAMPLE, '.novelforge/characters/林昭.md'), 'utf8');
+    const raw = fs.readFileSync(path.join(SAMPLE, '.novelwarden/characters/林昭.md'), 'utf8');
     parsed = md.parseMarkdown(raw);
   });
 

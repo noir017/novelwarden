@@ -18,7 +18,7 @@ import { askCall } from './askCall';
 const log = scoped('文风');
 
 /**
- * 从样章提取文风指南，写入 .novelforge/style.md。
+ * 从样章提取文风指南，写入 .novelwarden/style.md。
  * 挑完样章先弹确认框报次数、挑模型；要覆盖时那颗按钮是「覆盖」——style.md 常被作者手工调过。
  */
 export async function extractStyle(project: NovelProject): Promise<void> {

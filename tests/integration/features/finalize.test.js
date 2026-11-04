@@ -40,7 +40,7 @@ const TEXT = [
 ].join('\n\n');
 
 const CH = (no) => `chapters/00${no}-第${no}章.md`;
-const CARD = (name) => `.novelforge/characters/${name}.md`;
+const CARD = (name) => `.novelwarden/characters/${name}.md`;
 /** 「更新细纲」那条规则只在 REFINE_SYSTEM 里有：拿它认出这一次是不是照着当前细纲改。 */
 const REFINE_RULE = '关于「当前细纲」';
 
@@ -155,7 +155,7 @@ describe('定稿：没有细纲时照正文整理一份，带连续性事实', (
       });
     fake.reset();
     outcome = await bundle.finalize.finalizeChapter(project, await chapterNo(2));
-    plotText = t.read('.novelforge/summaries/002-第2章.md');
+    plotText = t.read('.novelwarden/summaries/002-第2章.md');
   });
 
   test('一共 4 次：细纲一次、角色状态一次、认叙事线一次、故事时间一次', () => {
@@ -272,7 +272,7 @@ describe('定稿：不回退、没卡、失败', () => {
   });
 
   test('出场的人都没建卡：只有更新细纲、认叙事线与故事时间那三次', async () => {
-    t.remove('.novelforge/characters');
+    t.remove('.novelwarden/characters');
     fake.reset();
     const outcome = await bundle.finalize.finalizeChapter(project, await chapterNo(1));
     assert.equal(outcome.calls, 3);
@@ -283,11 +283,11 @@ describe('定稿：不回退、没卡、失败', () => {
   test('角色状态解析不出来：细纲照样在，黄 ❗ 挂在章节上，调用照样记账', async () => {
     card('林昭', '', '');
     stateReply = () => '模型答非所问';
-    t.remove('.novelforge/summaries/003-第3章.md');
+    t.remove('.novelwarden/summaries/003-第3章.md');
     const outcome = await bundle.finalize.finalizeChapter(project, await chapterNo(3));
     assert.equal(outcome.calls, 4);
     assert.ok(outcome.stateError);
-    assert.ok(t.has('.novelforge/summaries/003-第3章.md'));
+    assert.ok(t.has('.novelwarden/summaries/003-第3章.md'));
     const [f] = await failuresOf(CH(3));
     assert.equal(f.severity, 'warn');
     assert.match(f.message, /细纲已照正文更新，但角色状态没更新成/);
@@ -301,7 +301,7 @@ describe('定稿：不回退、没卡、失败', () => {
 
   // 试跑报告第 11 条：批量写章没写够八成停在这一章，挂在细纲上的黄 ❗ 只有批量把这一章写成才清，单章定稿之后一直挂着。
   test('批量停在这一章挂在细纲上的黄 ❗：单章定稿之后收掉', async () => {
-    const plotRel = '.novelforge/summaries/003-第3章.md';
+    const plotRel = '.novelwarden/summaries/003-第3章.md';
     await bundle.errorLog.recordFailure(project, {
       scope: '流水线',
       targetKind: 'plot',
@@ -318,7 +318,7 @@ describe('定稿：不回退、没卡、失败', () => {
 });
 
 describe('定稿：有细纲时照正文反向更新它', () => {
-  const PLAN_REL = '.novelforge/summaries/004-夜雨.md';
+  const PLAN_REL = '.novelwarden/summaries/004-夜雨.md';
   const PLAN = [
     '---',
     'no: 4',
@@ -327,7 +327,7 @@ describe('定稿：有细纲时照正文反向更新它', () => {
     'upstreamHash: 0a1b2c3d4e5f6789',
     'writtenFrom: 1111111111111111',
     'factCheckOk: true',
-    'generatedBy: novel-forge',
+    'generatedBy: novelwarden',
     '---',
     '',
     '# 第4章 夜雨',
@@ -449,12 +449,12 @@ describe('定稿：有细纲时照正文反向更新它', () => {
     assert.deepEqual(plot.characters, ['林昭', '沈氏', '李叔']);
   });
 
-  test('旧版先复制一份进 .novelforge/.trash/，原样一个字节不差', () => {
-    assert.equal(t.read(`.novelforge/.trash/${PLAN_REL}`), PLAN);
+  test('旧版先复制一份进 .novelwarden/.trash/，原样一个字节不差', () => {
+    assert.equal(t.read(`.novelwarden/.trash/${PLAN_REL}`), PLAN);
   });
 
   test('outcome 报出旧版在回收站里的位置', () => {
-    assert.equal(outcome.summary.trashed, `.novelforge/.trash/${PLAN_REL}`);
+    assert.equal(outcome.summary.trashed, `.novelwarden/.trash/${PLAN_REL}`);
   });
 
   test('完成提示说「旧版已放进回收站」', () => {
@@ -481,18 +481,18 @@ describe('定稿：有细纲时照正文反向更新它', () => {
   test('再定稿一次：回收站里同名的旧版不被覆盖，新的一份加 -2', async () => {
     fake.reset();
     const again = await bundle.finalize.finalizeChapter(project, chapter);
-    assert.equal(again.summary.trashed, '.novelforge/.trash/.novelforge/summaries/004-夜雨-2.md');
+    assert.equal(again.summary.trashed, '.novelwarden/.trash/.novelwarden/summaries/004-夜雨-2.md');
   });
 });
 
 describe('定稿：细纲只起了个头（七节全空）时照正文从头整理', () => {
-  const SHELL_REL = '.novelforge/summaries/005-空壳.md';
+  const SHELL_REL = '.novelwarden/summaries/005-空壳.md';
 
   before(async () => {
     t.write('chapters/005-空壳.md', `# 空壳\n\n${TEXT}\n`);
     t.write(
       SHELL_REL,
-      '---\nno: 5\ntitle: 空壳\ntargetWords: 1800\ngeneratedBy: novel-forge\n---\n\n# 第5章 空壳\n\n' +
+      '---\nno: 5\ntitle: 空壳\ntargetWords: 1800\ngeneratedBy: novelwarden\n---\n\n# 第5章 空壳\n\n' +
         ['梗概', '出场人物', '时间地点', '关键事件', '看点', '状态变更', '连续性事实']
           .map((k) => `## ${k}\n\n（待补充）`)
           .join('\n\n') +
@@ -521,9 +521,9 @@ describe('定稿：细纲只起了个头（七节全空）时照正文从头整�
 // 真实模型试跑里撞上的：定稿那次回答没解析开时，从前把整段原文塞进「梗概」、其余七节写成占位，
 // 还记上 sourceHash——细纲被毁、这一章却显示已定稿。现在解析不了就报失败，细纲一个字不动。
 describe('定稿：模型返回解析不了', () => {
-  const PLAN_REL = '.novelforge/summaries/006-雾巷.md';
+  const PLAN_REL = '.novelwarden/summaries/006-雾巷.md';
   const PLAN =
-    '---\nno: 6\ntitle: 雾巷\ntargetWords: 2000\nupstreamHash: 0a1b2c3d4e5f6789\ngeneratedBy: novel-forge\n---\n\n# 第6章 雾巷\n\n' +
+    '---\nno: 6\ntitle: 雾巷\ntargetWords: 2000\nupstreamHash: 0a1b2c3d4e5f6789\ngeneratedBy: novelwarden\n---\n\n# 第6章 雾巷\n\n' +
     '## 梗概\n\n林昭在雾巷里甩掉跟踪的人。\n\n## 关键事件\n\n- 林昭发现有人跟踪\n- 他钻进雾巷甩掉对方\n';
   let error;
 
@@ -561,7 +561,7 @@ describe('定稿：模型返回解析不了', () => {
 
 // 工程页章节右键「定稿」「重新定稿」（2026-10-23 作者要的）：先弹确认框，模型下拉框打开时选着对话页那个，可以为这一次换一个。
 describe('工程页章节右键「定稿」「重新定稿」：先问这一次用哪个模型', () => {
-  const PLOT_REL = '.novelforge/summaries/001-第1章.md';
+  const PLOT_REL = '.novelwarden/summaries/001-第1章.md';
   /** 这一次的调用都交给了谁。 */
   const refsUsed = () => [...new Set(fake.calls.map((m) => m.ref))];
 

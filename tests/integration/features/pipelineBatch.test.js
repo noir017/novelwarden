@@ -52,7 +52,7 @@ function blueprintsFor(messages, over = {}) {
 }
 const OUTLINE = outlineOf(20, { title: '大纲', text: { 1: '林昭进入青云宗。' } });
 /** 一条叙事线（有了它批量拆细纲就不先排线）。 */
-const THREAD = '.novelforge/threads/青云旧案.md';
+const THREAD = '.novelwarden/threads/青云旧案.md';
 /** 排线的系统提示里认得出的那一句。 */
 const PLAN_MARK = '只从作者给的小说配置、故事前提、角色图谱与情节大纲里排出这本书的叙事线';
 /** 总章数 3：缺省的那一批收在第 3 章，下面批量写正文那几组只面对这三章。 */
@@ -150,7 +150,7 @@ before(async () => {
   for (const [no, title, extra] of [[1, '楔子', { targetWords: 5000 }], [2, '入镇'], [3, '夜访', { targetWords: 3000 }]]) {
     await skeleton(no, title, extra);
   }
-  t.write('.novelforge/config.md', CONFIG);
+  t.write('.novelwarden/config.md', CONFIG);
   // 已经有一条叙事线：批量拆细纲开跑前不再先排线（「一条叙事线都没有」那一组单独测）。
   t.write(THREAD, '---\nkind: 主线\n---\n\n# 青云旧案\n\n## 意图\n十年前那把火。\n');
   project.invalidate();
@@ -185,7 +185,7 @@ describe('批量拆细纲 · 前置检查', () => {
   });
 
   test('大纲为空时一章的细纲都没写', async () => {
-    const plot = await project.readPlot('.novelforge/summaries/001-楔子.md');
+    const plot = await project.readPlot('.novelwarden/summaries/001-楔子.md');
     assert.ok(!bundle.plotFile.isPlotFilled(plot.sections), JSON.stringify(plot.sections));
   });
 });
@@ -295,8 +295,8 @@ describe('批量拆细纲', () => {
 
   // 批量拆细纲改的是七节与规划字段，不该把作者起的名字、定的字数抹掉。
   test('标题沿用磁盘那份，文件名不变', () => {
-    assert.ok(t.has('.novelforge/summaries/001-楔子.md'));
-    assert.ok(!t.has('.novelforge/summaries/001-模型起的名.md'));
+    assert.ok(t.has('.novelwarden/summaries/001-楔子.md'));
+    assert.ok(!t.has('.novelwarden/summaries/001-模型起的名.md'));
   });
 
   test('作者定的目标字数原样留着', async () => {
@@ -316,8 +316,8 @@ describe('批量拆细纲', () => {
   // 只补不改：手写的那一份一个字都不能动。
   test('手写的细纲原样保留', () => {
     assert.ok(
-      t.read('.novelforge/summaries/002-入镇.md').includes('这是作者手写的'),
-      t.read('.novelforge/summaries/002-入镇.md').slice(0, 300)
+      t.read('.novelwarden/summaries/002-入镇.md').includes('这是作者手写的'),
+      t.read('.novelwarden/summaries/002-入镇.md').slice(0, 300)
     );
   });
 
@@ -379,7 +379,7 @@ describe('批量拆细纲 · 一批失败就停', () => {
 
   before(async () => {
     // 这一组要第 6 章以后的章：总章数临时放到 30。
-    t.write('.novelforge/config.md', CONFIG.replace('totalChapters: 3', 'totalChapters: 30'));
+    t.write('.novelwarden/config.md', CONFIG.replace('totalChapters: 3', 'totalChapters: 30'));
     project.invalidate();
     configure();
     // 模型返回一段废话——严格解码认不出，绝不能写盘：界面上会显示「已规划」，
@@ -394,7 +394,7 @@ describe('批量拆细纲 · 一批失败就停', () => {
     failures = await bundle.errorLog.listActiveFailures(project);
     // 第 6 章以后本来就有只有梗概的空壳（大纲是各章梗概的汇总）：看的是有没有一份被排过。
     plotsAfter = (await project.listPlots()).filter((p) => bundle.plotFile.isPlotFilled(p.sections)).map((p) => p.no);
-    t.write('.novelforge/config.md', CONFIG);
+    t.write('.novelwarden/config.md', CONFIG);
     project.invalidate();
   });
 
@@ -417,7 +417,7 @@ describe('批量拆细纲 · 一批失败就停', () => {
   });
 
   test('失败挂在那一批第一章的细纲上', () => {
-    assert.ok(!!failures['.novelforge/summaries/006.md'], JSON.stringify(Object.keys(failures)));
+    assert.ok(!!failures['.novelwarden/summaries/006.md'], JSON.stringify(Object.keys(failures)));
   });
 
   test('toast 说清停在哪', () => {
@@ -435,8 +435,8 @@ describe('批量拆细纲 · 一条叙事线都没有', () => {
   let toasts;
 
   before(async () => {
-    t.write('.novelforge/config.md', CONFIG.replace('totalChapters: 3', 'totalChapters: 30'));
-    t.remove('.novelforge/threads');
+    t.write('.novelwarden/config.md', CONFIG.replace('totalChapters: 3', 'totalChapters: 30'));
+    t.remove('.novelwarden/threads');
     project.invalidate();
     configure();
     replyFn = (messages) =>
@@ -464,7 +464,7 @@ describe('批量拆细纲 · 一条叙事线都没有', () => {
   });
 
   test('线写进了叙事线目录，细纲也写好了；完成提示里说了排出几条', async () => {
-    assert.ok(t.has('.novelforge/threads/林昭与沈青.md'));
+    assert.ok(t.has('.novelwarden/threads/林昭与沈青.md'));
     assert.ok(bundle.plotFile.isPlotFilled((await project.getPlot(4)).sections));
     assert.ok(toasts.some((x) => x.includes('写好 1 章细纲') && x.includes('排出 1 条叙事线')), toasts.join('|'));
   });
@@ -478,7 +478,7 @@ describe('批量拆细纲 · 一条叙事线都没有', () => {
   });
 
   test('排线没排成不挡拆细纲：细纲照写，提示里说一句，红 ❗ 挂在叙事线目录上', async () => {
-    t.remove('.novelforge/threads');
+    t.remove('.novelwarden/threads');
     project.invalidate();
     configure();
     replyFn = (messages) => (messages[0].content.includes(PLAN_MARK) ? '我想不出来。' : blueprintsFor(messages));
@@ -487,11 +487,11 @@ describe('批量拆细纲 · 一条叙事线都没有', () => {
     assert.ok(h.toasts.some((x) => x.includes('叙事线没排成')), h.toasts.join('|'));
     await sleep(50);
     const failures = await bundle.errorLog.listActiveFailures(project);
-    assert.equal(failures['.novelforge/threads']?.[0]?.severity, 'error');
+    assert.equal(failures['.novelwarden/threads']?.[0]?.severity, 'error');
   });
 
   after(() => {
-    t.write('.novelforge/config.md', CONFIG);
+    t.write('.novelwarden/config.md', CONFIG);
     t.write(THREAD, '---\nkind: 主线\n---\n\n# 青云旧案\n\n## 意图\n十年前那把火。\n');
     project.invalidate();
   });
@@ -508,7 +508,7 @@ describe('用户取消', () => {
     // answers 空着 = 用户点了 ×。
     await bundle.batch.generatePlots(project);
     callCount = fake.calls.length;
-    const plot = await project.readPlot('.novelforge/summaries/001-楔子.md');
+    const plot = await project.readPlot('.novelwarden/summaries/001-楔子.md');
     stillSkeleton = !bundle.plotFile.isPlotFilled(plot.sections);
 
     // 写正文那一条同样：取消 = 一次都不调。

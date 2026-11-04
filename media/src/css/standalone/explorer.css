@@ -102,7 +102,7 @@
   font-weight: 600;
 }
 
-/* 点开头的文件夹（.novelforge / .vscode）：看得见、打得开，但压暗一档，
+/* 点开头的文件夹（.novelwarden / .vscode）：看得见、打得开，但压暗一档，
    不跟正文抢注意力。VS Code 对 gitignore 里的条目也是这个处理。 */
 .fx-dotted > .fx-name {
   opacity: 0.75;

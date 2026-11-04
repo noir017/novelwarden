@@ -37,7 +37,7 @@ let controller;
 const TITLES = ['停舟', '令牌', '夜访', '井', '名册'];
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-${TITLES[no - 1]}.txt`;
-const THREADS = '.novelforge/threads';
+const THREADS = '.novelwarden/threads';
 const MAIN = `${THREADS}/青崖旧案.md`;
 const LEDGER = `${THREADS}/名册之谜.md`;
 const GROWN = `${THREADS}/沈氏的来意.md`;
@@ -172,9 +172,9 @@ before(async () => {
 
   t = await makeTempProject(bundle.project, { prefix: 'threads-phase1', title: '青崖记' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ntotalChapters: 30\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
-  t.write('.novelforge/premise.md', '# 故事前提\n\n## 一句话前提\n\n林昭回镇，必须找出放火的人。\n\n## 悬念骨架\n\n玉佩与名册。\n');
-  t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n名册决定谁算镇上的人。\n');
+  t.write('.novelwarden/config.md', '---\ntotalChapters: 30\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
+  t.write('.novelwarden/premise.md', '# 故事前提\n\n## 一句话前提\n\n林昭回镇，必须找出放火的人。\n\n## 悬念骨架\n\n玉佩与名册。\n');
+  t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n名册决定谁算镇上的人。\n');
   writeOutline(t, outlineOf(20, { text: { 1: '林昭进镇，一路查名册。' } }));
   const ws = new bundle.ws.Workspace(project);
   for (let no = 1; no <= 5; no++) {

@@ -118,7 +118,7 @@ after(() => {
   if (t) cleanup(t.dir, bundle && bundle.db);
 });
 
-const PLOT_TARGET = { kind: 'plot', plotRelPath: '.novelforge/summaries/001-夜入青云.md' };
+const PLOT_TARGET = { kind: 'plot', plotRelPath: '.novelwarden/summaries/001-夜入青云.md' };
 
 describe('细纲层 · 产出 Draft', () => {
   let out;

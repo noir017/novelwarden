@@ -88,7 +88,7 @@ async function writePlot(i, { full = true } = {}) {
   const sourceHash =
     (await project.listChapters()).find((c) => c.relPath === chapterRel)?.contentHash ?? '';
   t.write(
-    `.novelforge/summaries/${stem}.md`,
+    `.novelwarden/summaries/${stem}.md`,
     `---\nno: ${i}\ntitle: 第${i}章\nupstreamHash: h\nsourceHash: ${sourceHash}\ncast: [林昭]\n---\n\n` +
       `# 第${i}章\n\n## 梗概\n梗概\n\n## 出场人物\n林昭\n\n## 关键事件\n事件\n` +
       (full ? '\n## 看点\n看点\n' : '')
@@ -110,9 +110,9 @@ before(async () => {
     await writePlot(i);
   }
   // 叙事线（一条线一个文件）：有这几份，下面「至多读一次」那条才管得到它们。七期的 threads.md 不认、不读。
-  t.write('.novelforge/threads/玉佩.md', '---\nkind: 支线\nplan: 1-2\n---\n\n# 玉佩\n\n## 进展\n- 第 1 章 · 推进：玉佩露面 〔证据：「玉佩」〕\n');
-  t.write('.novelforge/threads/未归属的伏笔.md', '# 未归属的伏笔\n\n## 伏笔\n- 断剑\n');
-  t.write('.novelforge/threads.md', '# 叙事线\n\n## 旧格式\n');
+  t.write('.novelwarden/threads/玉佩.md', '---\nkind: 支线\nplan: 1-2\n---\n\n# 玉佩\n\n## 进展\n- 第 1 章 · 推进：玉佩露面 〔证据：「玉佩」〕\n');
+  t.write('.novelwarden/threads/未归属的伏笔.md', '# 未归属的伏笔\n\n## 伏笔\n- 断剑\n');
+  t.write('.novelwarden/threads.md', '# 叙事线\n\n## 旧格式\n');
   // 四十章定稿时叙事线都判过了（四期的水位在 project.json）：线的状态按判到的那一章算。
   await project.writeManifest({ ...(await project.readManifest()), threadsThrough: PLOTS });
 });
@@ -138,8 +138,8 @@ describe('工程页刷新 · 读盘次数', () => {
   test('叙事线目录每份读一次（页签那一列与别处共用这一趟）；七期的 threads.md 不读', async () => {
     await measure();
     const rel = (p) => path.relative(t.dir, p).replace(/\\/g, '/');
-    const touched = [...reads.keys()].map(rel).filter((f) => f.startsWith('.novelforge/threads'));
-    assert.deepEqual(touched.sort(), ['.novelforge/threads/未归属的伏笔.md', '.novelforge/threads/玉佩.md'].sort());
+    const touched = [...reads.keys()].map(rel).filter((f) => f.startsWith('.novelwarden/threads'));
+    assert.deepEqual(touched.sort(), ['.novelwarden/threads/未归属的伏笔.md', '.novelwarden/threads/玉佩.md'].sort());
   });
 
   // 全齐了才说明各条取数路径都真的走到了：只建细纲不写正文、或者没定稿的话，

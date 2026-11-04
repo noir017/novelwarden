@@ -32,7 +32,7 @@ let ctx;
 let reports;
 let settings;
 
-const PLOT1 = '.novelforge/summaries/001-夜入青云.md';
+const PLOT1 = '.novelwarden/summaries/001-夜入青云.md';
 const CH1 = 'chapters/001-夜入青云.txt';
 const CH2 = 'chapters/002-藏书阁.txt';
 
@@ -331,7 +331,7 @@ describe('批量写正文：正文直接落同号章节，并在细纲上记指�
   });
 
   test('不再建中转站目录', () => {
-    assert.ok(!t.has('.novelforge/manuscripts/001-夜入青云.md'));
+    assert.ok(!t.has('.novelwarden/manuscripts/001-夜入青云.md'));
   });
 
   // ★ 少了这一步，细纲后来改过也不会让这一章挂 ⟳。
@@ -368,7 +368,7 @@ describe('newPlot 不花钱', () => {
   });
 
   test('建出了一份细纲', () => {
-    assert.ok(r.text.includes('.novelforge/summaries/'), `${r.text}｜${r.error ?? ''}`);
+    assert.ok(r.text.includes('.novelwarden/summaries/'), `${r.text}｜${r.error ?? ''}`);
   });
 
   test('一次模型都没调', () => {
@@ -384,7 +384,7 @@ describe('newPlot 不花钱', () => {
   // summaries/ 子目录里的不算细纲（判成 other），新建的那一份必须落在根下才认得出来。
   test('新建的细纲平铺在 summaries/ 根下', async () => {
     const plots = await project.listPlots();
-    assert.match(plots[2].relPath, /^\.novelforge\/summaries\/003[^/]*\.md$/, plots[2].relPath);
+    assert.match(plots[2].relPath, /^\.novelwarden\/summaries\/003[^/]*\.md$/, plots[2].relPath);
   });
 
   test('新建的细纲是空骨架（不算排过）', async () => {

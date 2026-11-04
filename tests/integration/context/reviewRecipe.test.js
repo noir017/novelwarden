@@ -22,7 +22,7 @@ const { cleanup } = require('../../helpers/teardown');
 
 const REVIEW = { stage: 'manuscript', capability: 'review' };
 const WRITE = { stage: 'manuscript', capability: 'generate' };
-const P3 = '.novelforge/summaries/003-夜访.md';
+const P3 = '.novelwarden/summaries/003-夜访.md';
 
 const config = {
   providers: [{ id: 'p', kind: 'openai', baseUrl: 'https://x/v1', models: [{ name: 'm' }] }],
@@ -52,10 +52,10 @@ before(async () => {
   vs = installVscodeStub({ level: 'full', root: t.dir, config: {} });
   // 第 2 章的细纲定稿过、对得上正文，填上连续性事实；第 1 章的改成定稿之后正文又改过（sourceHash 对不上）。
   // 第 4 章示例工程里本来就排了细纲（计划）：审第 3 章时它是「后续章节计划」。
-  const s2 = path.join(t.dir, '.novelforge/summaries/002-客栈里的女人.md');
+  const s2 = path.join(t.dir, '.novelwarden/summaries/002-客栈里的女人.md');
   const facts = '- 沈氏住进走廊尽头的房间 〔证据：「住进走廊尽头的房间」〕\n- 林昭否认知道七年前的火';
   fs.writeFileSync(s2, fs.readFileSync(s2, 'utf8').replace(/(## 连续性事实\r?\n\r?\n)（待补充）/, `$1${facts}`));
-  const s1 = path.join(t.dir, '.novelforge/summaries/001-楔子.md');
+  const s1 = path.join(t.dir, '.novelwarden/summaries/001-楔子.md');
   fs.writeFileSync(s1, fs.readFileSync(s1, 'utf8').replace(/sourceHash: \w+/, 'sourceHash: stale000'));
 
   const bundle = loadBundle({

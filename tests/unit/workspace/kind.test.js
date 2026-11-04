@@ -35,29 +35,29 @@ after(() => {
 
 describe('kindOfPath · 固定单文件', () => {
   test('outline.md 是大纲', () => {
-    assert.equal(kindOf('.novelforge/outline.md').kind, 'outline');
+    assert.equal(kindOf('.novelwarden/outline.md').kind, 'outline');
   });
 
   test('大纲带上创作层', () => {
-    assert.equal(kindOf('.novelforge/outline.md').stage, 'outline');
+    assert.equal(kindOf('.novelwarden/outline.md').stage, 'outline');
   });
 
   test('大纲带上创作目标', () => {
-    assert.deepEqual(kindOf('.novelforge/outline.md').target, { kind: 'outline' });
+    assert.deepEqual(kindOf('.novelwarden/outline.md').target, { kind: 'outline' });
   });
 
   test('style.md 是文风指南', () => {
-    assert.equal(kindOf('.novelforge/style.md').kind, 'style');
+    assert.equal(kindOf('.novelwarden/style.md').kind, 'style');
   });
 
   // 它就躺在 summaries/ 里，与细纲同一个目录，必须排在细纲之前判。
   test('summaries/global.md 是全文大纲而不是某一章的细纲', () => {
-    assert.equal(kindOf('.novelforge/summaries/global.md').kind, 'globalSummary');
+    assert.equal(kindOf('.novelwarden/summaries/global.md').kind, 'globalSummary');
   });
 
   // 叙事线（2026-10-20 重做）：一条线一个文件，没有创作阶段，也不是哪一层的生成目标。
   test('threads/ 这一层的 .md 是叙事线，不带创作层与目标', () => {
-    for (const rel of ['.novelforge/threads/林昭与沈青.md', '.novelforge/threads/未归属的伏笔.md']) {
+    for (const rel of ['.novelwarden/threads/林昭与沈青.md', '.novelwarden/threads/未归属的伏笔.md']) {
       const k = kindOf(rel);
       assert.equal(k.kind, 'threads', rel);
       assert.equal(k.stage, undefined);
@@ -67,14 +67,14 @@ describe('kindOfPath · 固定单文件', () => {
 
   // 线不分子目录；七期的单文件不兼容：判 other，不读、不显示、不删。
   test('更深一层、别的扩展名、目录本身、七期的 threads.md 都是 other', () => {
-    for (const rel of ['.novelforge/threads/旧/林昭.md', '.novelforge/threads/备注.txt', '.novelforge/threads', '.novelforge/threads.md']) {
+    for (const rel of ['.novelwarden/threads/旧/林昭.md', '.novelwarden/threads/备注.txt', '.novelwarden/threads', '.novelwarden/threads.md']) {
       assert.equal(kindOf(rel).kind, 'other', rel);
     }
   });
 
   // 写作技能：阶段绑定与本工程的技能目录，都在链外，没有创作阶段。
   test('skills.json 与 skills/ 下的文件是技能，不带创作层与目标', () => {
-    const kinds = ['.novelforge/skills.json', '.novelforge/skills/去AI味/SKILL.md', '.novelforge/skills'].map(kindOf);
+    const kinds = ['.novelwarden/skills.json', '.novelwarden/skills/去AI味/SKILL.md', '.novelwarden/skills'].map(kindOf);
     assert.deepEqual(
       kinds.map((k) => [k.kind, k.stage, k.target]),
       [
@@ -86,17 +86,17 @@ describe('kindOfPath · 固定单文件', () => {
   });
 
   // 敏感词表（内置编辑器的写作体检用）：链外的固定文件，单列一种（不落 other，好存历史版本）；别处的同名文件不算。
-  test('.novelforge/sensitive.txt 是敏感词表，不带创作层与目标；别处的 sensitive.txt 是 other', () => {
-    const k = kindOf('.novelforge/sensitive.txt');
-    assert.deepEqual([k.kind, k.stage, k.target, k.rel], ['sensitive', undefined, undefined, '.novelforge/sensitive.txt']);
+  test('.novelwarden/sensitive.txt 是敏感词表，不带创作层与目标；别处的 sensitive.txt 是 other', () => {
+    const k = kindOf('.novelwarden/sensitive.txt');
+    assert.deepEqual([k.kind, k.stage, k.target, k.rel], ['sensitive', undefined, undefined, '.novelwarden/sensitive.txt']);
     assert.equal(kindOf('sensitive.txt').kind, 'other');
-    assert.equal(kindOf('.novelforge/lore/sensitive.txt').kind, 'other');
+    assert.equal(kindOf('.novelwarden/lore/sensitive.txt').kind, 'other');
   });
 
   // 架构三件与大纲同级：各自是一份固定文件，带着「是哪一件」。
   for (const doc of ['config', 'premise', 'world']) {
     test(`${doc}.md 是架构文档，带上 doc 与创作目标`, () => {
-      const k = kindOf(`.novelforge/${doc}.md`);
+      const k = kindOf(`.novelwarden/${doc}.md`);
       assert.equal(k.kind, 'setting');
       assert.equal(k.doc, doc);
       assert.equal(k.stage, 'setting');
@@ -107,60 +107,60 @@ describe('kindOfPath · 固定单文件', () => {
 
 describe('kindOfPath · 细纲', () => {
   test('带标题的细纲', () => {
-    assert.equal(kindOf('.novelforge/summaries/012-入宗.md').kind, 'plot');
+    assert.equal(kindOf('.novelwarden/summaries/012-入宗.md').kind, 'plot');
   });
 
   test('细纲带上章号', () => {
-    assert.equal(kindOf('.novelforge/summaries/012-入宗.md').no, 12);
+    assert.equal(kindOf('.novelwarden/summaries/012-入宗.md').no, 12);
   });
 
   test('细纲的创作层是 plot', () => {
-    assert.equal(kindOf('.novelforge/summaries/012-入宗.md').stage, 'plot');
+    assert.equal(kindOf('.novelwarden/summaries/012-入宗.md').stage, 'plot');
   });
 
   test('细纲的创作目标指回自己', () => {
-    assert.deepEqual(kindOf('.novelforge/summaries/012-入宗.md').target, {
+    assert.deepEqual(kindOf('.novelwarden/summaries/012-入宗.md').target, {
       kind: 'plot',
-      plotRelPath: '.novelforge/summaries/012-入宗.md',
+      plotRelPath: '.novelwarden/summaries/012-入宗.md',
     });
   });
 
   // 流水线新建出来的章就是纯序号名——标题要等剧情排完才定。
   test('纯序号名的细纲一样认得出', () => {
-    assert.equal(kindOf('.novelforge/summaries/012.md').kind, 'plot');
+    assert.equal(kindOf('.novelwarden/summaries/012.md').kind, 'plot');
   });
 
   test('纯序号名的细纲章号仍是 12', () => {
-    assert.equal(kindOf('.novelforge/summaries/012.md').no, 12);
+    assert.equal(kindOf('.novelwarden/summaries/012.md').no, 12);
   });
 
   // 细纲只认 markdown 家族（它是插件自己的数据格式，与「章节不认扩展名」相反）。
   test('summaries/ 下的 .txt 不是细纲', () => {
-    assert.equal(kindOf('.novelforge/summaries/012-入宗.txt').kind, 'other');
+    assert.equal(kindOf('.novelwarden/summaries/012-入宗.txt').kind, 'other');
   });
 
   // 细纲镜像正文在章节根下的相对路径：分卷的书，细纲就在卷目录里（`chapters/卷一/003-楼道.md`
   // 的细纲是 `summaries/卷一/003-楼道.md`）。各级子目录里数字开头的 markdown 家族都是细纲。
   test('summaries/ 下子目录里的文件也是细纲', () => {
-    const k = kindOf('.novelforge/summaries/卷一/003-楼道.md');
+    const k = kindOf('.novelwarden/summaries/卷一/003-楼道.md');
     assert.equal(k.kind, 'plot');
     assert.equal(k.no, 3);
-    assert.deepEqual(k.target, { kind: 'plot', plotRelPath: '.novelforge/summaries/卷一/003-楼道.md' });
+    assert.deepEqual(k.target, { kind: 'plot', plotRelPath: '.novelwarden/summaries/卷一/003-楼道.md' });
   });
 
   test('summaries/ 根下没有数字前缀的不是细纲', () => {
-    assert.equal(kindOf('.novelforge/summaries/说明.md').kind, 'other');
+    assert.equal(kindOf('.novelwarden/summaries/说明.md').kind, 'other');
   });
 
   test('summaries/ 子目录里没有数字前缀的也不是细纲', () => {
-    assert.equal(kindOf('.novelforge/summaries/卷一/global.md').kind, 'other');
+    assert.equal(kindOf('.novelwarden/summaries/卷一/global.md').kind, 'other');
   });
 });
 
 // 细纲从 plots/ 搬进了 summaries/。老工程的 plots/ 原样留在磁盘上，代码不认：判成 other、不抛，
 // rel 照给（目录守卫照旧拦着它，见 guard.test.js）。
 describe('kindOfPath · 老工程留下的 plots/', () => {
-  for (const rel of ['.novelforge/plots/012-入宗.md', '.novelforge/plots/01-觉醒之日/003-楼道.md']) {
+  for (const rel of ['.novelwarden/plots/012-入宗.md', '.novelwarden/plots/01-觉醒之日/003-楼道.md']) {
     test(`${rel} 是 other、没有创作层与目标`, () => {
       const k = kindOf(rel);
       assert.equal(k.kind, 'other');
@@ -177,30 +177,30 @@ describe('kindOfPath · 老工程留下的 plots/', () => {
 // 装配器不读、网关按普通文本处理。**判成 other 而不是抛错**，因为它确实存在。
 describe('kindOfPath · 老工程留下的 scenes/', () => {
   test('镜像目录下的 .md 不再是产物', () => {
-    assert.equal(kindOf('.novelforge/scenes/012-入宗/02-翻越侧峰.md').kind, 'other');
+    assert.equal(kindOf('.novelwarden/scenes/012-入宗/02-翻越侧峰.md').kind, 'other');
   });
 
   test('不认它属于哪一层', () => {
-    assert.equal(kindOf('.novelforge/scenes/012-入宗/02-翻越侧峰.md').stage, undefined);
+    assert.equal(kindOf('.novelwarden/scenes/012-入宗/02-翻越侧峰.md').stage, undefined);
   });
 
   test('也不给它一个创作目标', () => {
-    assert.equal(kindOf('.novelforge/scenes/012-入宗/02-翻越侧峰.md').target, undefined);
+    assert.equal(kindOf('.novelwarden/scenes/012-入宗/02-翻越侧峰.md').target, undefined);
   });
 
   // 越界才不给 rel。它没越界，只是不再是产物——`rel` 照给，调用方仍然认得出
   // 这是工程内的一个普通文件。
   test('仍然给出规范化的相对路径', () => {
     assert.equal(
-      kindOf('.novelforge/scenes/012-入宗/02-翻越侧峰.md').rel,
-      '.novelforge/scenes/012-入宗/02-翻越侧峰.md'
+      kindOf('.novelwarden/scenes/012-入宗/02-翻越侧峰.md').rel,
+      '.novelwarden/scenes/012-入宗/02-翻越侧峰.md'
     );
   });
 });
 
 // 卷与中转站两层也删了，老工程里那两个目录同 scenes/ 一样：判成 other、不抛。
 describe('kindOfPath · 老工程留下的 volumes/ 与 manuscripts/', () => {
-  for (const rel of ['.novelforge/volumes/01-觉醒之日.md', '.novelforge/manuscripts/012-入宗.md']) {
+  for (const rel of ['.novelwarden/volumes/01-觉醒之日.md', '.novelwarden/manuscripts/012-入宗.md']) {
     test(`${rel} 是 other、没有创作层`, () => {
       const k = kindOf(rel);
       assert.equal(k.kind, 'other');
@@ -252,30 +252,30 @@ describe('kindOfPath · 章节（不认扩展名，AGENTS 第 9 条）', () => {
 
 describe('kindOfPath · 角色 / 设定 / 草稿', () => {
   test('characters/ 下是角色卡', () => {
-    assert.equal(kindOf('.novelforge/characters/林昭.md').kind, 'character');
+    assert.equal(kindOf('.novelwarden/characters/林昭.md').kind, 'character');
   });
 
   test('lore/ 下是设定条目', () => {
-    assert.equal(kindOf('.novelforge/lore/青云宗.md').kind, 'lore');
+    assert.equal(kindOf('.novelwarden/lore/青云宗.md').kind, 'lore');
   });
 
   // 完善设定（2026-10-19）：一条条目是架构那一层的单条设定目标（展开），分类目录里的也是；MCP 的 generate 不用特判。
   test('设定条目给出架构层与单条设定目标', () => {
-    const k = kindOf('.novelforge/lore/宗门/正道/天机阁.md');
+    const k = kindOf('.novelwarden/lore/宗门/正道/天机阁.md');
     assert.equal(k.kind, 'lore');
     assert.equal(k.stage, 'setting');
-    assert.deepEqual(k.target, { kind: 'lore', relPath: '.novelforge/lore/宗门/正道/天机阁.md' });
+    assert.deepEqual(k.target, { kind: 'lore', relPath: '.novelwarden/lore/宗门/正道/天机阁.md' });
   });
 
   test('设定区里不是 .md 的不是目标', () => {
-    const k = kindOf('.novelforge/lore/宗门/天机阁.txt');
+    const k = kindOf('.novelwarden/lore/宗门/天机阁.txt');
     assert.equal(k.kind, 'other');
     assert.equal(k.target, undefined);
   });
 
   // 角色/设定区不跟着章节放宽扩展名，仍然只认 .md。
   test('角色区的 .txt 不是角色卡', () => {
-    assert.equal(kindOf('.novelforge/characters/林昭.txt').kind, 'other');
+    assert.equal(kindOf('.novelwarden/characters/林昭.txt').kind, 'other');
   });
 
   test('drafts/ 下是草稿', () => {
@@ -309,7 +309,7 @@ describe('kindOfPath · 越界一律 other 且不抛', () => {
 
   // 前端传上来的路径可能带反斜杠，规范化成正斜杠。
   test('反斜杠被规范化成正斜杠', () => {
-    assert.equal(kindOf('.novelforge\\summaries\\012-入宗.md').kind, 'plot');
+    assert.equal(kindOf('.novelwarden\\summaries\\012-入宗.md').kind, 'plot');
   });
 });
 
@@ -319,8 +319,8 @@ describe('pathOfTarget · 与 kindOfPath 往返', () => {
     { kind: 'setting', doc: 'premise' },
     { kind: 'setting', doc: 'world' },
     { kind: 'outline' },
-    { kind: 'plot', plotRelPath: '.novelforge/summaries/012-入宗.md' },
-    { kind: 'lore', relPath: '.novelforge/lore/宗门/天机阁.md' },
+    { kind: 'plot', plotRelPath: '.novelwarden/summaries/012-入宗.md' },
+    { kind: 'lore', relPath: '.novelwarden/lore/宗门/天机阁.md' },
   ];
 
   for (const target of targets) {
@@ -331,31 +331,31 @@ describe('pathOfTarget · 与 kindOfPath 往返', () => {
   }
 
   test('大纲的落点就是 outline.md', () => {
-    assert.equal(bundle.kind.pathOfTarget(project, { kind: 'outline' }), '.novelforge/outline.md');
+    assert.equal(bundle.kind.pathOfTarget(project, { kind: 'outline' }), '.novelwarden/outline.md');
   });
 
   test('细纲的落点就是它自己', () => {
     assert.equal(
-      bundle.kind.pathOfTarget(project, { kind: 'plot', plotRelPath: '.novelforge/summaries/012-入宗.md' }),
-      '.novelforge/summaries/012-入宗.md'
+      bundle.kind.pathOfTarget(project, { kind: 'plot', plotRelPath: '.novelwarden/summaries/012-入宗.md' }),
+      '.novelwarden/summaries/012-入宗.md'
     );
   });
 
   test('角色图谱的落点是角色目录', () => {
-    assert.equal(bundle.kind.pathOfTarget(project, { kind: 'setting', doc: 'characters' }), '.novelforge/characters');
+    assert.equal(bundle.kind.pathOfTarget(project, { kind: 'setting', doc: 'characters' }), '.novelwarden/characters');
   });
 
   // 设定清单同理：它是 lore/ 下那一组条目。目录本身不是一件可写的产物，种类表照旧判成 other。
   test('设定清单的落点是设定目录，目录本身仍是 other', () => {
-    assert.equal(bundle.kind.pathOfTarget(project, { kind: 'setting', doc: 'lore' }), '.novelforge/lore');
-    assert.equal(kindOf('.novelforge/lore').kind, 'other');
+    assert.equal(bundle.kind.pathOfTarget(project, { kind: 'setting', doc: 'lore' }), '.novelwarden/lore');
+    assert.equal(kindOf('.novelwarden/lore').kind, 'other');
   });
 
   // 正文落在同号的章节上，那一章在不在、叫什么要读盘才知道——纯函数不猜，
   // 抛出来让调用方改用 chapterTargetOf。
   test('正文的落点不在这里算', () => {
     assert.throws(
-      () => bundle.kind.pathOfTarget(project, { kind: 'manuscript', plotRelPath: '.novelforge/summaries/012-入宗.md' }),
+      () => bundle.kind.pathOfTarget(project, { kind: 'manuscript', plotRelPath: '.novelwarden/summaries/012-入宗.md' }),
       /chapterTargetOf/
     );
   });

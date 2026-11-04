@@ -69,7 +69,7 @@ describe('「加入选区」带上内置编辑器的选区', { skip: JSDOM_SKIP 
   });
 
   test('Markdown 预览里：不算选区', () => {
-    ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭\n\n主角。', { kind: 'character' }) });
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭\n\n主角。', { kind: 'character' }) });
     ui.clickEl(tab('林昭.md'));
     area().setSelectionRange(0, area().value.length);
     ui.clickEl(ui.doc.getElementById('edPreviewBtn'));

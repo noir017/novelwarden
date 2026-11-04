@@ -29,12 +29,12 @@ let project;
 /** 按模型引用注入异常（fakeProvider 的 behavior）：建 provider 时现读。 */
 const behavior = {};
 
-const THREADS = '.novelforge/threads';
+const THREADS = '.novelwarden/threads';
 const file = (name) => `${THREADS}/${name}.md`;
 const names = () => (t.has(THREADS) ? require('fs').readdirSync(t.rel(THREADS)).sort() : []);
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 const TRANSCRIBER = '格式转写员';
 const PLAN_MARK = '只从作者给的小说配置、故事前提、角色图谱与情节大纲里排出这本书的叙事线';
@@ -104,7 +104,7 @@ before(async () => {
   t = await makeTempProject(bundle.project, { prefix: 'threads-transcribe', title: '青云剑录' });
   project = t.project;
   t.write(
-    '.novelforge/config.md',
+    '.novelwarden/config.md',
     '---\ngenre: 玄幻\ntotalChapters: 20\nwordsPerChapter: 3000\n---\n# 设定\n\n## 一句话\n\n少年背着旧案入宗。\n'
   );
   writeOutline(t, outlineOf(20, { text: { 1: '林昭背着旧案入宗，与沈青从猜忌到并肩，查出当年放火的人。' } }));

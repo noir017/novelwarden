@@ -77,7 +77,7 @@ describe('撤销 / 重做：每个文件一份', { skip: JSDOM_SKIP }, () => {
   before(() => {
     ui = mount({ body: 'standalone', scripts: ['editor.js'], shims: ['pointerCapture', 'confirm'] });
     ui.post({ type: 'editorOpen', file: file('chapters/001-雨夜.md', '雨夜。', { kind: 'chapter' }) });
-    ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭', { kind: 'character' }) });
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭', { kind: 'character' }) });
     t = typer(ui, area);
     k = keys(ui, area);
   });
@@ -167,7 +167,7 @@ describe('撤销 / 重做：每个文件一份', { skip: JSDOM_SKIP }, () => {
     t.type('甲');
     ui.clickEl(tab('林昭.md').querySelector('.ed-tab-close'));
     await ui.answer('不保存');
-    ui.post({ type: 'editorOpen', file: file('.novelforge/characters/林昭.md', '# 林昭', { kind: 'character' }) });
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/characters/林昭.md', '# 林昭', { kind: 'character' }) });
     assert.equal(area().value, '# 林昭');
     k.undo();
     assert.equal(area().value, '# 林昭', '新打开的文件没有可撤销的');
@@ -283,14 +283,14 @@ describe('撤销 / 重做：搬到另一块编辑区历史跟着走', { skip: JS
 
   before(() => {
     ui = mount({ body: 'standalone', scripts: ['editor.js'], shims: ['pointerCapture', 'confirm'] });
-    ui.post({ type: 'editorOpen', file: file('.novelforge/summaries/001-雨夜.md', '# 梗概', { kind: 'plot' }) });
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/summaries/001-雨夜.md', '# 梗概', { kind: 'plot' }) });
   });
 
   test('主区打的字，搬到草稿区之后 Ctrl+Z 照样退得回去', () => {
     const t = typer(ui, () => areaOf(0));
     areaOf(0).setSelectionRange(4, 4);
     t.type('：林昭');
-    ui.post({ type: 'editorOpen', pane: 'draft', file: file('.novelforge/summaries/001-雨夜.md', '# 梗概', { kind: 'plot' }) });
+    ui.post({ type: 'editorOpen', pane: 'draft', file: file('.novelwarden/summaries/001-雨夜.md', '# 梗概', { kind: 'plot' }) });
     const a = areaOf(1);
     assert.equal(a.value, '# 梗概：林昭', '未保存的内容跟着搬');
     a.dispatchEvent(new ui.window.KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }));

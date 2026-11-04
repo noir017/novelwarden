@@ -30,7 +30,7 @@ export async function quickContinue(project: NovelProject): Promise<void> {
     editor.edit((b) => b.replace(new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)), text));
 
   await vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Notification, title: 'Novel Forge：生成中', cancellable: true },
+    { location: vscode.ProgressLocation.Notification, title: 'Novelwarden：生成中', cancellable: true },
     async (progress, token) => {
       token.onCancellationRequested(() => abort.abort());
       await generate(
@@ -59,10 +59,10 @@ export async function quickContinue(project: NovelProject): Promise<void> {
             }),
           onDone: (full) => {
             void replaceAll(full);
-            void vscode.window.showInformationMessage('Novel Forge：生成完成。');
+            void vscode.window.showInformationMessage('Novelwarden：生成完成。');
           },
-          onError: (msg) => void vscode.window.showErrorMessage(`Novel Forge：${msg}`),
-          onCancelled: () => void vscode.window.showInformationMessage('Novel Forge：已取消。'),
+          onError: (msg) => void vscode.window.showErrorMessage(`Novelwarden：${msg}`),
+          onCancelled: () => void vscode.window.showInformationMessage('Novelwarden：已取消。'),
         },
         { signal: abort.signal }
       );

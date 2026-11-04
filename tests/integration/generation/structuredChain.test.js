@@ -105,7 +105,7 @@ const bp = (no, over = {}) => ({
   ...over,
 });
 const batchOf = (...items) => JSON.stringify({ blueprints: items });
-const PLOT_T = (no) => ({ kind: 'plot', plotRelPath: `.novelforge/summaries/${String(no).padStart(3, '0')}.md` });
+const PLOT_T = (no) => ({ kind: 'plot', plotRelPath: `.novelwarden/summaries/${String(no).padStart(3, '0')}.md` });
 
 before(async () => {
   bundle = loadBundle({
@@ -200,7 +200,7 @@ describe('小说配置 · 从一句话生成', () => {
   // D14：文风不进 config.md。style.md 还是初始化那份模板，替换它不吞掉作者的一个字。
   test('文风写进还没动过的 style.md，不进 config.md', async () => {
     assert.ok((await project.readStyleGuide()).includes('冷峻克制'));
-    assert.ok(!t.read('.novelforge/config.md').includes('冷峻克制'));
+    assert.ok(!t.read('.novelwarden/config.md').includes('冷峻克制'));
   });
 });
 
@@ -209,8 +209,8 @@ describe('小说配置 · style.md 已经改过', () => {
   let toasts;
 
   before(async () => {
-    t.write('.novelforge/style.md', '# 文风指南\n\n作者自己写的文风。\n');
-    t.write('.novelforge/config.md', CONFIG);
+    t.write('.novelwarden/style.md', '# 文风指南\n\n作者自己写的文风。\n');
+    t.write('.novelwarden/config.md', CONFIG);
     project.invalidate();
     fake.reset([{ text: JSON.stringify({ ...GOOD_CONFIG, globalGuidance: GOOD_GUIDANCE }), stop: 'end' }]);
     h.expect();
@@ -229,7 +229,7 @@ describe('小说配置 · style.md 已经改过', () => {
   });
 
   test('style.md 一个字没动，并且说出来', () => {
-    assert.equal(t.read('.novelforge/style.md'), '# 文风指南\n\n作者自己写的文风。\n');
+    assert.equal(t.read('.novelwarden/style.md'), '# 文风指南\n\n作者自己写的文风。\n');
     assert.ok(toasts.some((m) => m.includes('style.md 已有内容')), toasts.join('|'));
   });
 
@@ -314,7 +314,7 @@ describe('细纲批次 · 截断对半拆', () => {
   let r;
 
   before(async () => {
-    t.write('.novelforge/config.md', CONFIG);
+    t.write('.novelwarden/config.md', CONFIG);
     writeOutline(t, OUTLINE);
     project.invalidate();
     fake.reset([
@@ -351,7 +351,7 @@ describe('细纲批次 · 截断对半拆', () => {
     const plots = (await project.listPlots()).filter((p) => p.sections.关键事件.trim());
     assert.deepEqual(plots.map((p) => p.no), [1, 2, 3, 4, 5]);
     // 标题取大纲里那一条的（空壳上已经有了），不换成模型起的。
-    assert.equal(plots[0].relPath, '.novelforge/summaries/001-入局.md');
+    assert.equal(plots[0].relPath, '.novelwarden/summaries/001-入局.md');
     assert.ok(plots.every((p) => p.targetWords === 400), JSON.stringify(plots.map((p) => p.targetWords)));
     assert.equal(plots[2].sections.看点, '- 第 3 章的钩子');
     assert.equal(plots[2].sections.关键事件, '- 第 3 章的关键事件：林昭在山门外踩点。\n- 他翻墙进了后院，落在藏书阁门口。');
@@ -572,7 +572,7 @@ describe('小说配置 · 按格式写、转写成 JSON', () => {
   let r;
 
   before(async () => {
-    t.write('.novelforge/config.md', CONFIG);
+    t.write('.novelwarden/config.md', CONFIG);
     project.invalidate();
     fake.reset([
       { text: CONFIG_PROSE, stop: 'end' },
@@ -610,7 +610,7 @@ describe('小说配置 · 转写两次都改了字：按小节读原文', () => 
   let r;
 
   before(async () => {
-    t.write('.novelforge/config.md', CONFIG);
+    t.write('.novelwarden/config.md', CONFIG);
     project.invalidate();
     const reworded = JSON.stringify({ ...CONFIG_COPIED, goldenFinger: '残令能回放死者临终一幕，代价是折寿。' });
     fake.reset([

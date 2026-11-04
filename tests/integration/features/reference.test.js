@@ -122,7 +122,7 @@ describe('从参考书学写法 · 两样都学', () => {
     assert.match(c.detail, /认出 12 章/);
     assert.match(c.detail, /看第 1、4、7、9、12 章（首尾与中间均匀抽）/);
     assert.match(c.detail, /看第 1、2、3、4、5、6 章（开篇与全书 30% 处/);
-    assert.match(c.detail, /\.novelforge\/skills\/玄天录-写法\/SKILL\.md/);
+    assert.match(c.detail, /\.novelwarden\/skills\/玄天录-写法\/SKILL\.md/);
     assert.match(c.detail, /原文不写进工程的任何文件/);
   });
 
@@ -140,13 +140,13 @@ describe('从参考书学写法 · 两样都学', () => {
   });
 
   test('文风写进 style.md', () => {
-    assert.equal(r.style, '.novelforge/style.md');
-    assert.match(t.read('.novelforge/style.md'), /第三人称限知/);
+    assert.equal(r.style, '.novelwarden/style.md');
+    assert.match(t.read('.novelwarden/style.md'), /第三人称限知/);
   });
 
   test('写法写成本工程的技能：stage 是规划、兼容；作者点了才绑', async () => {
-    assert.deepEqual(r.skill, { id: 'project:玄天录-写法', relPath: '.novelforge/skills/玄天录-写法/SKILL.md', bound: true });
-    const raw = t.read('.novelforge/skills/玄天录-写法/SKILL.md');
+    assert.deepEqual(r.skill, { id: 'project:玄天录-写法', relPath: '.novelwarden/skills/玄天录-写法/SKILL.md', bound: true });
+    const raw = t.read('.novelwarden/skills/玄天录-写法/SKILL.md');
     assert.match(raw, /^---\nname: 玄天录-写法\ndisplay_name: 《玄天录》的写法\n/);
     assert.match(raw, /stage: planning/);
     assert.match(raw, /每章两到三个场景/);
@@ -167,7 +167,7 @@ describe('从参考书学写法 · 两样都学', () => {
 describe('从参考书学写法 · 边角', () => {
   test('只学文风：1 次调用，不写技能；style.md 有内容时按钮写明会覆盖', async () => {
     const t = await fresh('ref-style');
-    t.write('.novelforge/style.md', '# 文风指南\n\n作者自己调过的文风。\n');
+    t.write('.novelwarden/style.md', '# 文风指南\n\n作者自己调过的文风。\n');
     t.project.invalidate();
     h.expect('参考/玄天录.txt', 'style', '覆盖 style.md 并开始');
     const r = await bundle.reference.learnFromReference(t.project);
@@ -175,8 +175,8 @@ describe('从参考书学写法 · 边角', () => {
     assert.match(h.confirms[0].detail, /它已经有内容，会被覆盖/);
     assert.equal(r.calls, 1);
     assert.equal(r.skill, undefined);
-    assert.match(t.read('.novelforge/style.md'), /第三人称限知/);
-    assert.ok(!t.has('.novelforge/skills'));
+    assert.match(t.read('.novelwarden/style.md'), /第三人称限知/);
+    assert.ok(!t.has('.novelwarden/skills'));
   });
 
   test('文风抽几章按上下文详细度：「精简」3 章、「完整」8 章', async () => {
@@ -201,18 +201,18 @@ describe('从参考书学写法 · 边角', () => {
     const r = await bundle.reference.learnFromReference(t.project);
     assert.equal(r.calls, 0);
     assert.equal(fake.callCount(), 0);
-    assert.ok(!t.has('.novelforge/skills'));
+    assert.ok(!t.has('.novelwarden/skills'));
   });
 
   test('同名技能已在：加后缀，不覆盖', async () => {
     const t = await fresh('ref-taken');
-    t.write('.novelforge/skills/玄天录-写法/SKILL.md', '---\nname: 玄天录-写法\n---\n作者的旧版。\n');
+    t.write('.novelwarden/skills/玄天录-写法/SKILL.md', '---\nname: 玄天录-写法\n---\n作者的旧版。\n');
     t.project.invalidate();
     h.expect('参考/玄天录.txt', 'skill', '开始学', undefined);
     const r = await bundle.reference.learnFromReference(t.project);
     assert.equal(r.skill.id, 'project:玄天录-写法-2');
     assert.equal(r.skill.bound, false);
-    assert.match(t.read('.novelforge/skills/玄天录-写法/SKILL.md'), /作者的旧版/);
+    assert.match(t.read('.novelwarden/skills/玄天录-写法/SKILL.md'), /作者的旧版/);
   });
 
   test('技能正文不兼容：不问绑定，说清为什么', async () => {
@@ -240,8 +240,8 @@ describe('从参考书学写法 · 边角', () => {
       assert.equal(r.calls, 4);
       assert.equal(fake.callCount(), 4);
       assert.equal(r.skill, undefined);
-      assert.equal(r.style, '.novelforge/style.md');
-      assert.ok(!t.has('.novelforge/skills'));
+      assert.equal(r.style, '.novelwarden/style.md');
+      assert.ok(!t.has('.novelwarden/skills'));
       assert.equal(h.confirms.length, 1);
       assert.ok(
         h.toasts.some((x) => x.startsWith('error:') && x.includes('写法没学成') && x.includes('缺了「场景推进」')),
@@ -254,14 +254,14 @@ describe('从参考书学写法 · 边角', () => {
 
   test('上游报撞到输出上限：小节齐全也不写 style.md', async () => {
     const t = await fresh('ref-maxtokens');
-    t.write('.novelforge/style.md', '# 文风指南\n\n作者自己调过的文风。\n');
+    t.write('.novelwarden/style.md', '# 文风指南\n\n作者自己调过的文风。\n');
     t.project.invalidate();
     styleReply = { text: STYLE_FULL, stop: 'maxTokens' };
     try {
       h.expect('参考/玄天录.txt', 'style', '覆盖 style.md 并开始');
       const r = await bundle.reference.learnFromReference(t.project);
       assert.equal(r.style, undefined);
-      assert.match(t.read('.novelforge/style.md'), /作者自己调过的文风/);
+      assert.match(t.read('.novelwarden/style.md'), /作者自己调过的文风/);
       assert.ok(h.toasts.some((x) => x.startsWith('error:') && x.includes('输出上限')), h.toasts.join('|'));
     } finally {
       styleReply = STYLE_FULL;

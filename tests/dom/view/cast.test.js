@@ -75,7 +75,7 @@ describe('角色的出场统计与更新菜单', { skip: JSDOM_SKIP }, () => {
     assert.ok(inc, '没发出 characterAction');
     assert.equal(inc.action, 'updateCard', JSON.stringify(inc));
     assert.equal(inc.name, '林昭', JSON.stringify(inc));
-    assert.equal(inc.relPath, '.novelforge/characters/林昭.md', JSON.stringify(inc));
+    assert.equal(inc.relPath, '.novelwarden/characters/林昭.md', JSON.stringify(inc));
   });
 
   test('「重新通读」发 rebuildCard', () => {

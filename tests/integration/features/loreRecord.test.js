@@ -33,7 +33,7 @@ const TEXT = [
 ].join('\n\n');
 
 const CH = (no) => `chapters/00${no}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/00${no}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/00${no}-第${no}章.md`;
 
 /** 定稿那一次的回答（JSON）。 */
 const SUMMARY = {
@@ -93,8 +93,8 @@ before(async () => {
   for (const no of [1, 2, 3]) {
     t.write(CH(no), `# 第${no}章\n\n${TEXT}\n`);
   }
-  t.write('.novelforge/lore/地域/青崖镇.md', '---\ntitle: 青崖镇\nkeywords: [青崖]\n---\n\n# 青崖镇\n\n偏僻小镇。\n');
-  t.write('.novelforge/lore/信物/崖字令牌.md', '---\ntitle: 崖字令牌\nkeywords: [令牌]\n---\n\n# 崖字令牌\n\n木牌。\n');
+  t.write('.novelwarden/lore/地域/青崖镇.md', '---\ntitle: 青崖镇\nkeywords: [青崖]\n---\n\n# 青崖镇\n\n偏僻小镇。\n');
+  t.write('.novelwarden/lore/信物/崖字令牌.md', '---\ntitle: 崖字令牌\nkeywords: [令牌]\n---\n\n# 崖字令牌\n\n木牌。\n');
 });
 
 after(() => {

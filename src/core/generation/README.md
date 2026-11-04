@@ -57,7 +57,7 @@ draft.target → accept(project, target, parseArtifact(action, 气泡里的文�
 
 `generate` 产出的那份东西一个字都没写盘，而它至少要活到作者在落盘卡片上点头那一刻；外部 agent 手里的 `draftId` 还可能被它稍后用 `write draftId=…` 拿去写。
 
-- **存哪里**：内存为主（`Map`，按会话分桶），随会话 JSON 一起落盘（`.novelforge/sessions/<id>.json`）
+- **存哪里**：内存为主（`Map`，按会话分桶），随会话 JSON 一起落盘（`.novelwarden/sessions/<id>.json`）
 - **不进 SQLite**：第 17 条，库只放可丢弃的痕迹。draft 是未落盘的内容，但它跟着会话走，会话本来就是 JSON
 - **留多少**：一个会话 20 份（`MAX_DRAFTS_PER_SESSION`）。`draft.raw` 与 `ChatTurn.content` 是同一段文字，全留着等于把会话文件写两遍
 - **谁装回内存**：`controller/session.ts` 的 `openSession`。换会话时 `dropBySession` 掉上一个，不然开一天面板会攒下几十份没人再看的正文

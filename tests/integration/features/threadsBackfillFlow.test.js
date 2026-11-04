@@ -31,8 +31,8 @@ const books = [];
 const TITLES = ['停舟', '令牌', '夜访', '井', '名册', '渡口'];
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-${TITLES[no - 1]}.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
-const THREADS = '.novelforge/threads';
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
+const THREADS = '.novelwarden/threads';
 const MAIN = `${THREADS}/青崖旧案.md`;
 const text = (no) => `# ${TITLES[no - 1]}\n\n林昭在第${no}章摸了摸怀里的玉佩。\n\n沈氏在第${no}章翻开名册，手指停在第${no}行。\n`;
 

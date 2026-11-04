@@ -19,7 +19,7 @@ const { cleanup } = require('../../helpers/teardown');
 
 const N = 150;
 const pad3 = (n) => String(n).padStart(3, '0');
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 const config = (extra = {}) => ({
   providers: [{ id: 'p', kind: 'openai', baseUrl: 'https://x/v1', models: [{ name: 'm' }] }],
@@ -71,9 +71,9 @@ async function setup(summaryThrough) {
     t.write(PLOT(no), plotText(no, no === 148 || no > N));
   }
   if (summaryThrough !== undefined) {
-    t.write('.novelforge/summaries/global.md', `# 全文大纲\n\n## 主线进展\n\n${'林昭一路追查令牌的来历。'.repeat(20)}\n`);
-    const manifest = JSON.parse(t.read('.novelforge/project.json'));
-    t.write('.novelforge/project.json', JSON.stringify({ ...manifest, globalSummaryThrough: summaryThrough }, null, 2));
+    t.write('.novelwarden/summaries/global.md', `# 全文大纲\n\n## 主线进展\n\n${'林昭一路追查令牌的来历。'.repeat(20)}\n`);
+    const manifest = JSON.parse(t.read('.novelwarden/project.json'));
+    t.write('.novelwarden/project.json', JSON.stringify({ ...manifest, globalSummaryThrough: summaryThrough }, null, 2));
   }
   t.project.invalidate();
   return t;
