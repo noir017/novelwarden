@@ -28,9 +28,9 @@ let posted = [];
 let gates = [];
 let script = [];
 
-const P2 = '.novelforge/summaries/002-客栈.md';
-const P3 = '.novelforge/summaries/003-夜访.md';
-const P4 = '.novelforge/summaries/004-井.md';
+const P2 = '.novelwarden/summaries/002-客栈.md';
+const P3 = '.novelwarden/summaries/003-夜访.md';
+const P4 = '.novelwarden/summaries/004-井.md';
 
 const CH1_END =
   '客栈的灯还亮着，沈氏坐在柜台后面拨算盘，看见他进门，手指停在半空，半晌才说了一句：“李叔来过，问你去了哪里，我说你出城收账去了。”林昭没有答话，把湿透的斗篷挂在门后，从灶上端下那碗早就凉了的姜汤，一口一口喝完。';

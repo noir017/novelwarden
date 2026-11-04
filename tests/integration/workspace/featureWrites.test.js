@@ -1,7 +1,7 @@
 /**
  * 功能层里从前绕过网关、直接 `writeText` 的几处，改走 `workspace.write` 之后（AGENTS 第 7 条）：
  *
- * - **覆盖之前旧内容进历史版本**（`.novelforge/history/`）：作者手写的角色卡、改名前的正文被换掉之后找得回来（第 3 条）；
+ * - **覆盖之前旧内容进历史版本**（`.novelwarden/history/`）：作者手写的角色卡、改名前的正文被换掉之后找得回来（第 3 条）；
  * - **审阅只问一次**：功能自己弹过审阅（或作者在确认框里选了「全部直接采纳」），写盘时传 `review: false`，网关不再问第二次；
  * - **新建设定条目同名不覆盖**：已有的条目原样留着，新的加序号；
  * - **章节改名时同步 `# 标题` 行不碰细纲的 `writtenFrom`**：挂着 ⟳ 的章改名之后照样挂着、没挂的照样不挂（第 18 条）；
@@ -55,7 +55,7 @@ function makeChapter(no, title, cast) {
   const stem = `${String(no).padStart(3, '0')}-${title}`;
   t.write(`chapters/${stem}.md`, `# ${title}\n\n${'雨下了三天，石板路泡得发白。'.repeat(20)}\n`);
   t.write(
-    `.novelforge/summaries/${stem}.md`,
+    `.novelwarden/summaries/${stem}.md`,
     `---\nno: ${no}\ntitle: ${title}\nsourceHash: x\ncast: [${cast.join(', ')}]\n---\n\n# 第${no}章 ${title}\n\n` +
       `## 梗概\n\n略。\n\n## 出场人物\n\n${cast.join('、')}\n\n## 关键事件\n\n甲乙丙。\n`
   );
@@ -63,11 +63,11 @@ function makeChapter(no, title, cast) {
 
 /** 这份文件的快照文件名，新的在前。 */
 function snaps(rel) {
-  const dir = t.rel('.novelforge/history', rel);
+  const dir = t.rel('.novelwarden/history', rel);
   return fs.existsSync(dir) ? bundle.history.sortSnapshotNames(fs.readdirSync(dir)) : [];
 }
 
-const snapTexts = (rel) => snaps(rel).map((name) => fs.readFileSync(t.rel('.novelforge/history', rel, name), 'utf8'));
+const snapTexts = (rel) => snaps(rel).map((name) => fs.readFileSync(t.rel('.novelwarden/history', rel, name), 'utf8'));
 
 /** 正文挂不挂 ⟳：与工程页同一个判据（`views/pipeline.ts`：细纲的 `writtenFrom` 记过、而且对不上内容指纹）。 */
 async function staleOf(no) {
@@ -101,10 +101,10 @@ before(async () => {
   makeChapter(2, '入镇', ['林昭', '老周']);
   makeChapter(3, '夜谈', ['沈氏', '韩七']);
   for (const name of ['林昭', '沈氏', '老周', '阿蘅']) {
-    t.write(`.novelforge/characters/${name}.md`, authorCard(name));
+    t.write(`.novelwarden/characters/${name}.md`, authorCard(name));
   }
   // 扩展名大写的卡：角色区认它（`.md` 不分大小写），写回去得还是这一份。
-  t.write('.novelforge/characters/韩七.MD', authorCard('韩七'));
+  t.write('.novelwarden/characters/韩七.MD', authorCard('韩七'));
   project.invalidate();
 });
 
@@ -113,7 +113,7 @@ after(() => {
 });
 
 describe('更新角色卡：作者在 diff 审阅里点了采纳', () => {
-  const CARD = '.novelforge/characters/林昭.md';
+  const CARD = '.novelwarden/characters/林昭.md';
   let original;
   let written;
   let reviewed;
@@ -151,7 +151,7 @@ describe('更新角色卡：作者在 diff 审阅里点了采纳', () => {
 });
 
 describe('更新角色卡：审阅里放弃', () => {
-  const CARD = '.novelforge/characters/林昭.md';
+  const CARD = '.novelwarden/characters/林昭.md';
   let before_;
   let after_;
   let snapCount;
@@ -180,7 +180,7 @@ describe('更新角色卡：审阅里放弃', () => {
 });
 
 describe('更新角色卡：宿主没有 diff 审阅，退回确认框', () => {
-  const CARD = '.novelforge/characters/老周.md';
+  const CARD = '.novelwarden/characters/老周.md';
   let original;
   let written;
   let confirms;
@@ -213,7 +213,7 @@ describe('更新角色卡：宿主没有 diff 审阅，退回确认框', () => {
 });
 
 describe('更新角色卡：扩展名大写的卡写回原文件', () => {
-  const CARD = '.novelforge/characters/韩七.MD';
+  const CARD = '.novelwarden/characters/韩七.MD';
   let original;
   let written;
   let siblings;
@@ -224,7 +224,7 @@ describe('更新角色卡：扩展名大写的卡写回原文件', () => {
     fake.reset([cardJson({ 身份: '韩七：模型写的身份' })]);
     await bundle.characterCard.updateCharacterCard(project, CARD, 'full');
     written = t.read(CARD);
-    siblings = fs.readdirSync(t.rel('.novelforge/characters')).filter((n) => n.startsWith('韩七'));
+    siblings = fs.readdirSync(t.rel('.novelwarden/characters')).filter((n) => n.startsWith('韩七'));
   });
 
   test('写的是作者那一份，旁边没有另起一张 `韩七.md`', () => {
@@ -238,7 +238,7 @@ describe('更新角色卡：扩展名大写的卡写回原文件', () => {
 });
 
 describe('提取角色：已有的卡逐个对比后采纳', () => {
-  const CARD = '.novelforge/characters/阿蘅.md';
+  const CARD = '.novelwarden/characters/阿蘅.md';
   let original;
   let written;
   let reviewed;
@@ -278,7 +278,7 @@ describe('提取角色：已有的卡逐个对比后采纳', () => {
 });
 
 describe('批量更新角色卡：作者在确认框里选了「全部直接采纳」', () => {
-  const CARD = '.novelforge/characters/沈氏.md';
+  const CARD = '.novelwarden/characters/沈氏.md';
   let original;
   let written;
   let reviewed;
@@ -315,7 +315,7 @@ describe('批量更新角色卡：作者在确认框里选了「全部直接采�
 });
 
 describe('新建设定条目', () => {
-  const MINE = '.novelforge/lore/势力/玄门.md';
+  const MINE = '.novelwarden/lore/势力/玄门.md';
   const AUTHOR = '---\ntitle: 玄门\nkeywords: [玄门]\n---\n\n# 玄门\n\n作者写好的玄门。\n';
   let mineAfter;
   let created;
@@ -327,15 +327,15 @@ describe('新建设定条目', () => {
     t.write(MINE, AUTHOR);
     project.invalidate();
     h.expect('玄门');
-    await bundle.characters.newLore(project, '.novelforge/lore/势力');
+    await bundle.characters.newLore(project, '.novelwarden/lore/势力');
     mineAfter = t.read(MINE);
-    created = t.has('.novelforge/lore/势力/玄门-2.md') ? t.read('.novelforge/lore/势力/玄门-2.md') : undefined;
+    created = t.has('.novelwarden/lore/势力/玄门-2.md') ? t.read('.novelwarden/lore/势力/玄门-2.md') : undefined;
     opened = [...h.opened];
 
     // 工程页「出现过 · 未建条目」那一行右键新建：带着名字，不再问。
     h.expect();
     await bundle.characters.newLore(project, undefined, '青崖镇');
-    named = t.has('.novelforge/lore/青崖镇.md') ? t.read('.novelforge/lore/青崖镇.md') : undefined;
+    named = t.has('.novelwarden/lore/青崖镇.md') ? t.read('.novelwarden/lore/青崖镇.md') : undefined;
     namedInputs = h.inputs.length;
   });
 
@@ -349,12 +349,12 @@ describe('新建设定条目', () => {
   });
 
   test('建完打开它', () => {
-    assert.deepEqual(opened, ['.novelforge/lore/势力/玄门-2.md']);
+    assert.deepEqual(opened, ['.novelwarden/lore/势力/玄门-2.md']);
   });
 
   test('没有覆盖任何东西，也就不存历史版本', () => {
     assert.equal(snaps(MINE).length, 0);
-    assert.equal(snaps('.novelforge/lore/势力/玄门-2.md').length, 0);
+    assert.equal(snaps('.novelwarden/lore/势力/玄门-2.md').length, 0);
   });
 
   test('带着名字新建：不问标题，落在设定根下', () => {
@@ -390,7 +390,7 @@ describe('章节改名：同步正文的 # 标题 行', () => {
     t.write(OLD, BODY);
     // 细纲在正文之后改过：`writtenFrom` 对不上现在的内容指纹 → 正文挂 ⟳。
     t.write(
-      '.novelforge/summaries/010-旧名.md',
+      '.novelwarden/summaries/010-旧名.md',
       renderPlotFile({
         no: 10,
         title: '旧名',
@@ -405,7 +405,7 @@ describe('章节改名：同步正文的 # 标题 行', () => {
     freshWrittenFrom = plotContentHash({ sections: freshSections });
     t.write('chapters/011-次章.md', '# 次章\n\n正文。\n');
     t.write(
-      '.novelforge/summaries/011-次章.md',
+      '.novelwarden/summaries/011-次章.md',
       renderPlotFile({ no: 11, title: '次章', upstreamHash: '', writtenFrom: freshWrittenFrom, done: false, sections: freshSections })
     );
     staleBefore = await staleOf(10);
@@ -421,15 +421,15 @@ describe('章节改名：同步正文的 # 标题 行', () => {
     history = snapTexts(NEW);
     historyLeftBehind = snaps(OLD).length;
     project.invalidate();
-    const plot = await project.readPlot('.novelforge/summaries/010-新名.md');
-    plotMoved = !!plot && !t.has('.novelforge/summaries/010-旧名.md');
+    const plot = await project.readPlot('.novelwarden/summaries/010-新名.md');
+    plotMoved = !!plot && !t.has('.novelwarden/summaries/010-旧名.md');
     writtenFromAfter = plot && plot.writtenFrom;
     staleAfter = await staleOf(10);
 
     h.expect('再改');
     await bundle.fileOps.renameEntry(project, 'chapters/011-次章.md');
     project.invalidate();
-    freshWrittenFromAfter = (await project.readPlot('.novelforge/summaries/011-再改.md'))?.writtenFrom;
+    freshWrittenFromAfter = (await project.readPlot('.novelwarden/summaries/011-再改.md'))?.writtenFrom;
     freshAfter = await staleOf(11);
   });
 
@@ -524,7 +524,7 @@ async function withWriteStub(onWrite, fn) {
 describe('章节改名：新名字已经被另一章占了', () => {
   const CH = 'chapters/013-甲.md';
   const BODY = `# 甲\n\n${'夜深了，灯还亮着。'.repeat(10)}\n`;
-  const PLOT_REL = '.novelforge/summaries/013-甲.md';
+  const PLOT_REL = '.novelwarden/summaries/013-甲.md';
   const OTHER = 'chapters/013-丙.md';
   const OTHER_BODY = '# 丙\n\n另一章，不能被盖掉。\n';
   let result;
@@ -550,7 +550,7 @@ describe('章节改名：新名字已经被另一章占了', () => {
 
   test('细纲一字不动、留在原处', () => {
     assert.equal(t.read(PLOT_REL), plainPlot(13, '甲'));
-    assert.equal(t.has('.novelforge/summaries/013-丙.md'), false);
+    assert.equal(t.has('.novelwarden/summaries/013-丙.md'), false);
   });
 
   test('占着新名字的那一章一字不动', () => {
@@ -570,7 +570,7 @@ describe('章节改名：写完标题之后新名字才被占（竞态），标�
   const CH = 'chapters/014-丁.md';
   const NEXT = 'chapters/014-戊.md';
   const BODY = `# 丁\n\n${'风从窗缝里钻进来。'.repeat(10)}\n`;
-  const PLOT_REL = '.novelforge/summaries/014-丁.md';
+  const PLOT_REL = '.novelwarden/summaries/014-丁.md';
   const RACER = '# 戊\n\n别处刚建的一章。\n';
   let result;
   let toasts;

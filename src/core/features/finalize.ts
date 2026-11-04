@@ -221,7 +221,7 @@ export async function askFinalizeChapterTask(project: NovelProject, chapter: Cha
   const answer = await askCall({
     message: `${verb}第 ${chapter.order} 章《${chapter.title}》：照正文更新细纲、更新出场角色的当前状态、认这一章在叙事线上发生了什么、推这一章的故事时间。${describeCalls(calls)}。`,
     actions: [verb],
-    detail: `${why}。\n旧版细纲先复制一份进 .novelforge/.trash/。`,
+    detail: `${why}。\n旧版细纲先复制一份进 .novelwarden/.trash/。`,
     tasks: ['plotSummary', 'characterCard', 'transcribe'],
     // 定稿认叙事线带几条线、几条伏笔随详细度（`recordThreads`）。
     contextDetail: true,

@@ -11,7 +11,7 @@ const log = scoped('文件树');
  * 与 [projectView.ts](../views/projectView.ts) 是两件不同的事，别把它们合起来：
  * 那边是**按语义整理过的**工程视图（章节按 order 倒序、定稿状态、角色别名），
  * 只包含三个可管理区里的文件；这里是**磁盘上真实的目录结构**，
- * 一个文件都不隐藏——包括 `.novelforge/`（细纲、会话、角色卡原文都在里面），
+ * 一个文件都不隐藏——包括 `.novelwarden/`（细纲、会话、角色卡原文都在里面），
  * 作者要手改那些文件时，工程页给不了入口。
  *
  * 三条约束：
@@ -30,7 +30,7 @@ export const MAX_DIR_ENTRIES = 2000;
  * 不列出的目录名。只有两个：
  * `node_modules` 是噪音，`.git` 展开是几万个对象文件（而且改它没有意义）。
  *
- * **`.novelforge` 与其他点开头的目录刻意不在这里**——它们正是这个页面存在的理由。
+ * **`.novelwarden` 与其他点开头的目录刻意不在这里**——它们正是这个页面存在的理由。
  */
 export const HIDDEN_DIR_NAMES: ReadonlySet<string> = new Set(['node_modules', '.git']);
 

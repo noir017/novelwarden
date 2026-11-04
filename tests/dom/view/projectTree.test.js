@@ -185,7 +185,7 @@ describe('「故事架构」组', { skip: JSDOM_SKIP }, () => {
   test('点文档名打开那份文件', () => {
     ui.sent.length = 0;
     ui.clickEl(row('故事前提').querySelector('.row-label'));
-    assert.equal(ui.last('openFile')?.path, '.novelforge/premise.md', JSON.stringify(ui.sent));
+    assert.equal(ui.last('openFile')?.path, '.novelwarden/premise.md', JSON.stringify(ui.sent));
   });
 
   // 角色图谱没有自己的文件（它就是 characters/ 下那一组卡）：已有卡时点它切到「角色」页签、展开那一组，
@@ -371,7 +371,7 @@ describe('章节组：一个章号一行', { skip: JSDOM_SKIP }, () => {
   });
 
   test('还没写正文的章，行的身份是细纲路径', () => {
-    assert.equal(plotRow('北行').dataset.plot, '.novelforge/summaries/004-北行.md');
+    assert.equal(plotRow('北行').dataset.plot, '.novelwarden/summaries/004-北行.md');
   });
 
   // 从前这里还带「· 待写 N 段」——剧情段没了，只剩章数与字数。
@@ -396,7 +396,7 @@ describe('章节组：一个章号一行', { skip: JSDOM_SKIP }, () => {
     ui.clickEl(goBtns()[0]);
     const sel = ui.last('selectPlot');
     assert.ok(sel, JSON.stringify(ui.sent));
-    assert.equal(sel.plotRelPath, '.novelforge/summaries/004-北行.md', JSON.stringify(sel));
+    assert.equal(sel.plotRelPath, '.novelwarden/summaries/004-北行.md', JSON.stringify(sel));
   });
 
   test('点「去写这一章」不顺手打开文件，也不直接开写', () => {
@@ -593,7 +593,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
 
   test('还没写正文的章也发 openChapter（后端只开细纲）', () => {
     ui.clickEl(plotRow('北行').querySelector('.row-label'));
-    assert.equal(ui.last('openChapter').plotRelPath, '.novelforge/summaries/004-北行.md');
+    assert.equal(ui.last('openChapter').plotRelPath, '.novelwarden/summaries/004-北行.md');
   });
 
   test('点章节名不再切到对话页', () => {
@@ -618,7 +618,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     // 逐字段比：target 是在 jsdom 那个 realm 里造的，原型不是本 realm 的
     // Object.prototype，deepStrictEqual 会因此判不等。
     assert.equal(t.target.kind, 'manuscript', JSON.stringify(t));
-    assert.equal(t.target.plotRelPath, '.novelforge/summaries/001-楔子.md', JSON.stringify(t));
+    assert.equal(t.target.plotRelPath, '.novelwarden/summaries/001-楔子.md', JSON.stringify(t));
   });
 
   // 定稿是照正文更新细纲，读的是正文，所以带的必须是 chapters/ 那条路径。
@@ -637,7 +637,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     ui.pick(ui.rightClick(plotRow('楔子')), '重写正文');
     const t = ui.last('setTarget');
     assert.equal(t?.target.kind, 'manuscript', JSON.stringify(t));
-    assert.equal(t?.target.plotRelPath, '.novelforge/summaries/001-楔子.md', JSON.stringify(t));
+    assert.equal(t?.target.plotRelPath, '.novelwarden/summaries/001-楔子.md', JSON.stringify(t));
     const chip = ui.doc.querySelector('#pendingCmd .cmd-chip');
     assert.ok(chip?.textContent.includes('重写正文'), chip?.textContent);
     assert.equal(ui.sent.filter((m) => m.type === 'send').length, before);
@@ -649,7 +649,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     const sent = [...ui.sent].reverse().find((m) => m.type === 'send');
     assert.equal(sent?.payload.stage, 'manuscript', JSON.stringify(sent?.payload));
     assert.equal(sent.payload.capability, 'generate');
-    assert.equal(sent.payload.target.plotRelPath, '.novelforge/summaries/001-楔子.md', JSON.stringify(sent.payload));
+    assert.equal(sent.payload.target.plotRelPath, '.novelwarden/summaries/001-楔子.md', JSON.stringify(sent.payload));
     assert.equal(sent.payload.text, '节奏再快一点');
     ui.post({ type: 'busy', value: false });
   });
@@ -719,7 +719,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     ui.pick(ui.rightClick(plotRow('入镇')), '细纲（0%）');
     const t = ui.last('setTarget');
     assert.equal(t?.target.kind, 'plot', JSON.stringify(t));
-    assert.equal(t?.target.plotRelPath, '.novelforge/summaries/002-入镇.md', JSON.stringify(t));
+    assert.equal(t?.target.plotRelPath, '.novelwarden/summaries/002-入镇.md', JSON.stringify(t));
   });
 
   // ---- 细纲排好、还没写正文的章（第 4 章）：正文那几项都没有。
@@ -745,12 +745,12 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
 
   test('没写正文的章「进入这一章」带的是细纲路径', () => {
     ui.pick(ui.rightClick(plotRow('北行')), '进入这一章');
-    assert.equal(ui.last('selectPlot')?.plotRelPath, '.novelforge/summaries/004-北行.md');
+    assert.equal(ui.last('selectPlot')?.plotRelPath, '.novelwarden/summaries/004-北行.md');
   });
 
   test('没写正文的章删除落在细纲上', () => {
     ui.pick(ui.rightClick(plotRow('北行')), '删除（移到回收站）');
-    assert.equal(ui.last('fileAction')?.relPath, '.novelforge/summaries/004-北行.md');
+    assert.equal(ui.last('fileAction')?.relPath, '.novelwarden/summaries/004-北行.md');
   });
 
   // ---- 文件夹行：「在此新建」的落点必须是这个文件夹，不是区根目录。
@@ -768,7 +768,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     const add = ui.last('projectAction');
     assert.ok(add, '没发出 projectAction');
     assert.equal(add.action, 'newCharacter', JSON.stringify(add));
-    assert.equal(add.dir, '.novelforge/characters/配角', JSON.stringify(add));
+    assert.equal(add.dir, '.novelwarden/characters/配角', JSON.stringify(add));
   });
 
   test('「在此新建文件夹」带 dir', () => {
@@ -776,7 +776,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     const mk = ui.last('projectAction');
     assert.ok(mk, '没发出 projectAction');
     assert.equal(mk.action, 'newFolder', JSON.stringify(mk));
-    assert.equal(mk.dir, '.novelforge/characters/配角', JSON.stringify(mk));
+    assert.equal(mk.dir, '.novelwarden/characters/配角', JSON.stringify(mk));
   });
 
   // ---- 角色文件行
@@ -797,7 +797,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     ui.clickEl([...ui.doc.querySelectorAll('#projectBody .row-label')].find((n) => n.textContent === '林昭'));
     const open = ui.last('openFile');
     assert.ok(open, '没发出 openFile');
-    assert.equal(open.path, '.novelforge/characters/林昭.md', JSON.stringify(open));
+    assert.equal(open.path, '.novelwarden/characters/林昭.md', JSON.stringify(open));
   });
 
   // ---- 分组标题栏：落点是该区根目录。
@@ -809,7 +809,7 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
     ui.pick(ui.rightClick(groupHead), '在此新建角色卡');
     const rootAdd = ui.last('projectAction');
     assert.equal(rootAdd.action, 'newCharacter', JSON.stringify(rootAdd));
-    assert.equal(rootAdd.dir, '.novelforge/characters', JSON.stringify(rootAdd));
+    assert.equal(rootAdd.dir, '.novelwarden/characters', JSON.stringify(rootAdd));
   });
 
   // ---- 「文风与摘要」是工程固定文件，不能重命名/删除。情节大纲已经挪进「故事架构」
@@ -942,8 +942,8 @@ describe('工程页的右键菜单', { skip: JSDOM_SKIP }, () => {
 
   // 页里分组下面的空白也属于这一页：右键给的是这一页主分组的菜单，不只是一个「刷新」。
   for (const [tab, label, action, dir] of [
-    ['characters', '在此新建角色卡', 'newCharacter', '.novelforge/characters'],
-    ['lore', '在此新建设定', 'newLore', '.novelforge/lore'],
+    ['characters', '在此新建角色卡', 'newCharacter', '.novelwarden/characters'],
+    ['lore', '在此新建设定', 'newLore', '.novelwarden/lore'],
     ['chapters', '新建细纲（接在最后一章之后）', 'newPlot', undefined],
     ['threads', '从大纲补充叙事线', 'generateThreads', undefined],
   ]) {

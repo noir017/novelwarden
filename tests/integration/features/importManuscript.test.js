@@ -86,7 +86,7 @@ describe('导入原稿 · 挑文件', () => {
     t.write('原稿.txt', BOOK);
     t.write('参考/别人的书.txt', BOOK);
     t.write('chapters/001-楔子.txt', '一章 txt 正文');
-    t.write('.novelforge/import/藏着的.txt', BOOK);
+    t.write('.novelwarden/import/藏着的.txt', BOOK);
     t.project.invalidate();
     const files = await t.project.listImportableTexts();
     assert.deepEqual(files.map((f) => f.relPath).sort(), ['原稿.txt', '参考/别人的书.txt'].sort());

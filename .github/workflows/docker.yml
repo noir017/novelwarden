@@ -1,4 +1,4 @@
-# 独立版的 Docker 镜像（linux/amd64 + linux/arm64），推到 GHCR：ghcr.io/noir017/novelforge。
+# 独立版的 Docker 镜像（linux/amd64 + linux/arm64），推到 GHCR：ghcr.io/noir017/novelwarden。
 #
 # 两种跑法：
 # - 手动点：推 :edge 与 :sha-<短哈希>，日常验证「还能编出来、起得来」；
@@ -55,8 +55,8 @@ jobs:
       - name: 定镜像名与标签
         id: meta
         run: |
-          # GHCR 的镜像名必须全小写（仓库名里有大写 F）。
-          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          # 镜像名固定为新仓库名（GitHub 仓库改名后 GITHUB_REPOSITORY 才会跟着变）。
+          image="ghcr.io/noir017/novelwarden"
           version="${{ inputs.version }}"
           if [ -n "$version" ]; then
             tags="$image:$version,$image:latest"
@@ -81,7 +81,7 @@ jobs:
           context: .
           platforms: linux/amd64
           load: true
-          tags: novelforge:smoke
+          tags: novelwarden:smoke
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -89,14 +89,14 @@ jobs:
         run: |
           # 镜像里绑 0.0.0.0：不给令牌必须拒绝启动（退出码 1）。起来了会一直跑，所以套个 timeout。
           status=0
-          timeout 30 docker run --rm novelforge:smoke || status=$?
+          timeout 30 docker run --rm novelwarden:smoke || status=$?
           if [ "$status" != 1 ]; then
-            echo "::error::没给 NOVELFORGE_TOKEN 时应当拒绝启动（退出码 1），实际是 $status"
+            echo "::error::没给 NOVELWARDEN_TOKEN 时应当拒绝启动（退出码 1），实际是 $status"
             exit 1
           fi
 
-          docker run -d --name smoke -p 3680:3680 -e NOVELFORGE_TOKEN="$SMOKE_TOKEN" novelforge:smoke
-          trap 'docker logs smoke; docker rm -f smoke >/dev/null' EXIT
+          docker run -d --name novelwarden-smoke -p 3680:3680 -e NOVELWARDEN_TOKEN="$SMOKE_TOKEN" novelwarden:smoke
+          trap 'docker logs novelwarden-smoke; docker rm -f novelwarden-smoke >/dev/null' EXIT
           for i in $(seq 30); do
             curl -s -o /dev/null http://127.0.0.1:3680/media/view.js && break
             sleep 1
@@ -111,9 +111,9 @@ jobs:
           test -n "$cookie"
           test "$(code -H "cookie: $cookie" http://127.0.0.1:3680/)" = 200
           # 作者要在容器里用 git 同步书：git 与 ssh 得在，而且以非 root 身份跑得起来。
-          docker exec smoke git --version
-          docker exec smoke ssh -V
-          test "$(docker exec smoke id -u)" = 65532
+          docker exec novelwarden-smoke git --version
+          docker exec novelwarden-smoke ssh -V
+          test "$(docker exec novelwarden-smoke id -u)" = 65532
           echo "冒烟通过"
 
       - uses: docker/login-action@v3

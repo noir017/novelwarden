@@ -216,8 +216,11 @@ describe('独立版打成 node 单文件后能跑', () => {
     base = `http://127.0.0.1:${port}`;
     const home = path.join(dir, 'home');
     fs.mkdirSync(home);
+    // 环境里已有的令牌变量一律剔掉，这一条只验 NOVELWARDEN_TOKEN。
+    const env = { ...process.env, HOME: home, USERPROFILE: home, NOVELWARDEN_TOKEN: TOKEN };
+    delete env.NOVELFORGE_TOKEN;
     child = spawn(process.execPath, [outfile, '--port', String(port), '--no-open'], {
-      env: { ...process.env, HOME: home, USERPROFILE: home, NOVELFORGE_TOKEN: TOKEN },
+      env,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     await new Promise((resolve, reject) => {
@@ -287,7 +290,68 @@ describe('独立版打成 node 单文件后能跑', () => {
     const headers = { 'content-type': 'application/json', accept: 'application/json, text/event-stream' };
     const res = await fetch(`${base}/mcp`, { method: 'POST', headers: { ...headers, authorization: `Bearer ${TOKEN}` }, body });
     assert.equal(res.status, 200);
-    assert.equal((await res.json()).result.serverInfo.name, 'novel-forge');
+    assert.equal((await res.json()).result.serverInfo.name, 'novelwarden');
     assert.equal((await fetch(`${base}/mcp`, { method: 'POST', headers, body })).status, 401);
+  });
+});
+
+/**
+ * 旧令牌变量仍能登录：0.2.x 的部署（Docker compose、Android 私有目录）里
+ * 写的是 `NOVELFORGE_TOKEN`，升级之后不能把作者锁在门外。
+ */
+describe('NOVELFORGE_TOKEN 兼容', () => {
+  const TOKEN = 'legacy-runtime-test-token-0123';
+  let dir;
+  let child;
+  let base;
+  let output = '';
+
+  before(async () => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-node-legacy-token-'));
+    const outfile = path.join(dir, 'server.cjs');
+    await bundleServer({ outfile, stubMedia: true });
+    const port = await freePort();
+    base = `http://127.0.0.1:${port}`;
+    const home = path.join(dir, 'home');
+    fs.mkdirSync(home);
+    // 只给旧变量；新变量必须缺席，否则测不到 fallback。
+    const env = { ...process.env, HOME: home, USERPROFILE: home, NOVELFORGE_TOKEN: TOKEN };
+    delete env.NOVELWARDEN_TOKEN;
+    child = spawn(process.execPath, [outfile, '--port', String(port), '--no-open'], {
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`服务 15 秒没起来：${output}`)), 15000);
+      const onData = (chunk) => {
+        output += chunk;
+        if (output.includes('服务已启动')) {
+          clearTimeout(timer);
+          resolve();
+        }
+      };
+      child.stdout.on('data', onData);
+      child.stderr.on('data', onData);
+      child.once('exit', (code) => {
+        clearTimeout(timer);
+        reject(new Error(`服务退出了（${code}）：${output}`));
+      });
+    });
+  });
+
+  after(() => {
+    child?.kill();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('用 NOVELFORGE_TOKEN 登录：303 跳回并种 cookie', async () => {
+    const res = await fetch(`${base}/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: `token=${TOKEN}&next=%2F`,
+      redirect: 'manual',
+    });
+    assert.equal(res.status, 303);
+    assert.match(res.headers.getSetCookie()[0], /^nf_session=/);
   });
 });

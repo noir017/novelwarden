@@ -217,7 +217,7 @@ export type InMessage =
    */
   | { type: 'requestQuickOpen'; requestId: string }
   /**
-   * 内置编辑器「编辑敏感词表…」（体检面板、「视图 → 体检」）：`.novelforge/sensitive.txt` 不在就经网关新建一份
+   * 内置编辑器「编辑敏感词表…」（体检面板、「视图 → 体检」）：`.novelwarden/sensitive.txt` 不在就经网关新建一份
    * 带说明注释的模板（`mode: 'create'`，同名不覆盖），然后在编辑器里打开它。还不是小说工程时只说一句。
    */
   | { type: 'editSensitiveWords' }

@@ -17,7 +17,7 @@ const { cleanup } = require('../../helpers/teardown');
 let bundle;
 let t;
 let ws;
-const P8 = '.novelforge/summaries/008-渡口.md';
+const P8 = '.novelwarden/summaries/008-渡口.md';
 
 before(async () => {
   bundle = loadBundle({
@@ -59,7 +59,7 @@ describe('recordPreflightOk', () => {
   });
 
   test('手写的细纲（没有 frontmatter）不补', async () => {
-    const rel = '.novelforge/summaries/009-手写.md';
+    const rel = '.novelwarden/summaries/009-手写.md';
     t.write(rel, '# 第9章 手写\n\n## 关键事件\n\n沈秋出场\n');
     assert.equal(await ws.recordPreflightOk(rel, [{ name: '沈秋', reason: '回忆' }]), false);
     assert.doesNotMatch(t.read(rel), /preflightOk/);

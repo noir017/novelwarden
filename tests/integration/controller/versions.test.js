@@ -45,7 +45,7 @@ async function send(msg) {
 }
 
 function snapNames(rel) {
-  const dir = t.rel('.novelforge/history', rel);
+  const dir = t.rel('.novelwarden/history', rel);
   return fs.existsSync(dir) ? bundle.history.sortSnapshotNames(fs.readdirSync(dir)) : [];
 }
 
@@ -124,7 +124,7 @@ describe('mergeWithDisk：冲突时对比合并', () => {
   test('放回之前把磁盘上那一份（别处改过的）先存进历史：合并结果一存盘就盖掉它', () => {
     const names = snapNames(CHAPTER);
     assert.equal(names.length, 1);
-    assert.equal(fs.readFileSync(t.rel('.novelforge/history', CHAPTER, names[0]), 'utf8'), DISK);
+    assert.equal(fs.readFileSync(t.rel('.novelwarden/history', CHAPTER, names[0]), 'utf8'), DISK);
   });
 
   test('原样采纳（一处没动）：放回的就是编辑器里那份，照样换基线', async () => {
@@ -217,7 +217,7 @@ describe('历史版本：列、读、现在存一版', () => {
     await send({ type: 'saveVersion', path: REL });
     const names = snapNames(REL);
     assert.equal(names.length, 3);
-    assert.equal(fs.readFileSync(t.rel('.novelforge/history', REL, names[0]), 'utf8'), V4);
+    assert.equal(fs.readFileSync(t.rel('.novelwarden/history', REL, names[0]), 'utf8'), V4);
     assert.match(toasts(), /磁盘上现在这一份/);
     assert.equal(ofType('versions')[0].entries.length, 3);
   });
@@ -247,7 +247,7 @@ describe('历史版本：列、读、现在存一版', () => {
     assert.match(r.unavailable, /不是工程里的创作产物/);
     await send({ type: 'saveVersion', path: '随手记.md' });
     assert.match(toasts(), /error: .*不是工程里的创作产物/);
-    assert.equal(fs.existsSync(t.rel('.novelforge/history/随手记.md')), false);
+    assert.equal(fs.existsSync(t.rel('.novelwarden/history/随手记.md')), false);
   });
 
   test('还没有快照的文件：空列表，不带原因', async () => {
@@ -277,13 +277,13 @@ describe('放回之前那一下：节流本来会丢掉的那一份也留住', (
     await send({ type: 'saveVersion', path: REL, quiet: true });
     const names = snapNames(REL);
     assert.equal(names.length, 2);
-    assert.equal(fs.readFileSync(t.rel('.novelforge/history', REL, names[0]), 'utf8'), `${BIG}一二`);
+    assert.equal(fs.readFileSync(t.rel('.novelwarden/history', REL, names[0]), 'utf8'), `${BIG}一二`);
   });
 
   test('之后把放回的那份存盘（编辑器保存）：「BIG 一二」仍在历史里，可以再恢复回来', async () => {
     await controller.workspace.write(REL, { text: BIG }, { mode: 'overwrite', review: false });
     assert.equal(t.read(REL), BIG);
-    const texts = snapNames(REL).map((n) => fs.readFileSync(t.rel('.novelforge/history', REL, n), 'utf8'));
+    const texts = snapNames(REL).map((n) => fs.readFileSync(t.rel('.novelwarden/history', REL, n), 'utf8'));
     assert.ok(texts.includes(`${BIG}一二`));
   });
 });

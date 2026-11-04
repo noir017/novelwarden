@@ -69,7 +69,7 @@ describe('pipeline.ts · Stage × Capability', () => {
     for (const doc of ['config', 'premise', 'characters', 'world']) {
       assert.deepEqual(on({ kind: 'setting', doc }), ['discuss', 'generate'], doc);
     }
-    assert.deepEqual(on({ kind: 'lore', relPath: '.novelforge/lore/a.md' }), ['discuss', 'generate']);
+    assert.deepEqual(on({ kind: 'lore', relPath: '.novelwarden/lore/a.md' }), ['discuss', 'generate']);
     assert.deepEqual(on(undefined), ['discuss', 'generate']);
     assert.deepEqual(pipeline.capabilitiesOn('plot', { kind: 'plot', plotRelPath: 'x' }), ['discuss', 'settle', 'generate']);
   });
@@ -222,8 +222,8 @@ describe('pipeline.ts · 动作归一（容错，老会话）', () => {
 });
 
 describe('pipeline.ts · Target', () => {
-  const P = { kind: 'plot', plotRelPath: '.novelforge/plots/012-夜访.md' };
-  const M = { kind: 'manuscript', plotRelPath: '.novelforge/plots/012-夜访.md' };
+  const P = { kind: 'plot', plotRelPath: '.novelwarden/plots/012-夜访.md' };
+  const M = { kind: 'manuscript', plotRelPath: '.novelwarden/plots/012-夜访.md' };
 
   test('target 的阶段就是它的 kind', () => {
     assert.equal(pipeline.stageOfTarget({ kind: 'setting', doc: 'world' }), 'setting');
@@ -284,15 +284,15 @@ describe('pipeline.ts · Target 归一（容错）', () => {
   });
 
   test('老会话的 volume target 落到大纲', () => {
-    assert.deepEqual(pipeline.normalizeTarget({ kind: 'volume', volumeRelPath: '.novelforge/volumes/01.md' }), {
+    assert.deepEqual(pipeline.normalizeTarget({ kind: 'volume', volumeRelPath: '.novelwarden/volumes/01.md' }), {
       kind: 'outline',
     });
   });
 
   test('老会话的 scene target 落到那一章的细纲，场号丢掉', () => {
     assert.deepEqual(
-      pipeline.normalizeTarget({ kind: 'scene', plotRelPath: '.novelforge/plots/003.md', sceneNo: 2 }),
-      { kind: 'plot', plotRelPath: '.novelforge/plots/003.md' }
+      pipeline.normalizeTarget({ kind: 'scene', plotRelPath: '.novelwarden/plots/003.md', sceneNo: 2 }),
+      { kind: 'plot', plotRelPath: '.novelwarden/plots/003.md' }
     );
   });
 
@@ -375,7 +375,7 @@ describe('plotFile.ts · 解析与渲染（七节）', () => {
     sections,
   };
   const text = plotFile.renderPlotFile(plot);
-  const back = plotFile.parsePlotFile(text, '.novelforge/summaries/012-夜入青云.md');
+  const back = plotFile.parsePlotFile(text, '.novelwarden/summaries/012-夜入青云.md');
 
   test('往返：frontmatter', () => {
     assert.equal(back.no, 12);
@@ -401,7 +401,7 @@ describe('plotFile.ts · 解析与渲染（七节）', () => {
 
   test('老细纲里的「新增伏笔」当认不出的小节：不读、不进指纹，文件里还在', () => {
     const old = text.replace('## 状态变更', '## 新增伏笔\n\n- 半枚令牌的另一半在谁手里。\n\n## 状态变更');
-    const parsed = plotFile.parsePlotFile(old, '.novelforge/summaries/012-夜入青云.md');
+    const parsed = plotFile.parsePlotFile(old, '.novelwarden/summaries/012-夜入青云.md');
     assert.deepEqual(parsed.sections, sections);
     assert.equal(plotFile.plotContentHash(parsed), plotFile.plotContentHash(back));
     assert.ok(parsed.body.includes('半枚令牌的另一半'));
@@ -507,7 +507,7 @@ describe('plotFile.ts · 排过没有 / 容错', () => {
 
   test('认不出的小节读进来全空、不抛', () => {
     const odd = '---\nno: 3\ntitle: 夜访\n---\n\n## 目标\n\n甲\n\n## 剧情脉络\n\n乙\n';
-    const p = plotFile.parsePlotFile(odd, '.novelforge/summaries/003-夜访.md');
+    const p = plotFile.parsePlotFile(odd, '.novelwarden/summaries/003-夜访.md');
     assert.equal(p.no, 3);
     assert.equal(p.title, '夜访');
     assert.equal(plotFile.isPlotFilled(p.sections), false);
@@ -572,7 +572,7 @@ describe('plotFile.ts · 老工程的单章摘要当成定稿过的细纲', () =
     'title: 入宗',
     'sourceHash: f00d',
     'cast: [林昭(阿昭), 沈青]',
-    'generatedBy: novel-forge',
+    'generatedBy: novelwarden',
     '---',
     '',
     '# 第7章 入宗 · 摘要',
@@ -590,7 +590,7 @@ describe('plotFile.ts · 老工程的单章摘要当成定稿过的细纲', () =
     '- 林昭拜师。',
     '',
   ].join('\n');
-  const p = plotFile.parsePlotFile(old, '.novelforge/summaries/007-入宗.md');
+  const p = plotFile.parsePlotFile(old, '.novelwarden/summaries/007-入宗.md');
 
   test('章号取文件名前缀，frontmatter 的 chapter 不认', () => {
     assert.equal(plotFile.parsePlotFile(old.replace('chapter: 7', 'chapter: 99'), 'x/007-入宗.md').no, 7);

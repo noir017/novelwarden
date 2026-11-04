@@ -84,7 +84,7 @@ const finalized = (extra = {}) => ({
   ...extra,
 });
 
-const OUTLINE_REL = '.novelforge/outline.md';
+const OUTLINE_REL = '.novelwarden/outline.md';
 
 /** 改情节大纲：读出汇总的整份、改、经网关存回去（按章号拆回各章细纲）。 */
 async function editOutline(fn) {
@@ -132,7 +132,7 @@ after(() => {
 });
 
 describe('细纲 · 写入就记 upstreamHash（这一章梗概的指纹）', () => {
-  const rel = '.novelforge/summaries/012-入宗.md';
+  const rel = '.novelwarden/summaries/012-入宗.md';
 
   before(async () => {
     await ws.writePlot(writable(12, '入宗', { upstreamHash: synopsisHash(filled().梗概) }));
@@ -227,7 +227,7 @@ describe('细纲 · 大纲改了哪一条，只标脏那一章', () => {
   });
 
   test('前提：第 50 章是手写的，没记上游指纹', () => {
-    assert.equal(fm('.novelforge/summaries/050-远方.md', 'upstreamHash'), undefined);
+    assert.equal(fm('.novelwarden/summaries/050-远方.md', 'upstreamHash'), undefined);
   });
 
   test('续写新的一段，前面的细纲都不挂 ⟳', () => {
@@ -245,7 +245,7 @@ describe('细纲 · 大纲改了哪一条，只标脏那一章', () => {
   // 第 50 章没记过上游——和手写的一样，续写换了它的梗概也不凭空标脏（第 18a 条）。
   test('手写的那一章，续写换了它的梗概也不标脏', () => {
     assert.equal(afterAppend[50], false, JSON.stringify(afterAppend));
-    assert.ok(t.read('.novelforge/summaries/050-远方.md').includes('第50章的事。'));
+    assert.ok(t.read('.novelwarden/summaries/050-远方.md').includes('第50章的事。'));
   });
 
   test('只改第 25 章那一条：第 25 章标脏', () => {
@@ -258,13 +258,13 @@ describe('细纲 · 大纲改了哪一条，只标脏那一章', () => {
 
   test('改了第 5 章的标题：只是改名（还没有正文，文件名跟着改），不标脏', () => {
     assert.equal(afterTitle[5], false, JSON.stringify(afterTitle));
-    assert.ok(t.has('.novelforge/summaries/005-回镇.md'));
-    assert.ok(!t.has('.novelforge/summaries/005-入局.md'));
+    assert.ok(t.has('.novelwarden/summaries/005-回镇.md'));
+    assert.ok(!t.has('.novelwarden/summaries/005-入局.md'));
   });
 });
 
 describe('细纲 · 手写的产物永不标脏（第 18a 条）', () => {
-  const rel = '.novelforge/summaries/021-手写.md';
+  const rel = '.novelwarden/summaries/021-手写.md';
 
   before(async () => {
     // 作者在 vim 里敲出来的细纲：没有 frontmatter，也就没有上游。
@@ -307,12 +307,12 @@ describe('细纲 · 手写的产物永不标脏（第 18a 条）', () => {
   });
 
   test('细纲不存在时 recordWrittenFrom 返回 false，不抛', async () => {
-    assert.equal(await ws.recordWrittenFrom('.novelforge/summaries/099-不存在.md', 'X'), false);
+    assert.equal(await ws.recordWrittenFrom('.novelwarden/summaries/099-不存在.md', 'X'), false);
   });
 });
 
 describe('正文 · 落盘时在细纲上记 writtenFrom', () => {
-  const plotRel = '.novelforge/summaries/012-入宗.md';
+  const plotRel = '.novelwarden/summaries/012-入宗.md';
   let chapterRel;
   let plotHash;
   let bodyBefore;
@@ -444,7 +444,7 @@ describe('正文 · 落盘时在细纲上记 writtenFrom', () => {
  * 定稿只改细纲，章节一个字节不动，否则刚记下的 sourceHash 当场就对不上。
  */
 describe('正文 → 定稿 · sourceHash 记的是章节的 contentHash', () => {
-  const plotRel = '.novelforge/summaries/012-入宗.md';
+  const plotRel = '.novelwarden/summaries/012-入宗.md';
   let chapter;
   let chapterTextBefore;
   let chapterTextAfter;
@@ -496,8 +496,8 @@ describe('正文 → 定稿 · sourceHash 记的是章节的 contentHash', () =>
  * 作者的确认，所以直接写；但改掉的是一份作者可能逐字推敲过的计划，要找得回来。
  */
 describe('定稿 · 保留 frontmatter，旧版进回收站', () => {
-  const plotRel = '.novelforge/summaries/060-夜雨.md';
-  const trashRel = '.novelforge/.trash/.novelforge/summaries/060-夜雨.md';
+  const plotRel = '.novelwarden/summaries/060-夜雨.md';
+  const trashRel = '.novelwarden/.trash/.novelwarden/summaries/060-夜雨.md';
   const OLD_SECTIONS = () =>
     filled({
       梗概: '计划：林昭冒雨去青崖镇。',
@@ -599,7 +599,7 @@ describe('定稿 · 保留 frontmatter，旧版进回收站', () => {
 
   // 同名不覆盖之前进回收站的那一份（第 6 条的落点规则）。
   test('再定稿一次，旧版加 -2 序号进回收站', () => {
-    assert.equal(second.trashed, '.novelforge/.trash/.novelforge/summaries/060-夜雨-2.md', JSON.stringify(second));
+    assert.equal(second.trashed, '.novelwarden/.trash/.novelwarden/summaries/060-夜雨-2.md', JSON.stringify(second));
   });
 
   test('-2 那份是第一次定稿后的内容', () => {
@@ -617,8 +617,8 @@ describe('定稿 · 保留 frontmatter，旧版进回收站', () => {
  * 就被这次删除悄悄盖掉了，作者再也找不回来。
  */
 describe('删定稿过的细纲 · 不盖掉定稿时进回收站的旧版', () => {
-  const plotRel = '.novelforge/summaries/060-夜雨.md';
-  const trashRel = '.novelforge/.trash/.novelforge/summaries/060-夜雨.md';
+  const plotRel = '.novelwarden/summaries/060-夜雨.md';
+  const trashRel = '.novelwarden/.trash/.novelwarden/summaries/060-夜雨.md';
   let planBefore;
   let current;
   let deleted;
@@ -639,7 +639,7 @@ describe('删定稿过的细纲 · 不盖掉定稿时进回收站的旧版', () 
   });
 
   test('删掉的这一版另起序号进回收站', () => {
-    assert.equal(t.read('.novelforge/.trash/.novelforge/summaries/060-夜雨-3.md'), current);
+    assert.equal(t.read('.novelwarden/.trash/.novelwarden/summaries/060-夜雨-3.md'), current);
   });
 });
 
@@ -659,7 +659,7 @@ describe('定稿 · 没有细纲的章新建一份', () => {
   });
 
   test('落在正文的镜像上', () => {
-    assert.equal(titled.rel, '.novelforge/summaries/061-残灯.md', JSON.stringify(titled));
+    assert.equal(titled.rel, '.novelwarden/summaries/061-残灯.md', JSON.stringify(titled));
   });
 
   test('原来没有细纲，不报回收站', () => {
@@ -676,7 +676,7 @@ describe('定稿 · 没有细纲的章新建一份', () => {
   });
 
   test('纯序号名的正文，细纲也是纯序号名', () => {
-    assert.equal(bare.rel, '.novelforge/summaries/062.md', JSON.stringify(bare));
+    assert.equal(bare.rel, '.novelwarden/summaries/062.md', JSON.stringify(bare));
   });
 });
 
@@ -685,7 +685,7 @@ describe('定稿 · 没有细纲的章新建一份', () => {
  * 定稿看的是正文有没有改过，不是细纲。反过来定稿之后改了正文，就回到「待定稿」。
  */
 describe('定稿之后 · 改细纲正文挂 ⟳，改正文回到待定稿', () => {
-  const plotRel = '.novelforge/summaries/070-远行.md';
+  const plotRel = '.novelwarden/summaries/070-远行.md';
   let beforeFinalize;
   let done;
   let plotEdited;
@@ -826,7 +826,7 @@ describe('章节 · 一次新建好几章', () => {
  * 定稿记的账在细纲自己的 frontmatter 里，原样留着。
  */
 describe('细纲改标题 · 有正文时文件名跟着正文不动，定稿的账留着', () => {
-  const rel = '.novelforge/summaries/012-入宗.md';
+  const rel = '.novelwarden/summaries/012-入宗.md';
   let hashBefore;
   let sourceHashBefore;
   let written;
@@ -851,7 +851,7 @@ describe('细纲改标题 · 有正文时文件名跟着正文不动，定稿的
   });
 
   test('没有多出一份按标题起名的细纲', () => {
-    assert.ok(!t.has('.novelforge/summaries/012-入宗风波.md'));
+    assert.ok(!t.has('.novelwarden/summaries/012-入宗风波.md'));
   });
 
   test('章节没被改名', () => {
@@ -874,7 +874,7 @@ describe('细纲改标题 · 有正文时文件名跟着正文不动，定稿的
 });
 
 describe('删细纲 · 不碰 chapters/', () => {
-  const rel = '.novelforge/summaries/012-入宗.md';
+  const rel = '.novelwarden/summaries/012-入宗.md';
   let deleted;
   let missing;
 
@@ -888,7 +888,7 @@ describe('删细纲 · 不碰 chapters/', () => {
   });
 
   test('细纲进了回收站', () => {
-    assert.ok(t.has('.novelforge/.trash/.novelforge/summaries/012-入宗.md'));
+    assert.ok(t.has('.novelwarden/.trash/.novelwarden/summaries/012-入宗.md'));
   });
 
   // 那是已经写出来的正文。删掉细纲只是放弃这一章的规划稿（定稿过的话连同档案），
@@ -903,7 +903,7 @@ describe('删细纲 · 不碰 chapters/', () => {
 });
 
 describe('细纲照样过八条守卫', () => {
-  const rel = '.novelforge/summaries/030-占位.md';
+  const rel = '.novelwarden/summaries/030-占位.md';
 
   before(async () => {
     await ws.writePlot(writable(30, '占位'));
@@ -930,14 +930,14 @@ describe('细纲照样过八条守卫', () => {
 
   // 细纲镜像正文的相对路径：分卷的书，细纲就在 summaries/ 的卷目录里，照样是这条链上的细纲、照样记账。
   test('summaries/ 子目录里的细纲照样记账', async () => {
-    const nested = '.novelforge/summaries/卷一/001-高烧.md';
+    const nested = '.novelwarden/summaries/卷一/001-高烧.md';
     await ws.write(nested, { text: '---\nno: 1\n---\n\n## 梗概\n\n高烧那一夜。\n\n## 关键事件\n\n- 高烧\n' });
     assert.equal(fm(nested, 'upstreamHash'), synopsisHash('高烧那一夜。'));
   });
 
   // 老工程的 plots/ 同理：代码不再读它，写进去也只是普通文本。
   test('老工程 plots/ 里的细纲不记账', async () => {
-    const legacy = '.novelforge/plots/001-高烧.md';
+    const legacy = '.novelwarden/plots/001-高烧.md';
     await ws.write(legacy, { text: '---\nno: 1\n---\n\n## 本章目的\n\n老三节\n\n## 关键事件\n\n甲\n' });
     assert.ok(!t.read(legacy).includes('upstreamHash'), t.read(legacy));
   });

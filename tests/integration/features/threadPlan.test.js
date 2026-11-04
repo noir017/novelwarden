@@ -21,11 +21,11 @@ let bundle;
 let h;
 let t;
 
-const DIR = '.novelforge/threads';
+const DIR = '.novelwarden/threads';
 const PAIR = `${DIR}/林昭与沈青.md`;
 const MAIN = `${DIR}/青崖旧案.md`;
 const UNFILED = `${DIR}/未归属的伏笔.md`;
-const PLOT = (no) => `.novelforge/summaries/${String(no).padStart(3, '0')}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${String(no).padStart(3, '0')}-第${no}章.md`;
 
 const PAIR_TEXT = [
   '---',

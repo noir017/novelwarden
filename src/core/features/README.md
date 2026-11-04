@@ -43,7 +43,7 @@
 | [characterCardParse.ts](characterCardParse.ts) | 角色卡更新的 JSON 解析（`parseCardResponse`）与转写那一步的说明（`cardTranscribeSpec`：合同、解码、性别按对应关系填）。 |
 | [characterCardPrompt.ts](characterCardPrompt.ts) | 更新角色卡与定稿时更新当前状态（`STATE_SYSTEM`）的系统提示，及各自的转写合同。 |
 | [characterMaintenance.ts](characterMaintenance.ts) | ★ 两条不调模型的整理动作：`cleanCharacterAliases` 删非专属别名、`mergeDuplicateCharacterCards` 合并重复卡；只改 frontmatter。 |
-| [style.ts](style.ts) | 从样章归纳文风指南写入 `.novelforge/style.md`。 |
+| [style.ts](style.ts) | 从样章归纳文风指南写入 `.novelwarden/style.md`。 |
 | [stylePrompt.ts](stylePrompt.ts) | 文风提取与从参考书学写法的系统提示（只学技法，不复述情节、不抄原句）。 |
 | [bookText.ts](bookText.ts) | 拆书两条路共用的取书：作者可挑本机任意位置的 txt（上限 64 MiB），agent 给的路径只认工程里的清单。 |
 | [importManuscript.ts](importManuscript.ts) | ★ **导入原稿**（拆书 A）：挑 txt → 切章 → 确认 → 一批建好章节，再问要不要从已写正文补齐。 |

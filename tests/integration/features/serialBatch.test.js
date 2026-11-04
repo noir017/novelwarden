@@ -36,9 +36,9 @@ const finished = [];
 const TITLES = ['停舟', '令牌', '夜访', '井', '名册'];
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-${TITLES[no - 1]}.txt`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
-const LIN = '.novelforge/characters/林昭.md';
-const SHEN = '.novelforge/characters/沈氏.md';
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-${TITLES[no - 1]}.md`;
+const LIN = '.novelwarden/characters/林昭.md';
+const SHEN = '.novelwarden/characters/沈氏.md';
 const AUTHOR_STATE = '作者写的：沈氏其实早就认出了林昭，只是不说。';
 
 /** 第 N 章的正文：一段带证据的原句夹在两段填充之间。 */
@@ -141,10 +141,10 @@ before(async () => {
 
   t = await makeTempProject(bundle.project, { prefix: 'phase4', title: '青崖记' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ntotalChapters: 30\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
+  t.write('.novelwarden/config.md', '---\ntotalChapters: 30\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
   // 架构四件与大纲都在（二期那一段的产物），主按钮才会落到单章上。
-  t.write('.novelforge/premise.md', '# 故事前提\n\n## 一句话前提\n\n林昭回镇，必须找出放火的人。\n\n## 核心冲突链\n\n回镇 → 受伤 → 追查。\n');
-  t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n名册决定谁算镇上的人。\n');
+  t.write('.novelwarden/premise.md', '# 故事前提\n\n## 一句话前提\n\n林昭回镇，必须找出放火的人。\n\n## 核心冲突链\n\n回镇 → 受伤 → 追查。\n');
+  t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n名册决定谁算镇上的人。\n');
   writeOutline(t, outlineOf(20, { text: { 1: '林昭进镇，一路受伤一路查。' } }));
   const ws = new bundle.ws.Workspace(project);
   for (let no = 1; no <= 5; no++) {

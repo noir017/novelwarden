@@ -22,7 +22,7 @@ import { InMessage, OutMessage } from '../../core/protocol';
 import { MCP_PATH, createNovelMcp } from '../../core/mcp';
 import { FileConfigStore, FileSecretStore } from '../../core/stores';
 import { PRODUCT_VERSION, assetBytes } from './assets';
-import { LOGIN_PATH, TOKEN_ENV, handleLogin, isAllowedOrigin, isAuthorized, loginRequired } from './auth';
+import { LEGACY_TOKEN_ENV, LOGIN_PATH, TOKEN_ENV, handleLogin, isAllowedOrigin, isAuthorized, loginRequired } from './auth';
 import { FileHost } from './fileHost';
 import { standalonePage } from './page';
 import { currentScope, ScopedHost } from './scopedHost';
@@ -45,7 +45,7 @@ export interface ServeOptions {
   token?: string;
   /** 终端里也打 debug 级日志。网页的日志页始终收全量，不受这里影响。 */
   verbose?: boolean;
-  /** window.json 所在目录。测试注入，缺省为 ~/.novelforge。 */
+  /** window.json 所在目录。测试注入，缺省为 ~/.novelwarden。 */
   windowDir?: string;
 }
 
@@ -102,7 +102,7 @@ export async function startServer(opts: ServeOptions): Promise<number> {
           }
           return new Response('Unauthorized', {
             status: 401,
-            headers: { 'www-authenticate': 'Bearer realm="novelforge"' },
+            headers: { 'www-authenticate': 'Bearer realm="novelwarden"' },
           });
         }
       }
@@ -206,9 +206,9 @@ export async function startServer(opts: ServeOptions): Promise<number> {
   const base = `http://${shown}:${server.port}`;
   log.info(`服务已启动：${base}/`, `工程根 ${rootLabel}${wildcard ? `；监听 ${host}（所有网卡）` : ''}`);
   if (token) {
-    log.info('已开启令牌鉴权', `令牌取自环境变量 ${TOKEN_ENV}；网页先登录，MCP 客户端在请求头里带上它`);
+    log.info('已开启令牌鉴权', `令牌取自环境变量 ${TOKEN_ENV}（旧名 ${LEGACY_TOKEN_ENV} 也认）；网页先登录，MCP 客户端在请求头里带上它`);
   }
-  const addCmd = `claude mcp add --transport http novelforge ${base}${MCP_PATH}`;
+  const addCmd = `claude mcp add --transport http novelwarden ${base}${MCP_PATH}`;
   log.info(`MCP 已就绪：${base}${MCP_PATH}`, token ? `${addCmd}（另加 --header 带令牌，写法见 README「Docker 部署」）` : addCmd);
   return server.port;
 }

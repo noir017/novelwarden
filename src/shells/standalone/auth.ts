@@ -4,7 +4,7 @@
  * 缺省形态没变：只绑 127.0.0.1、无鉴权，安全全靠「别的机器连不进来」。部署到服务器
  * （Docker 镜像就是这样）得绑 0.0.0.0，这道墙就没了，所以**绑非回环地址必须配令牌**，
  * 没配就拒绝启动（`exposureError`）——宁可起不来，也不要裸奔。令牌只认环境变量
- * `NOVELFORGE_TOKEN`：命令行参数会出现在 `ps` 里。
+ * `NOVELWARDEN_TOKEN`（旧名 `NOVELFORGE_TOKEN` 继续兼容）：命令行参数会出现在 `ps` 里。
  *
  * 配了令牌之后，不管绑在哪都要鉴权：
  * - 网页：登录页交一次令牌，换一个 cookie。cookie 里是由令牌派生的值、不是令牌原文；
@@ -16,10 +16,17 @@
  */
 import { createHash, timingSafeEqual } from 'node:crypto';
 
-export const TOKEN_ENV = 'NOVELFORGE_TOKEN';
+export const TOKEN_ENV = 'NOVELWARDEN_TOKEN';
+/** 改名前的变量名。老部署的 compose / 脚本还在用它，继续认。 */
+export const LEGACY_TOKEN_ENV = 'NOVELFORGE_TOKEN';
 /** 令牌下限。登录页能被人反复试，短令牌经不起猜。 */
 export const MIN_TOKEN_LENGTH = 16;
 export const LOGIN_PATH = '/login';
+
+/** 从环境变量取令牌：新名优先，旧名兜底。空白当没给。 */
+export function tokenFromEnv(env: NodeJS.ProcessEnv = process.env): string | undefined {
+  return env[TOKEN_ENV]?.trim() || env[LEGACY_TOKEN_ENV]?.trim() || undefined;
+}
 
 const COOKIE_NAME = 'nf_session';
 const COOKIE_MAX_AGE_S = 30 * 24 * 3600;
@@ -55,7 +62,7 @@ function sameSecret(a: string, b: string): boolean {
 
 /** cookie 里放的值。 */
 export function sessionValue(token: string): string {
-  return createHash('sha256').update(`novelforge-session:${token}`).digest('hex');
+  return createHash('sha256').update(`novelwarden-session:${token}`).digest('hex');
 }
 
 function cookieOf(req: Request, name: string): string | undefined {
@@ -132,7 +139,7 @@ export function loginPage(next: string, failed: boolean): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Novel Forge · 登录</title>
+<title>Novelwarden · 登录</title>
 <link rel="icon" href="/favicon.ico" type="image/svg+xml">
 <style>
   :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
@@ -148,7 +155,7 @@ export function loginPage(next: string, failed: boolean): string {
 </head>
 <body>
 <form method="post" action="${LOGIN_PATH}">
-  <h1>Novel Forge</h1>
+  <h1>Novelwarden</h1>
   <p>这台服务设了访问令牌，输入后进入。</p>
   ${failed ? '<p class="error">令牌不对。</p>' : ''}
   <input type="hidden" name="next" value="${escapeHtml(safeNext(next))}">

@@ -63,8 +63,8 @@ describe('章节文件规则（磁盘）', () => {
     write('chapters/004-无扩展名', '没有扩展名的一章。\n');
     write('chapters/005-封面.png', 'PNG 假装');
     write('chapters/笔记.txt', '没有数字前缀，不是章节');
-    write('.novelforge/characters/林昭.md', '---\nname: 林昭\n---\n\n# 林昭\n');
-    write('.novelforge/characters/说明.txt', '角色区不放宽扩展名');
+    write('.novelwarden/characters/林昭.md', '---\nname: 林昭\n---\n\n# 林昭\n');
+    write('.novelwarden/characters/说明.txt', '角色区不放宽扩展名');
     project.invalidate();
   });
 
@@ -141,7 +141,7 @@ describe('章节文件规则（磁盘）', () => {
     });
 
     test('白名单里的 json 仍可编辑', () => {
-      assert.ok(fileEditing.isEditablePath('.novelforge/project.json'));
+      assert.ok(fileEditing.isEditablePath('.novelwarden/project.json'));
     });
 
     test('非章节的 png 不可编辑', () => {

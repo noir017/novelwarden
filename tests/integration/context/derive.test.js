@@ -66,8 +66,8 @@ before(async () => {
       连续性事实: '',
     }, [{ name: '林昭', aliases: [] }]);
   }
-  t.write('.novelforge/skills/排法/SKILL.md', '---\nname: 排法\n---\n每章三个场景。\n');
-  t.write('.novelforge/skills.json', JSON.stringify({ version: 1, bindings: { planning: 'project:排法' } }));
+  t.write('.novelwarden/skills/排法/SKILL.md', '---\nname: 排法\n---\n每章三个场景。\n');
+  t.write('.novelwarden/skills.json', JSON.stringify({ version: 1, bindings: { planning: 'project:排法' } }));
   t.project.invalidate();
 });
 
@@ -89,7 +89,7 @@ describe('derive · 平时不带', () => {
     const outline = await build({ action: { stage: 'outline', capability: 'generate' }, target: { kind: 'outline' }, range: { from: 1, to: 20 } });
     const plot = await build({
       action: { stage: 'plot', capability: 'generate' },
-      target: { kind: 'plot', plotRelPath: '.novelforge/summaries/003.md' },
+      target: { kind: 'plot', plotRelPath: '.novelwarden/summaries/003.md' },
       range: { from: 3, to: 5 },
       targetNo: 3,
     });

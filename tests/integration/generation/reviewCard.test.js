@@ -33,9 +33,9 @@ let gates = [];
 let gateAnswer = 'proceed';
 let script = [];
 
-const P2 = '.novelforge/summaries/002-客栈.md';
-const P3 = '.novelforge/summaries/003-夜访.md';
-const P4 = '.novelforge/summaries/004-井.md';
+const P2 = '.novelwarden/summaries/002-客栈.md';
+const P3 = '.novelwarden/summaries/003-夜访.md';
+const P4 = '.novelwarden/summaries/004-井.md';
 
 const CH2 = [
   '雨下了一整夜。林昭推开客栈的门，檐下的灯笼被风吹得直晃。',
@@ -141,7 +141,7 @@ before(async () => {
   await ws.createChapter(2, '客栈', CH2);
   await project.syncManifest();
   // 沈秋（别名阿秋）在角色卡上已经死了，第 3 章的细纲还排着他。
-  const dir = path.join(t.dir, '.novelforge/characters');
+  const dir = path.join(t.dir, '.novelwarden/characters');
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(
     path.join(dir, '沈秋.md'),

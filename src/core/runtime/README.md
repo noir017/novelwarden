@@ -1,6 +1,6 @@
 # core/runtime — 可丢弃的运行时设施
 
-日志、进度、失败标记、有界并发、SQLite——这些都不是内容，删掉整个 `.novelforge/novelforge.db` 或清空内存缓冲，工程本身不受影响，只是丢一些「刚才发生了什么」的痕迹（AGENTS 第 17 条）。
+日志、进度、失败标记、有界并发、SQLite——这些都不是内容，删掉整个 `.novelwarden/novelwarden.db` 或清空内存缓冲，工程本身不受影响，只是丢一些「刚才发生了什么」的痕迹（AGENTS 第 17 条）。
 
 | 文件 | 职责 |
 |---|---|
@@ -13,7 +13,7 @@
 
 ## SQLite 只放痕迹（AGENTS 第 17 条的落点）
 
-内容的唯一真相永远是 Markdown。库里只有失败记录与日志历史，删掉 `novelforge.db` 一个功能都不受影响。三条实现约束：
+内容的唯一真相永远是 Markdown。库里只有失败记录与日志历史，删掉 `novelwarden.db` 一个功能都不受影响。三条实现约束：
 
 1. **两个壳两个驱动，没有可选项**：Node（插件 / Electron）用 `node:sqlite`，Bun（独立版）用 `bun:sqlite`，彼此的运行时都没有对方那个内置模块。
 2. **模块名必须拼接后 `await import`**，不能写成字面量——esbuild 的静态分析会尝试解析 `bun:sqlite` 并直接构建失败；拼接让它看不见,两条构建路径都不用配 external。

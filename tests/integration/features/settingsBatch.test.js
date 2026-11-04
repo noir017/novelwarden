@@ -161,10 +161,10 @@ describe('补齐架构', () => {
   let returned;
 
   before(async () => {
-    const cfg = t.read('.novelforge/config.md').replace(/## 一句话\n\n（待补充）/, '## 一句话\n\n少年背着旧案入宗');
-    t.write('.novelforge/config.md', cfg);
+    const cfg = t.read('.novelwarden/config.md').replace(/## 一句话\n\n（待补充）/, '## 一句话\n\n少年背着旧案入宗');
+    t.write('.novelwarden/config.md', cfg);
     // 前提只写了一句话前提、冲突链还空着：算没填过，要补——但作者写的那一节不能动。
-    t.write('.novelforge/premise.md', '# 故事前提\n\n## 一句话前提\n\n作者自己写的一句话前提。\n\n## 核心冲突链\n\n（待补充）\n');
+    t.write('.novelwarden/premise.md', '# 故事前提\n\n## 一句话前提\n\n作者自己写的一句话前提。\n\n## 核心冲突链\n\n（待补充）\n');
     project.invalidate();
     fail = new Set();
     fake.reset();
@@ -225,7 +225,7 @@ describe('补齐架构', () => {
     const entries = await project.listLore();
     assert.equal(entries.length, 12);
     const inn = entries.find((e) => e.title === '停舟客栈');
-    assert.equal(inn.relPath, '.novelforge/lore/地域/停舟客栈.md');
+    assert.equal(inn.relPath, '.novelwarden/lore/地域/停舟客栈.md');
     assert.equal(inn.brief, '停舟客栈的一句话');
     assert.equal(inn.updatedThrough, 0);
     assert.ok(inn.body.includes('## 规则与边界\n停舟客栈的规矩。'), inn.body);
@@ -257,8 +257,8 @@ describe('补齐架构 · 一件失败就停', () => {
   let failures;
 
   before(async () => {
-    t.write('.novelforge/premise.md', '# 故事前提\n\n## 核心冲突链\n\n（待补充）\n');
-    t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n（待补充）\n');
+    t.write('.novelwarden/premise.md', '# 故事前提\n\n## 核心冲突链\n\n（待补充）\n');
+    t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n（待补充）\n');
     project.invalidate();
     fail = new Set(['premise']);
     fake.reset();
@@ -275,7 +275,7 @@ describe('补齐架构 · 一件失败就停', () => {
   });
 
   test('失败挂在故事前提那一行上', () => {
-    assert.ok(!!failures['.novelforge/premise.md'], JSON.stringify(Object.keys(failures)));
+    assert.ok(!!failures['.novelwarden/premise.md'], JSON.stringify(Object.keys(failures)));
   });
 
   test('toast 说清停在哪', () => {
@@ -335,10 +335,10 @@ describe('补齐架构 · 设定清单按格式写、转写成 JSON', () => {
 
   before(async () => {
     w = await makeTempProject(bundle.project, { prefix: 'settings-transcribe', title: '黑水' });
-    w.write('.novelforge/config.md', '---\ngenre: 仙侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 一句话\n\n渡口旧事\n\n## 核心梗概\n\n林昭在渡口查旧案。\n');
-    w.write('.novelforge/premise.md', '# 故事前提\n\n## 核心冲突链\n\n灭门 → 查案。\n');
-    w.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n黑水不渡活人。\n');
-    w.write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
+    w.write('.novelwarden/config.md', '---\ngenre: 仙侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 一句话\n\n渡口旧事\n\n## 核心梗概\n\n林昭在渡口查旧案。\n');
+    w.write('.novelwarden/premise.md', '# 故事前提\n\n## 核心冲突链\n\n灭门 → 查案。\n');
+    w.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n黑水不渡活人。\n');
+    w.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
     w.project.invalidate();
     transcribed = [];
     override = (messages) => {

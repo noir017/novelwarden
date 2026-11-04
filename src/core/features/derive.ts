@@ -157,7 +157,7 @@ async function summarizeFirst(
     detail: [
       `每章 ${SUMMARIZE_CALLS.low} 次，最多 ${SUMMARIZE_CALLS.max} 次（${SUMMARIZE_CALLS.why}）。`,
       lanes > 1 ? `并发 ${lanes} 路，各章之间没有先后依赖。` : '串行逐章处理（并发数为 1）。',
-      '已经有细纲的章拿着它与正文对照着改，旧版先复制一份进 .novelforge/.trash/。',
+      '已经有细纲的章拿着它与正文对照着改，旧版先复制一份进 .novelwarden/.trash/。',
       '细纲出来之后再算建卡与设定要调几次（建卡次数要看细纲里认出了谁），到时再问你一次。',
     ].join('\n'),
     tasks: ['plotSummary', 'transcribe'],

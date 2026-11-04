@@ -16,7 +16,7 @@ import { bookDirName } from './model/bookDir';
 import { exists, pad3, sanitizeFileName } from './model/fs';
 import { Plot, emptyPlotSections } from './model/plotFile';
 import { isFallbackChapterTitle } from './model/pipeline';
-import { NovelProject } from './model/project';
+import { LEGACY_NOVEL_DIRS, NOVEL_DIR, NovelProject } from './model/project';
 import { describeError, scoped } from './runtime/logger';
 import { Workspace } from './workspace';
 
@@ -85,7 +85,7 @@ export async function createBookAt(parentDir: string, meta: { title: string; aut
       throw new Error(`${root} 读不了（${describeError(err)}）。`);
     }
   }
-  if (entries?.includes('.novelforge')) {
+  if (entries?.some((name) => name === NOVEL_DIR || (LEGACY_NOVEL_DIRS as readonly string[]).includes(name))) {
     throw new Error(`${root} 已经是一本书了，用「打开文件夹」打开它。`);
   }
   if (entries && entries.length > 0) {

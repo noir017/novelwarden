@@ -8,17 +8,17 @@
 
 | 文件 | 职责 |
 |---|---|
-| [main.ts](main.ts) | 入口。`init` 装上 `TerminalHost` 后走 **core 的** `initProjectFlow`；否则先读 `NOVELFORGE_TOKEN` 过一遍 `exposureError`（绑非回环地址没令牌就拒绝启动），再起服务（端口被占顺延，最多 20 次）并按需开浏览器。 |
-| [cli.ts](cli.ts) | 参数解析：`novelforge`（空窗口）/ `novelforge [dir]` / `novelforge init [dir]`，外加 `--port` / `--host` / `--no-open` / `--verbose`。不带位置参数时不再把当前目录当成工程。令牌不走参数（会出现在 `ps` 里）。 |
+| [main.ts](main.ts) | 入口。`init` 装上 `TerminalHost` 后走 **core 的** `initProjectFlow`；否则先读 `NOVELWARDEN_TOKEN`（旧名 `NOVELFORGE_TOKEN` 兼容）过一遍 `exposureError`（绑非回环地址没令牌就拒绝启动），再起服务（端口被占顺延，最多 20 次）并按需开浏览器。 |
+| [cli.ts](cli.ts) | 参数解析：`novelwarden`（空窗口）/ `novelwarden [dir]` / `novelwarden init [dir]`，外加 `--port` / `--host` / `--no-open` / `--verbose`。不带位置参数时不再把当前目录当成工程。令牌不走参数（会出现在 `ps` 里）。 |
 | [auth.ts](auth.ts) | 访问控制（纯函数）：什么时候必须配令牌（`exposureError`）、Bearer / cookie 认不认、Origin 白名单、登录页与 `/login`。 |
 | [server.ts](server.ts) | 路由与收发（经 `serve.ts` 监听）：`/` 出页面、`/media/*` 出内嵌资源、`/favicon.ico`、`/ws` WebSocket、`/mcp`（外部 agent 的 MCP 入口，见 [core/mcp](../../core/mcp/README.md)）。每条 WebSocket 是一个窗口，握手地址上的 `?project=` 说它开哪个工程；不带工程的 `/` 302 到最近操作的那个工程。消息全交给 `WorkspaceHub.receive`。启动时把 core 的日志接到终端（默认 info 及以上，`--verbose` 放开 debug）。 |
 | [workspaceHub.ts](workspaceHub.ts) | 工作区登记处：同时开几个工程，每个窗口各绑一个（或空着），同一个工程的几个窗口共用一份 `ChatController`；吃掉打开/关闭文件夹与设置类消息；没有窗口的工程空闲一分钟后关（最近操作的那个留着给 MCP）。欢迎页的「新建一本书」「导入写好的书」也在这里：`createProject` 经 `core/actions.ts` 的 `createBookAt` 建文件夹并初始化、回 `projectCreated`（真实路径，打开由前端照常发 `openFolder`），`inspectBook` 回那本 txt 切得出几章；`workspaces` 另带「放在」的缺省值 `newProjectParent`（最近那本书所在的目录，没有就是家目录）。 |
 | [scopedHost.ts](scopedHost.ts) | 注册给 core 的全局 Host：按 `AsyncLocalStorage` 里的窗口上下文把 `getHost()` 转给那个窗口自己的 `FileHost`，弹窗、toast、打开编辑器只落到对应的网页上。 |
-| [windowState.ts](windowState.ts) | `~/.novelforge/window.json`：上次打开的目录与最近打开列表。 |
+| [windowState.ts](windowState.ts) | `~/.novelwarden/window.json`：上次打开的目录与最近打开列表。 |
 | [hostFs.ts](hostFs.ts) | 本机一层目录列举与选择器「新建文件夹」。不进 core，agent 拿不到。 |
 | [fileHost.ts](fileHost.ts) | `Host` 的实现：弹窗经 `PromptHub` 变成网页 modal（确认框一个 action 一颗按钮，回的是按钮上的字；`confirmCall` 同一个确认框带 `call`，回答另带 `choice`——作者为这一次挑的模型与详细度）；`fs.watch` 监听工程（失败退化为轮询，带 250ms 去抖）；`openFile` 走内置编辑器；`openBeside` 开在第二块编辑区。`progress` 只提供 signal——进度由 `core/runtime/progress.ts` 结构化推给网页。`bind` / `unbind` 随 Hub 热换工程根。 |
 | [promptHub.ts](promptHub.ts) | 未决网页弹窗的登记与回执匹配。WS 全部断开时一律按取消处理。 |
-| [terminalHost.ts](terminalHost.ts) | `Host` 的终端实现，只给 `novelforge init` 用：问答走 readline，`openFile` 报一句路径。有了它，CLI 只是「第三个宿主」，「初始化工程」这条流程仍然只有一份实现。 |
+| [terminalHost.ts](terminalHost.ts) | `Host` 的终端实现，只给 `novelwarden init` 用：问答走 readline，`openFile` 报一句路径。有了它，CLI 只是「第三个宿主」，「初始化工程」这条流程仍然只有一份实现。 |
 | [page.ts](page.ts) | **布局**：标题栏（文件 / 编辑 / 视图 / 帮助）+ 活动栏 + 侧栏 + 内置编辑器；无工程时编辑器区是欢迎页（开始三条路——新建一本书、导入写好的书、打开文件夹——、最近、怎么上手，「帮助 → 欢迎页面」随时再打开）。六个 pane 的 DOM 全部取自 [../shared/panes.ts](../shared/panes.ts)（含只有这里装配的「文件」页），这里没有第二份。 |
 | [serve.ts](serve.ts) | 起 HTTP + WebSocket 服务、与运行时无关的那一面：形状照 `Bun.serve` 摆（`fetch(req, ctl)` + `websocket` 三个回调），有 `Bun` 这个全局就原样交给 `Bun.serve`，没有就交给 `nodeServe.ts`。 |
 | [nodeServe.ts](nodeServe.ts) | node 上的监听：`node:http` + `ws`（开发依赖，打包进单文件）。眼下只有 Android 壳走这里（手机上只有 Termux 编的 node）。 |
@@ -28,9 +28,9 @@
 
 ## 关键设计
 
-- **单用户、缺省只绑本机，工程可空**：缺省 `127.0.0.1`、无鉴权。工作区由 [workspaceHub.ts](workspaceHub.ts) 持有，一个进程同时开几个工程，每个浏览器窗口一个；网址上的 `?project=` 跟着窗口的工程走，刷新、重连都回到它。设置「新窗口中打开项目」（默认开）决定在已有工程的窗口里打开别的工程时开新窗口还是换掉当前的。前端的 localStorage（标签页、展开的目录、输入框草稿）按工程分开存。没有工程时不造假实例，创作类消息 toast「请先打开文件夹」。设置仍可用（配置在 `~/.novelforge`）。
+- **单用户、缺省只绑本机，工程可空**：缺省 `127.0.0.1`、无鉴权。工作区由 [workspaceHub.ts](workspaceHub.ts) 持有，一个进程同时开几个工程，每个浏览器窗口一个；网址上的 `?project=` 跟着窗口的工程走，刷新、重连都回到它。设置「新窗口中打开项目」（默认开）决定在已有工程的窗口里打开别的工程时开新窗口还是换掉当前的。前端的 localStorage（标签页、展开的目录、输入框草稿）按工程分开存。没有工程时不造假实例，创作类消息 toast「请先打开文件夹」。设置仍可用（配置在 `~/.novelwarden`，旧机器的 `~/.novelforge` 继续 fallback）。
 - **Origin 校验**：WebSocket 不受同源策略约束，恶意网页能向本机端口发消息。`server.ts` 因此校验 `Origin` 只认本机同端口；没有 `Origin` 头的（命令行工具、冒烟测试）放过。`/mcp` 用同一条规则。规则本身在 [auth.ts](auth.ts) 的 `isAllowedOrigin`。
-- **部署到服务器：`--host` + 令牌，fail-closed**：Docker 镜像（仓库根 `Dockerfile`）绑 `0.0.0.0`，「只有本机连得进来」这道墙就没了，所以绑非回环地址必须配 `NOVELFORGE_TOKEN`（至少 16 位），没配 `main.ts` 直接拒绝启动。配了令牌就全站鉴权（与绑在哪无关）：网页在登录页交一次令牌换 cookie（值由令牌派生，`HttpOnly; SameSite=Lax`，经 HTTPS 反代时加 `Secure`），MCP 带 `Authorization: Bearer`；`/media/*`、`/favicon.ico`、`/login` 不设防。这时 Origin 还认同源（与 `Host` / `X-Forwarded-Host` 一致）——**只在配了令牌时认**：没令牌时认同源会放过 DNS rebinding（`evil.com:3680` 解析到本机时 Origin 与 Host 恰好一致）。令牌不进日志，带令牌的请求头写法也不打（`logger.ts` 的脱敏见到 `Bearer` 就整段抹掉）。
+- **部署到服务器：`--host` + 令牌，fail-closed**：Docker 镜像（仓库根 `Dockerfile`）绑 `0.0.0.0`，「只有本机连得进来」这道墙就没了，所以绑非回环地址必须配 `NOVELWARDEN_TOKEN`（旧名 `NOVELFORGE_TOKEN` 兼容，至少 16 位），没配 `main.ts` 直接拒绝启动。配了令牌就全站鉴权（与绑在哪无关）：网页在登录页交一次令牌换 cookie（值由令牌派生，`HttpOnly; SameSite=Lax`，经 HTTPS 反代时加 `Secure`），MCP 带 `Authorization: Bearer`；`/media/*`、`/favicon.ico`、`/login` 不设防。这时 Origin 还认同源（与 `Host` / `X-Forwarded-Host` 一致）——**只在配了令牌时认**：没令牌时认同源会放过 DNS rebinding（`evil.com:3680` 解析到本机时 Origin 与 Host 恰好一致）。令牌不进日志，带令牌的请求头写法也不打（`logger.ts` 的脱敏见到 `Bearer` 就整段抹掉）。
 - **两个运行时，路由只写一份**：平时跑在 Bun 里；Android 壳里没有 Bun，由 [../../../scripts/build-android-server.js](../../../scripts/build-android-server.js) 用 esbuild 把 `main.ts` 打成 node 单文件，监听换成 `nodeServe.ts`。差别只收在 `serve.ts` 那一层：node 那边要自己对齐 Bun 的几样行为——流式响应边到边写（MCP 的 SSE）、客户端断开时 abort `req.signal`（MCP 靠它取消调用）、升级被拒把 401 / 403 写回裸 socket、处理器抛了只打日志不让进程退出。SQLite 本来就有 `node:sqlite` 兜底（`core/runtime/db.ts`）。
 - **`/mcp` 关掉空闲超时**：一次工具调用可能跑几分钟（写一章），期间连接上一个字节都没有，而 Bun 缺省 10 秒空闲就断。`server.timeout(req, 0)` 只对这一个请求生效。MCP 调用落在地址 `?project=` 指定的那个工程上，不带就落到最近操作的那个窗口的工程；启动日志里那行 `claude mcp add …` 就是接入命令。
 - **openFile 的语义差异**：插件里是「打开 VS Code 的编辑器 tab」，这里是「在网页内置编辑器里打开」。刻意让 `openFile` 本身改道，这样 controller 里「产物落盘后打开」「点章节」「点上下文条目」三处调用点一次全对。非文本文件回落到系统默认程序。
@@ -38,12 +38,12 @@
 - **文件读写全部经 [../core/files/fileEditing.ts](../../core/files/fileEditing.ts)**：路径包含校验、可编辑判定（扩展名白名单 ∪ 章节文件名规则）、大小上限、保存的 hash 乐观锁都在那里。本层只负责把异常翻译成 `editorError` / `editorConflict` / `editorDiskGone` 广播出去，不要绕过它直接 `fs.writeFile`。
 - **核对磁盘（不丢稿）**：前端每收到一条 `state`（去抖）、窗口拿回焦点时发 `checkEditorFiles { files: [{ path, hash }] }`，`checkEditorFiles()` 只读那几份，hash 对不上的推 `editorDiskChanged`（带新版，形状与 `editorOpen` 的文件一样：带 `draftPath` / `kind`），读不到的推 `editorDiskGone`，对得上的不推。**不复用 `editorOpen`**——那条会把标签切成当前的、抢焦点。回话照常广播给开着这个工程的所有窗口，各窗口按自己开着的标签认。空窗口发来的静静吃掉（`workspaceHub.ts`），不弹「请先打开文件夹」。
 - **带了基线、文件却不在：编辑器这条路不重建**。网关对这种情况当新建处理（`workspace/guard.ts` 守卫 8 的口径），`writeFileFromEditor` 收紧一档：抛 `FileGoneError`，这里推 `editorDiskGone`、一个字节不写；作者在网页上答应「在原路径重建」之后，`saveFile` 带 `recreate: true` 再来（照样带着基线，期间原路径又有了别的内容照样撞冲突）。不带基线的强制保存不受影响。
-- **多一个「文件」页**：侧栏比插件形态多一个资源管理器（[../core/files/fileTree.ts](../../core/files/fileTree.ts) 出数据，`media/src/explorer/` 渲染），列的是磁盘上的真实目录结构，**含 `.novelforge/` 等点开头的文件夹**——插件形态里这件事由 VS Code 自己的资源管理器承担，独立版没有它，作者就没有任何入口去手改会话/`project.json`。它只读不写：新建/改名/删除仍然只在「工程」页走 `core/files/fileOps.ts`。
+- **多一个「文件」页**：侧栏比插件形态多一个资源管理器（[../core/files/fileTree.ts](../../core/files/fileTree.ts) 出数据，`media/src/explorer/` 渲染），列的是磁盘上的真实目录结构，**含 `.novelwarden/` 等点开头的文件夹**——插件形态里这件事由 VS Code 自己的资源管理器承担，独立版没有它，作者就没有任何入口去手改会话/`project.json`。它只读不写：新建/改名/删除仍然只在「工程」页走 `core/files/fileOps.ts`。
 - **watcher 只挡二进制，而且规则不在这里**：过滤走 [../../core/watchPolicy.ts](../../core/watchPolicy.ts) 的 `shouldIgnoreChange`（黑名单——章节可以是 `.txt`/无扩展名，目录事件也没有扩展名，白名单式过滤会让这些改动看不见）。插件壳用同一份策略的 glob 形态。因为放行面宽，`onChange` 带 250ms 去抖：它会触发 `pushState`，那是一次全量重扫。
 - **进度不再是 toast**：`FileHost.progress` 过去每收到一次 `report` 就弹一条 toast，跑一次「同步章节细纲」、同步 76 章等于刷 76 条提示、把别的消息全盖掉。现在同一份进度由 `core/runtime/progress.ts` 结构化推成 `tasks` 消息，侧栏顶上的任务条画进度条（n/N、计时、可停止，所有页签都看得见），`FileHost.progress` 只负责给出 signal 与报告失败。
 - **终端 sink 只挂一次**：端口被占时 `main.ts` 会重试着调 `startServer`，每次都 `addLogSink` 会让同一条日志打印好几遍。
 - **前端资源三处同改**：新增前端**产物**（先写好 `media/src/` 下的源码入口）后，要同时加进 `build-media.js` 的 `JS_ENTRIES` / `CSS_ENTRIES`、`embed-media.js` 的 `built` 数组和 `page.ts` 的引用，否则编译版会 404；插件也要加载时再改 `vscode/webviewHtml.ts`。（只改已有产物的源码不需要动那两个脚本。）`/media/*` 是路由名，不是磁盘路径——字节全部来自内嵌的 `MEDIA_ASSETS`。
-- **管道输入也要能跑 init**：`TerminalHost` 全程共用一个 readline，并把没人接的行排队。每问一句就新建再关掉一个（原来那份实现）会让 `printf '书名\n作者\n' | novelforge init` 在第二问就撞上 EOF；而管道是一次全来的，两问之间夹着落盘 await，不排队那几行就白丢了。EOF 一律按「取消」处理，免得在校验失败里死循环。
+- **管道输入也要能跑 init**：`TerminalHost` 全程共用一个 readline，并把没人接的行排队。每问一句就新建再关掉一个（原来那份实现）会让 `printf '书名\n作者\n' | novelwarden init` 在第二问就撞上 EOF；而管道是一次全来的，两问之间夹着落盘 await，不排队那几行就白丢了。EOF 一律按「取消」处理，免得在校验失败里死循环。
 
 ## 与插件壳的能力差异
 

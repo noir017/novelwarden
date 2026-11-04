@@ -50,9 +50,9 @@ async function spyWorkspace(names, fn) {
   return calls;
 }
 
-/** 这份文件在历史版本里的快照全文（`.novelforge/history/<相对路径>/`），新旧不论。 */
+/** 这份文件在历史版本里的快照全文（`.novelwarden/history/<相对路径>/`），新旧不论。 */
 function snapshotTexts(rel) {
-  const dir = t.rel('.novelforge/history', rel);
+  const dir = t.rel('.novelwarden/history', rel);
   return fs.existsSync(dir) ? fs.readdirSync(dir).map((n) => fs.readFileSync(`${dir}/${n}`, 'utf8')) : [];
 }
 
@@ -65,7 +65,7 @@ function snapshotTexts(rel) {
 function makePlot(no, cast, dir = t) {
   const n = String(no).padStart(3, '0');
   dir.write(
-    `.novelforge/summaries/${n}-第${no}章.md`,
+    `.novelwarden/summaries/${n}-第${no}章.md`,
     `---\nno: ${no}\ntitle: 第${no}章\nsourceHash: x\ncast: [${cast.join(', ')}]\n---\n\n` +
       `# 第${no}章 第${no}章\n\n## 梗概\n\n略。\n\n## 出场人物\n\n${cast.join('、')}\n\n## 关键事件\n\n甲乙丙。\n`
   );
@@ -79,7 +79,7 @@ function makeCard(name, aliases, extra = {}, dir = t) {
     ...Object.entries(extra).map(([k, v]) => `${k}: ${Array.isArray(v) ? `[${v.join(', ')}]` : v}`),
   ].join('\n');
   dir.write(
-    `.novelforge/characters/${name}.md`,
+    `.novelwarden/characters/${name}.md`,
     `---\n${fm}\n---\n\n# ${name}\n\n## 身份\n\n作者手写的这一段一个字都不许动。\n`
   );
 }
@@ -247,8 +247,8 @@ describe('出场索引', () => {
   let conflicts3;
 
   before(async () => {
-    t.remove('.novelforge');
-    t.write('.novelforge/project.md', '---\ntitle: 测\n---\n\n# 测\n');
+    t.remove('.novelwarden');
+    t.write('.novelwarden/project.md', '---\ntitle: 测\n---\n\n# 测\n');
     makePlot(1, ['方源(古月方源、姐姐)', '方正']);
     makePlot(2, ['古月方源(方源)', '方正']);
     makePlot(3, ['古月方源']);
@@ -326,17 +326,17 @@ describe('出场索引 · 只认定稿过的细纲', () => {
 
   before(async () => {
     d = makeTempDir('cast-finalized');
-    d.write('.novelforge/project.md', '---\ntitle: 测\n---\n\n# 测\n');
+    d.write('.novelwarden/project.md', '---\ntitle: 测\n---\n\n# 测\n');
     // 第 1 章：定稿过（新格式细纲）。
     makePlot(1, ['林昭(阿昭)', '沈氏'], d);
     // 第 2 章：还没定稿的计划，出场人物里排了林昭与韩七。
     d.write(
-      '.novelforge/summaries/002-第2章.md',
+      '.novelwarden/summaries/002-第2章.md',
       '---\nno: 2\ntitle: 第2章\n---\n\n# 第2章 第2章\n\n## 梗概\n\n略。\n\n## 出场人物\n\n林昭、韩七\n\n## 关键事件\n\n甲乙丙。\n'
     );
     // 第 3 章：老工程留下的单章摘要，放在 summaries/ 根下。
     d.write(
-      '.novelforge/summaries/003-第3章.md',
+      '.novelwarden/summaries/003-第3章.md',
       '---\nchapter: 3\ntitle: 第3章\nsourceHash: y\ncast: [林昭, 李叔]\n---\n\n# 第3章 · 摘要\n\n## 梗概\n\n略。\n\n## 出场人物\n\n林昭、李叔\n'
     );
     makeCard('林昭', [], {}, d);
@@ -385,7 +385,7 @@ describe('剧作称谓：不是名字，也不是别名', () => {
   before(async () => {
     // 正文里夹着作者的笔记时，模型写下的出场人物会是 `主角(林昭)`、光一个 `反派`。
     d = makeTempDir('cast-labels');
-    d.write('.novelforge/project.md', '---\ntitle: 测\n---\n\n# 测\n');
+    d.write('.novelwarden/project.md', '---\ntitle: 测\n---\n\n# 测\n');
     makePlot(1, ['主角(林昭、阿昭)', '反派', '沈氏'], d);
     makePlot(2, ['林昭(主角)', '沈氏'], d);
     index = await castMod.buildCastIndex(new projectMod.NovelProject(d.dir));
@@ -439,7 +439,7 @@ describe('维护：称谓卡并进真名那张', () => {
 
   before(async () => {
     d = makeTempDir('cast-label-cards');
-    d.write('.novelforge/project.md', '---\ntitle: 测\n---\n\n# 测\n');
+    d.write('.novelwarden/project.md', '---\ntitle: 测\n---\n\n# 测\n');
     // 提取角色时建出来的那一对：`反派.md` 挂着真名，戏份反而记得比真名那张多。
     makeCard('韩厉', [], { appearsIn: [3], updatedThrough: 3, firstAppear: 3, lastSeen: 3 }, d);
     makeCard('反派', ['韩厉', '头领'], { appearsIn: [3, 4, 5], updatedThrough: 5, firstAppear: 3, lastSeen: 5 }, d);
@@ -497,11 +497,11 @@ describe('维护：清理别名', () => {
 
   before(async () => {
     const project = new projectMod.NovelProject(t.dir);
-    beforeText = t.read('.novelforge/characters/方源.md');
+    beforeText = t.read('.novelwarden/characters/方源.md');
     h.expect('清理');
     calls = await spyWorkspace(['write'], () => maintenance.cleanCharacterAliases(project));
-    afterText = t.read('.novelforge/characters/方源.md');
-    snapshots = snapshotTexts('.novelforge/characters/方源.md');
+    afterText = t.read('.novelwarden/characters/方源.md');
+    snapshots = snapshotTexts('.novelwarden/characters/方源.md');
     card = (await project.listCharacters()).find((c) => c.name === '方源');
     firstConfirms = [...h.confirms];
 
@@ -555,7 +555,7 @@ describe('维护：清理别名', () => {
 
   // 从前直接 writeText（grep 把这份源文件当成二进制跳过了，上一次普查没扫到）：不过守卫、覆盖之前不存历史。
   test('经网关写回（第 7 条）', () => {
-    assert.ok(calls.some(([n, rel]) => n === 'write' && rel === '.novelforge/characters/方源.md'), JSON.stringify(calls));
+    assert.ok(calls.some(([n, rel]) => n === 'write' && rel === '.novelwarden/characters/方源.md'), JSON.stringify(calls));
   });
 
   test('清理之前的旧卡在历史版本里留了一份（删掉的称呼找得回来）', () => {
@@ -584,8 +584,8 @@ describe('维护：合并重复卡', () => {
     cards = await project.listCharacters();
     keeper = cards.find((c) => c.name === '方源');
     inTrash =
-      fs.existsSync(t.rel('.novelforge/.trash/.novelforge/characters/古月方源.md')) ||
-      fs.existsSync(t.rel('.novelforge/.trash/characters/古月方源.md'));
+      fs.existsSync(t.rel('.novelwarden/.trash/.novelwarden/characters/古月方源.md')) ||
+      fs.existsSync(t.rel('.novelwarden/.trash/characters/古月方源.md'));
     index = await castMod.buildCastIndex(project);
   });
 
@@ -611,8 +611,8 @@ describe('维护：合并重复卡', () => {
   test('搬进了回收站而不是真删', () => {
     assert.ok(
       inTrash,
-      fs.existsSync(t.rel('.novelforge/.trash'))
-        ? fs.readdirSync(t.rel('.novelforge/.trash')).join('、')
+      fs.existsSync(t.rel('.novelwarden/.trash'))
+        ? fs.readdirSync(t.rel('.novelwarden/.trash')).join('、')
         : '（没有回收站）'
     );
   });
@@ -622,16 +622,16 @@ describe('维护：合并重复卡', () => {
   });
 
   test('保留卡的正文没被重渲染', () => {
-    assert.ok(t.read('.novelforge/characters/方源.md').includes('作者手写的这一段一个字都不许动'));
+    assert.ok(t.read('.novelwarden/characters/方源.md').includes('作者手写的这一段一个字都不许动'));
   });
 
   test('保留卡经网关写回、被合并的卡经网关删（第 7 条）', () => {
-    assert.ok(calls.some(([n, rel]) => n === 'write' && rel === '.novelforge/characters/方源.md'), JSON.stringify(calls));
-    assert.ok(calls.some(([n, rel]) => n === 'remove' && rel === '.novelforge/characters/古月方源.md'), JSON.stringify(calls));
+    assert.ok(calls.some(([n, rel]) => n === 'write' && rel === '.novelwarden/characters/方源.md'), JSON.stringify(calls));
+    assert.ok(calls.some(([n, rel]) => n === 'remove' && rel === '.novelwarden/characters/古月方源.md'), JSON.stringify(calls));
   });
 
   test('被合并的卡在回收站里保留原相对路径（第 6 条）', () => {
-    assert.ok(fs.existsSync(t.rel('.novelforge/.trash/.novelforge/characters/古月方源.md')));
+    assert.ok(fs.existsSync(t.rel('.novelwarden/.trash/.novelwarden/characters/古月方源.md')));
   });
 
   test('合并后不再有抢名冲突', () => {
@@ -647,7 +647,7 @@ describe('「已读到」水位线', () => {
     // 合并进来的章节从没被保留卡读过，水位线必须退回它们之前，
     // 否则增量更新会整批跳过，而界面上看不出任何异常。
     // 这一对在定稿里一次都没出现，走的是「名字包含」那条弱提示。
-    t.remove('.novelforge/characters');
+    t.remove('.novelwarden/characters');
     makeCard('张三', [], { appearsIn: [10, 11], updatedThrough: 11, firstAppear: 10, lastSeen: 11 });
     makeCard('古月张三', [], { appearsIn: [4, 5], updatedThrough: 5, firstAppear: 4, lastSeen: 5 });
     const project = new projectMod.NovelProject(t.dir);
@@ -681,7 +681,7 @@ describe('同一张卡出现在两组候选里', () => {
   before(async () => {
     // `家老` 同时是 `学堂家老` 与 `暗堂家老` 的后缀，于是它落进两组候选。
     // 第一组把它并掉之后，第二组轮到它时文件已经不在了——不能因此炸掉。
-    t.remove('.novelforge/characters');
+    t.remove('.novelwarden/characters');
     makeCard('家老', [], { appearsIn: [1], updatedThrough: 1, firstAppear: 1, lastSeen: 1 });
     makeCard('学堂家老', [], { appearsIn: [2, 3], updatedThrough: 3, firstAppear: 2, lastSeen: 3 });
     makeCard('暗堂家老', [], { appearsIn: [4], updatedThrough: 4, firstAppear: 4, lastSeen: 4 });

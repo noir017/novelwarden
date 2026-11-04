@@ -18,7 +18,7 @@ const { loadModule } = require('../../helpers/load');
 
 const t = loadModule('src/core/model/threadFile.ts');
 
-const REL = '.novelforge/threads/林昭与沈青.md';
+const REL = '.novelwarden/threads/林昭与沈青.md';
 
 const FILE = [
   '---',
@@ -27,7 +27,7 @@ const FILE = [
   'plan: 3-40',
   'progressThrough: 12',
   'progressHash: abc',
-  'generatedBy: novel-forge',
+  'generatedBy: novelwarden',
   '---',
   '',
   '# 林昭与沈青',
@@ -111,19 +111,19 @@ describe('threadFile.ts · 解析', () => {
   });
 
   test('没有 frontmatter、种类认不出：当支线、来源当计划；名字取文件名', () => {
-    const x = t.parseThreadFile('# 别的名字\n\n## 意图\n随便写写\n', '.novelforge/threads/沈家旧案.md');
+    const x = t.parseThreadFile('# 别的名字\n\n## 意图\n随便写写\n', '.novelwarden/threads/沈家旧案.md');
     assert.equal(x.name, '沈家旧案');
     assert.equal(x.kind, '支线');
     assert.equal(x.origin, '计划');
     assert.equal(x.from, undefined);
     assert.equal(x.intent, '随便写写');
-    const y = t.parseThreadFile('---\nkind: 奇怪的线\norigin: 正文\n---\n', '.novelforge/threads/a.md');
+    const y = t.parseThreadFile('---\nkind: 奇怪的线\norigin: 正文\n---\n', '.novelwarden/threads/a.md');
     assert.equal(y.kind, '支线');
     assert.equal(y.origin, '正文');
   });
 
   test('H1 只在和文件名对得上时当名字（机器建文件时名字里的冒号被清洗掉了）', () => {
-    const x = t.parseThreadFile('# 林昭: 复仇\n', '.novelforge/threads/林昭-复仇.md');
+    const x = t.parseThreadFile('# 林昭: 复仇\n', '.novelwarden/threads/林昭-复仇.md');
     assert.equal(x.name, '林昭: 复仇');
     assert.equal(t.threadFileName('林昭: 复仇'), '林昭-复仇.md');
   });
@@ -141,7 +141,7 @@ describe('threadFile.ts · 解析', () => {
   test('未归属的伏笔：同样的伏笔、进展两节', () => {
     const u = t.parseUnfiledFile(
       `${t.UNFILED_TEMPLATE}`.replace('## 进展\n', '## 进展\n\n- 第 2 章 · 埋〈断剑〉：断剑落潭 〔证据：「剑落进了深潭」〕\n'),
-      '.novelforge/threads/未归属的伏笔.md'
+      '.novelwarden/threads/未归属的伏笔.md'
     );
     assert.equal(u.name, '未归属的伏笔');
     assert.equal(u.events.length, 1);
@@ -335,7 +335,7 @@ describe('threadFile.ts · 渲染与新建', () => {
       foreshadowing: [{ name: '火折子', what: '现场留下的火折子', plant: 5, resolve: 20 }],
       events: [{ chapter: 5, planned: false, type: '推进', what: '旧案被提起', evidence: '十年前那场大火' }],
     });
-    const x = t.parseThreadFile(raw, '.novelforge/threads/沈家旧案.md');
+    const x = t.parseThreadFile(raw, '.novelwarden/threads/沈家旧案.md');
     assert.equal(x.kind, '支线');
     assert.equal(x.origin, '正文');
     assert.equal(x.from, 5);
@@ -345,7 +345,7 @@ describe('threadFile.ts · 渲染与新建', () => {
     assert.deepEqual(x.foreshadowing, [{ name: '火折子', what: '现场留下的火折子', plant: 5, resolve: 20 }]);
     assert.equal(x.events.length, 1);
     assert.equal(x.events[0].evidence, '十年前那场大火');
-    assert.match(raw, /generatedBy: novel-forge/);
+    assert.match(raw, /generatedBy: novelwarden/);
     assert.ok(raw.endsWith('\n') && !raw.endsWith('\n\n'));
   });
 });
@@ -938,8 +938,8 @@ describe('threadFile.ts · 定稿：校验认出来的东西', () => {
       '- 第 1 章 · 埋〈祠堂的隐秘〉：祠堂第一次露面 〔证据：「祠堂的门半掩着」〕',
       '',
     ].join('\n');
-    const main = t.parseThreadFile(raw, '.novelforge/threads/沈默的灭门复仇.md');
-    const story = { threads: [main], unfiled: t.parseUnfiledFile('', '.novelforge/threads/未归属的伏笔.md') };
+    const main = t.parseThreadFile(raw, '.novelwarden/threads/沈默的灭门复仇.md');
+    const story = { threads: [main], unfiled: t.parseUnfiledFile('', '.novelwarden/threads/未归属的伏笔.md') };
     const body = '罗盘虽然渐渐平息了那种滚烫的烙铁感，但余温依旧像碎炭一般留在皮肉里。祠堂地下有一座祭坛。';
     const find = (newForeshadowing, events = []) =>
       t.verifyFinds({ events, newThreads: [], newForeshadowing }, { chapter: 2, text: body, judged: [main], book: story });

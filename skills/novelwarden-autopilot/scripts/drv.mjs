@@ -1,4 +1,4 @@
-// Novel Forge 独立版的 WebSocket 驱动：常驻连接，把 cmd.jsonl 新追加的每一行原样发给服务，
+// Novelwarden 独立版的 WebSocket 驱动：常驻连接，把 cmd.jsonl 新追加的每一行原样发给服务，
 // 收到的消息写成摘要日志与几份「最新快照」，弹窗 / 权限卡片写进 pending.json 等人（或脚本）回答。
 //
 // 用法：node drv.mjs [--port 36800] [--state D:/tmp/nfdrv]

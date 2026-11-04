@@ -8,7 +8,7 @@ import { dirBaseName, initProjectFlow } from '../../core/actions';
 import { initHost } from '../../core/host';
 import { NovelProject } from '../../core/model/project';
 import { FileConfigStore } from '../../core/stores';
-import { TOKEN_ENV, exposureError } from './auth';
+import { tokenFromEnv, exposureError } from './auth';
 import { parseArgs } from './cli';
 import { startServer } from './server';
 import { openWithSystem } from './systemOpen';
@@ -27,7 +27,7 @@ async function main(): Promise<void> {
     const project = NovelProject.open(root);
     try {
       if (await initProjectFlow(project, dirBaseName(project))) {
-        console.log(`已初始化：${path.join(root, '.novelforge')}`);
+        console.log(`已初始化：${path.join(root, '.novelwarden')}`);
       }
     } finally {
       host.close();
@@ -35,13 +35,13 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  if (opts.root && !fs.existsSync(path.join(opts.root, '.novelforge', 'project.json'))) {
+  if (opts.root && !hasProject(opts.root)) {
     console.log(`提示：目录还不是小说工程：${opts.root}`);
-    console.log('可先跑 novelforge init，或在网页上点「初始化工程」。');
+    console.log('可先跑 novelwarden init，或在网页上点「初始化工程」。');
   }
 
   // 绑非回环地址却没配令牌：宁可起不来，也不要让别的机器免密连进来。
-  const token = process.env[TOKEN_ENV]?.trim() || undefined;
+  const token = tokenFromEnv();
   const exposure = exposureError(opts.host, token);
   if (exposure) {
     console.error(exposure);
@@ -68,3 +68,10 @@ async function main(): Promise<void> {
 }
 
 void main();
+
+/** 三个元数据目录都算小说工程：新名 `.novelwarden/`，旧名 `.novelforge/` 与 `.novel/` 继续能打开。 */
+function hasProject(root: string): boolean {
+  return ['.novelwarden', '.novelforge', '.novel'].some((dir) =>
+    fs.existsSync(path.join(root, dir, 'project.json'))
+  );
+}

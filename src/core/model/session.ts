@@ -21,7 +21,7 @@ import { ThinkingDepth, isThinkingDepth } from './thinking';
 import { ReviewReport, normalizeReport } from './review';
 
 /**
- * 会话存储：`.novelforge/sessions/<id>.json`。
+ * 会话存储：`.novelwarden/sessions/<id>.json`。
  *
  * 这里用 JSON 而不是 Markdown——会话是机器记录（含 token 明细、附件快照），
  * 不像角色卡那样期待人工编写。但仍然是纯文本、可 Git、可手动删除。
@@ -369,10 +369,10 @@ export class SessionStore {
   }
 
   /**
-   * 删除：搬进 `.novelforge/.trash/`，不真删（AGENTS 第 6 条）。**落点与工程页的删除同一套**（`trashPathFor`）：
-   * 保留原相对路径（`.trash/.novelforge/sessions/<id>.json`），同名加序号，不盖掉上一次删的那一份。
+   * 删除：搬进 `.novelwarden/.trash/`，不真删（AGENTS 第 6 条）。**落点与工程页的删除同一套**（`trashPathFor`）：
+   * 保留原相对路径（`.trash/.novelwarden/sessions/<id>.json`），同名加序号，不盖掉上一次删的那一份。
    *
-   * 会话不走网关（它是 Novel Forge 自己的内部文件，网关拒写 `sessions/`），只共用落点规则。
+   * 会话不走网关（它是 Novelwarden 自己的内部文件，网关拒写 `sessions/`），只共用落点规则。
    */
   async delete(id: string): Promise<void> {
     const file = this.filePath(id);

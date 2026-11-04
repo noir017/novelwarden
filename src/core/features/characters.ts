@@ -331,7 +331,7 @@ async function reviewCharacterUpdate(
 
 /**
  * 手动新建一张空角色卡。
- * `dir` 是落点目录（工作区相对路径，如 `.novelforge/characters/主角`）；
+ * `dir` 是落点目录（工作区相对路径，如 `.novelwarden/characters/主角`）；
  * 缺省或越界时落在 characters/ 根下。
  */
 export async function newCharacter(project: NovelProject, dir?: string): Promise<void> {

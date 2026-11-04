@@ -30,13 +30,13 @@ let project;
 let controller;
 let gates = [];
 
-const THREADS = '.novelforge/threads';
+const THREADS = '.novelwarden/threads';
 const MAIN = `${THREADS}/青崖旧案.md`;
 const LEDGER = `${THREADS}/名册之谜.md`;
 const MASTER = `${THREADS}/师父的身份.md`;
 const UNFILED = `${THREADS}/未归属的伏笔.md`;
 const TITLES = ['停舟', '令牌', '夜访', '井', '名册'];
-const PLOT = (no) => `.novelforge/summaries/00${no}-${TITLES[no - 1]}.md`;
+const PLOT = (no) => `.novelwarden/summaries/00${no}-${TITLES[no - 1]}.md`;
 
 /** 拆细纲那一批、重拆第 3 章那一次各自的提示（用户消息）。 */
 let batchPrompt = '';
@@ -151,8 +151,8 @@ before(async () => {
 
   t = await makeTempProject(bundle.project, { prefix: 'threads-phase2', title: '青崖记' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ntotalChapters: 30\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
-  t.write('.novelforge/premise.md', '# 故事前提\n\n## 一句话前提\n\n林昭回镇，必须找出放火的人。\n');
+  t.write('.novelwarden/config.md', '---\ntotalChapters: 30\nwordsPerChapter: 600\n---\n\n# 小说配置\n\n## 核心梗概\n\n回镇查案。\n');
+  t.write('.novelwarden/premise.md', '# 故事前提\n\n## 一句话前提\n\n林昭回镇，必须找出放火的人。\n');
   writeOutline(t, outlineOf(20, { text: { 1: '林昭进镇，一路查名册。' } }));
   project.invalidate();
 

@@ -32,7 +32,7 @@ const ASK = {
   callId: 'c1',
   name: 'write',
   title: 'Agent 要写入设定「北境雪原」',
-  detail: '.novelforge/lore/北境雪原.md · 新建',
+  detail: '.novelwarden/lore/北境雪原.md · 新建',
   argsText: '{ "path": "…" }',
 };
 

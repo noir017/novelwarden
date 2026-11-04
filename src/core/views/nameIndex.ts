@@ -20,7 +20,7 @@ import { buildLoreIndex } from './lore';
  * 几百张卡、几百条设定也要快——作者每存一次稿前端就会再问一次（问的时候带着指纹），所以**没变的时候不读任何一份卡或
  * 条目的内容**：
  *
- * - **角色卡与设定条目**：递归列 `.novelforge/characters/` 与 `.novelforge/lore/`（与 `listCharacters` / `listLore`
+ * - **角色卡与设定条目**：递归列 `.novelwarden/characters/` 与 `.novelwarden/lore/`（与 `listCharacters` / `listLore`
  *   同一个列法），每个文件 `stat` 一次，拼成「路径 · 大小 · 修改时间」的签名。签名与上一次一样就用上一次读好的那一份
  *   （按工程实例记在内存里）；不一样（新建、删掉、改过任何一张）才整份重读——每个文件读一次，与工程页同一个解析
  *   （`NovelProject.listCharacters` / `listLore`）。

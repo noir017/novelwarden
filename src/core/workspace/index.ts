@@ -447,7 +447,7 @@ export class Workspace {
 
   /**
    * `move` 与 `checkMove` 共用的守卫。来源过「改名 / 删除」那一套（固定目录、内部文件、回收站、存在），落点过写入那一套：
-   * 把一份细纲搬成 `.novelforge/plots` 本身，或者搬进回收站装作删掉，都不该放行；同名一律拒绝（第 3 条）。
+   * 把一份细纲搬成 `.novelwarden/plots` 本身，或者搬进回收站装作删掉，都不该放行；同名一律拒绝（第 3 条）。
    */
   private async guardMove(from: string, to: string): Promise<{ fromAbs: string; fromRel: string; toRel: string }> {
     const fromAbs = await guardMutate(this.project, from);
@@ -463,7 +463,7 @@ export class Workspace {
   // ---------------------------------------------------------------- remove
 
   /**
-   * 删除：**搬进 `.novelforge/.trash/` 并保留原相对路径**，不真删
+   * 删除：**搬进 `.novelwarden/.trash/` 并保留原相对路径**，不真删
    * （AGENTS 第 6 条）。同名冲突时加序号，不覆盖之前删掉的东西。
    */
   async remove(rel: string): Promise<WriteResult> {
@@ -1271,7 +1271,7 @@ export class Workspace {
    */
   async writeGlobalSummary(content: string, through: number): Promise<string> {
     const rel = this.project.relPath(this.project.globalSummaryPath);
-    const fm = stringifyFrontmatter({ through, generatedBy: 'novel-forge' });
+    const fm = stringifyFrontmatter({ through, generatedBy: 'novelwarden' });
     await this.overwrite(rel, `${fm}\n\n# 全文大纲\n\n${content.trim()}\n`);
     const manifest = await this.project.readManifest();
     manifest.globalSummaryThrough = through;
@@ -1347,7 +1347,7 @@ export class Workspace {
   }
 
   /**
-   * 写技能的阶段绑定（`.novelforge/skills.json`）。链外的小文件，由设置页「技能」与
+   * 写技能的阶段绑定（`.novelwarden/skills.json`）。链外的小文件，由设置页「技能」与
    * 外部 agent 的 `skills bind` 改写——两条路在动手前都已经问过作者，这里不再弹覆盖审阅：
    * 每换一次下拉框就弹一个 JSON 的 diff 只是噪声。内容由 `renderSkillBindings` 产出。
    */

@@ -123,7 +123,7 @@ export function unavailableReason(file: Pick<OpenFile, 'kind'> | undefined): str
     return '没打开工程，不存历史版本。';
   }
   if (notProject) {
-    return '这个目录还不是小说工程（没有 .novelforge/），不存历史版本。';
+    return '这个目录还不是小说工程（没有工程元数据目录），不存历史版本。';
   }
   if (file.kind === 'other') {
     return '这份文件不是工程里的创作产物（章节、草稿、细纲、角色卡、设定、架构、大纲、文风、叙事线……），不存历史版本。';

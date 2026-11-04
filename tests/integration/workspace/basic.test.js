@@ -186,7 +186,7 @@ describe('read', () => {
   });
 
   test('带上种类', async () => {
-    assert.equal((await ws.read('.novelforge/outline.md')).kind, 'outline');
+    assert.equal((await ws.read('.novelwarden/outline.md')).kind, 'outline');
   });
 
   test('读不存在的抛 notFound', async () => {
@@ -271,11 +271,11 @@ describe('remove · 搬进 .trash/ 并保留原相对路径', () => {
   });
 
   test('回收站里保留原相对路径', () => {
-    assert.ok(t.has('.novelforge/.trash/待删/甲.md'));
+    assert.ok(t.has('.novelwarden/.trash/待删/甲.md'));
   });
 
   test('内容原样', () => {
-    assert.equal(t.read('.novelforge/.trash/待删/甲.md'), '甲');
+    assert.equal(t.read('.novelwarden/.trash/待删/甲.md'), '甲');
   });
 
   test('删受保护的固定目录抛 protected', async () => {
@@ -287,15 +287,15 @@ describe('remove · 搬进 .trash/ 并保留原相对路径', () => {
   });
 
   test('删回收站里的东西抛 inTrash', async () => {
-    assert.equal(await codeOf(() => ws.remove('.novelforge/.trash/待删/甲.md')), 'inTrash');
+    assert.equal(await codeOf(() => ws.remove('.novelwarden/.trash/待删/甲.md')), 'inTrash');
   });
 
   // 同名冲突时加序号，不覆盖之前删掉的东西。
   test('第二次删同名不覆盖回收站里那份', async () => {
     t.write('待删/甲.md', '第二个甲');
     await ws.remove('待删/甲.md');
-    assert.equal(t.read('.novelforge/.trash/待删/甲.md'), '甲');
-    assert.equal(t.read('.novelforge/.trash/待删/甲-2.md'), '第二个甲');
+    assert.equal(t.read('.novelwarden/.trash/待删/甲.md'), '甲');
+    assert.equal(t.read('.novelwarden/.trash/待删/甲-2.md'), '第二个甲');
   });
 });
 
@@ -374,79 +374,79 @@ describe('list', () => {
   });
 });
 
-// 工程库与会话记录是 Novel Forge 自己的东西：经 MCP 读出来是二进制乱码，改坏了整页起不来。
+// 工程库与会话记录是 Novelwarden 自己的东西：经 MCP 读出来是二进制乱码，改坏了整页起不来。
 describe('内部文件 · 看不见、读不到、改不了', () => {
   before(async () => {
-    t.write('.novelforge/novelforge.db', 'SQLite format 3\0北境');
-    t.write('.novelforge/novelforge.db-wal', '北境\0');
-    t.write('.novelforge/novelforge.db-shm', '\0');
-    t.write('.novelforge/sessions/s1.json', '{"title":"北境"}');
-    t.write('.novelforge/premise.md', '# 故事前提\n\n北境的雪。\n');
+    t.write('.novelwarden/novelwarden.db', 'SQLite format 3\0北境');
+    t.write('.novelwarden/novelwarden.db-wal', '北境\0');
+    t.write('.novelwarden/novelwarden.db-shm', '\0');
+    t.write('.novelwarden/sessions/s1.json', '{"title":"北境"}');
+    t.write('.novelwarden/premise.md', '# 故事前提\n\n北境的雪。\n');
     project.invalidate();
   });
 
   test('判定只认这几个', () => {
     for (const rel of [
-      '.novelforge/novelforge.db',
-      '.novelforge/novelforge.db-wal',
-      '.novelforge/novelforge.db-shm',
-      '.novelforge/sessions',
-      '.novelforge/sessions/s1.json',
+      '.novelwarden/novelwarden.db',
+      '.novelwarden/novelwarden.db-wal',
+      '.novelwarden/novelwarden.db-shm',
+      '.novelwarden/sessions',
+      '.novelwarden/sessions/s1.json',
     ]) {
       assert.equal(bundle.guard.isInternalPath(project, rel), true, rel);
     }
-    for (const rel of ['.novelforge/premise.md', 'novelforge.db', 'chapters/novelforge.db', '.novelforge/sessions.md']) {
+    for (const rel of ['.novelwarden/premise.md', 'novelwarden.db', 'chapters/novelwarden.db', '.novelwarden/sessions.md']) {
       assert.equal(bundle.guard.isInternalPath(project, rel), false, rel);
     }
   });
 
   test('list 不列出来', async () => {
-    const names = (await ws.list('.novelforge')).map((e) => e.name);
+    const names = (await ws.list('.novelwarden')).map((e) => e.name);
     assert.ok(names.includes('premise.md'), names.join());
-    for (const hidden of ['novelforge.db', 'novelforge.db-wal', 'novelforge.db-shm', 'sessions']) {
+    for (const hidden of ['novelwarden.db', 'novelwarden.db-wal', 'novelwarden.db-shm', 'sessions']) {
       assert.ok(!names.includes(hidden), names.join());
     }
   });
 
   test('read 当不存在', async () => {
-    assert.equal(await codeOf(() => ws.read('.novelforge/novelforge.db')), 'notFound');
-    assert.equal(await codeOf(() => ws.read('.novelforge/sessions/s1.json')), 'notFound');
+    assert.equal(await codeOf(() => ws.read('.novelwarden/novelwarden.db')), 'notFound');
+    assert.equal(await codeOf(() => ws.read('.novelwarden/sessions/s1.json')), 'notFound');
   });
 
   test('search 搜不到', async () => {
     const r = await ws.search('北境');
-    assert.deepEqual(r.hits.map((x) => x.rel), ['.novelforge/premise.md']);
+    assert.deepEqual(r.hits.map((x) => x.rel), ['.novelwarden/premise.md']);
   });
 
   test('写、改、删一律拒绝', async () => {
-    assert.equal(await codeOf(() => ws.write('.novelforge/novelforge.db', { text: 'x' }, { mode: 'overwrite' })), 'protected');
-    assert.equal(await codeOf(() => ws.write('.novelforge/sessions/新.json', { text: '{}' }, { mode: 'create' })), 'protected');
-    assert.equal(await codeOf(() => ws.remove('.novelforge/novelforge.db-wal')), 'protected');
-    assert.equal(t.read('.novelforge/sessions/s1.json'), '{"title":"北境"}');
+    assert.equal(await codeOf(() => ws.write('.novelwarden/novelwarden.db', { text: 'x' }, { mode: 'overwrite' })), 'protected');
+    assert.equal(await codeOf(() => ws.write('.novelwarden/sessions/新.json', { text: '{}' }, { mode: 'create' })), 'protected');
+    assert.equal(await codeOf(() => ws.remove('.novelwarden/novelwarden.db-wal')), 'protected');
+    assert.equal(t.read('.novelwarden/sessions/s1.json'), '{"title":"北境"}');
   });
 });
 
 describe('doc handler · 固定单文件与角色/设定', () => {
   // 情节大纲没有文件：各章细纲梗概的汇总，写进去就是按章号拆回各章细纲（docs/design/plans/2026-10-22-outline-from-plots.md）。
   test('写大纲：拆成那一章的细纲（只有梗概），读回来是汇总', async () => {
-    const r = await ws.write('.novelforge/outline.md', { text: '# 大纲\n\n## 第1章：入局\n第一幕。' }, { mode: 'overwrite' });
+    const r = await ws.write('.novelwarden/outline.md', { text: '# 大纲\n\n## 第1章：入局\n第一幕。' }, { mode: 'overwrite' });
     assert.equal(r.skipped, undefined);
-    assert.ok(!t.has('.novelforge/outline.md'));
+    assert.ok(!t.has('.novelwarden/outline.md'));
     // 第 1 章已经有正文（上面那组写的 001-楔子.md）：细纲落在正文的镜像上，标题只记在细纲里。
-    assert.match(t.read('.novelforge/summaries/001-楔子.md'), /## 梗概\n\n第一幕。/);
-    assert.match(t.read('.novelforge/summaries/001-楔子.md'), /^title: 入局$/m);
-    assert.match((await ws.read('.novelforge/outline.md')).text, /## 第1章：入局\n第一幕。/);
+    assert.match(t.read('.novelwarden/summaries/001-楔子.md'), /## 梗概\n\n第一幕。/);
+    assert.match(t.read('.novelwarden/summaries/001-楔子.md'), /^title: 入局$/m);
+    assert.match((await ws.read('.novelwarden/outline.md')).text, /## 第1章：入局\n第一幕。/);
   });
 
   test('写角色卡', async () => {
-    const r = await ws.write('.novelforge/characters/林昭.md', { text: '# 林昭\n\n少年剑客。' });
-    assert.equal(r.rel, '.novelforge/characters/林昭.md');
-    assert.ok(t.read('.novelforge/characters/林昭.md').includes('少年剑客'));
+    const r = await ws.write('.novelwarden/characters/林昭.md', { text: '# 林昭\n\n少年剑客。' });
+    assert.equal(r.rel, '.novelwarden/characters/林昭.md');
+    assert.ok(t.read('.novelwarden/characters/林昭.md').includes('少年剑客'));
   });
 
   test('写设定条目', async () => {
-    await ws.write('.novelforge/lore/青云宗.md', { text: '# 青云宗\n\n山门。' });
-    assert.ok(t.has('.novelforge/lore/青云宗.md'));
+    await ws.write('.novelwarden/lore/青云宗.md', { text: '# 青云宗\n\n山门。' });
+    assert.ok(t.has('.novelwarden/lore/青云宗.md'));
   });
 
   // 草稿走 plain：纯文本进出，无记账，也永不自动进上下文（第 10 条）。

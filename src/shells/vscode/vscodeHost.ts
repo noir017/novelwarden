@@ -45,7 +45,7 @@ export class VsCodeHost implements Host {
     opts?: { modal?: boolean; detail?: string }
   ): Promise<string | undefined> {
     return vscode.window.showInformationMessage(
-      `Novel Forge：${message}`,
+      `Novelwarden：${message}`,
       { modal: opts?.modal ?? false, detail: opts?.detail },
       ...actions
     );
@@ -66,7 +66,7 @@ export class VsCodeHost implements Host {
         .filter(Boolean)
         .join('\n\n');
       const picked = await vscode.window.showInformationMessage(
-        `Novel Forge：${message}`,
+        `Novelwarden：${message}`,
         { modal: true, detail },
         ...actions,
         ADJUST_CALL
@@ -206,9 +206,9 @@ export class VsCodeHost implements Host {
 
   toast(message: string, level: 'info' | 'error' = 'info'): void {
     if (level === 'error') {
-      void vscode.window.showErrorMessage(`Novel Forge：${message}`);
+      void vscode.window.showErrorMessage(`Novelwarden：${message}`);
     } else {
-      void vscode.window.showInformationMessage(`Novel Forge：${message}`);
+      void vscode.window.showInformationMessage(`Novelwarden：${message}`);
     }
   }
 
@@ -256,7 +256,7 @@ export class VsCodeHost implements Host {
     // 临时文件名取落点的文件名：`name` 是给人看的称呼（「设定「…」」「第 12 章 · 剧情」），
     // 里面可能有斜杠。
     const stem = (relPath ? path.basename(relPath, path.extname(relPath)) : name).replace(/[\\/:*?"<>|]/g, '_');
-    const previewAbs = path.join(os.tmpdir(), `novelforge-${Date.now()}-${stem}.proposed.md`);
+    const previewAbs = path.join(os.tmpdir(), `novelwarden-${Date.now()}-${stem}.proposed.md`);
     // 定位现有文件认 relPath；只有老调用方没给时才按名字找角色卡。从前一律按名字找，
     // 覆盖大纲、细纲时左侧是一片空白。
     const currentAbs = relPath ? this.absOf(relPath) : await this.findCharacterFile(name);
@@ -271,7 +271,7 @@ export class VsCodeHost implements Host {
         { preview: true }
       );
       const pick = await vscode.window.showInformationMessage(
-        `Novel Forge：是否采纳对「${name}」的更新？`,
+        `Novelwarden：是否采纳对「${name}」的更新？`,
         { modal: true },
         '采纳',
         '放弃'

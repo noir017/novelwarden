@@ -66,7 +66,7 @@ function plotFile(no, title, sections, { upstream = 'fresh', written = 'fresh', 
     sourceHash: body !== undefined ? bundle.fsm.hash(body.trim()) : undefined,
     cast: body !== undefined ? cast ?? [] : undefined,
   };
-  const rel = `.novelforge/summaries/${String(no).padStart(3, '0')}-${title}.md`;
+  const rel = `.novelwarden/summaries/${String(no).padStart(3, '0')}-${title}.md`;
   const writtenFrom = written === 'fresh' ? plotContentHash(parsePlotFile(renderPlotFile(plot), rel)) : written === 'none' ? '' : written;
   return renderPlotFile({ ...plot, writtenFrom });
 }
@@ -93,17 +93,17 @@ async function setup(prefix) {
     6: '# 归来\n\n林晚回来了。\n',
   };
   t.write('chapters/001-入宗.md', bodies[1]);
-  t.write('.novelforge/summaries/001-入宗.md', plotFile(1, '入宗', { 梗概: '林晚入宗', 出场人物: '林晚', 关键事件: '- 林晚推开山门' }, { body: bodies[1], cast: [{ name: '林晚', aliases: ['阿晚'] }] }));
+  t.write('.novelwarden/summaries/001-入宗.md', plotFile(1, '入宗', { 梗概: '林晚入宗', 出场人物: '林晚', 关键事件: '- 林晚推开山门' }, { body: bodies[1], cast: [{ name: '林晚', aliases: ['阿晚'] }] }));
   t.write('chapters/002-下山.md', bodies[2]);
-  t.write('.novelforge/summaries/002-下山.md', plotFile(2, '下山', { 梗概: '林晚下山', 关键事件: '- 下山' }, { body: bodies[2], cast: [{ name: '林晚', aliases: [] }] }));
+  t.write('.novelwarden/summaries/002-下山.md', plotFile(2, '下山', { 梗概: '林晚下山', 关键事件: '- 下山' }, { body: bodies[2], cast: [{ name: '林晚', aliases: [] }] }));
   t.write('chapters/003-夜访.md', bodies[3]);
-  t.write('.novelforge/summaries/003-夜访.md', plotFile(3, '夜访', { 梗概: '有人夜访', 关键事件: '- 夜访' }, { body: bodies[3] }));
-  t.write('.novelforge/summaries/004-北行.md', plotFile(4, '北行', { 梗概: '林晚北行', 关键事件: '- 北行' }, { upstream: 'deadbeef', written: 'none' }));
-  t.write('.novelforge/summaries/005-远行.md', '---\nno: 5\ntitle: 远行\n---\n\n# 第5章 远行\n\n## 梗概\n林晚远行\n\n## 关键事件\n- 出发\n');
+  t.write('.novelwarden/summaries/003-夜访.md', plotFile(3, '夜访', { 梗概: '有人夜访', 关键事件: '- 夜访' }, { body: bodies[3] }));
+  t.write('.novelwarden/summaries/004-北行.md', plotFile(4, '北行', { 梗概: '林晚北行', 关键事件: '- 北行' }, { upstream: 'deadbeef', written: 'none' }));
+  t.write('.novelwarden/summaries/005-远行.md', '---\nno: 5\ntitle: 远行\n---\n\n# 第5章 远行\n\n## 梗概\n林晚远行\n\n## 关键事件\n- 出发\n');
   t.write('chapters/006-归来.md', bodies[6]);
-  t.write('.novelforge/summaries/006-归来.md', plotFile(6, '归来', { 梗概: '林晚归来', 关键事件: '- 归来' }, { written: 'old-plot-hash' }));
+  t.write('.novelwarden/summaries/006-归来.md', plotFile(6, '归来', { 梗概: '林晚归来', 关键事件: '- 归来' }, { written: 'old-plot-hash' }));
   t.write(
-    '.novelforge/characters/林晚.md',
+    '.novelwarden/characters/林晚.md',
     '---\nname: 林晚\naliases: [阿晚]\nappearsIn: [1]\n---\n\n# 林晚\n\n## 身份\n林晚是主角。\n'
   );
   t.project.invalidate();
@@ -136,7 +136,7 @@ describe('features/bookReplace › 经网关写、历史版本', () => {
 
   before(async () => {
     t = await setup('write');
-    for (const rel of ['chapters/001-入宗.md', 'chapters/003-夜访.md', '.novelforge/summaries/001-入宗.md']) {
+    for (const rel of ['chapters/001-入宗.md', 'chapters/003-夜访.md', '.novelwarden/summaries/001-入宗.md']) {
       originals[rel] = t.read(rel);
     }
     // 先经网关存一次小改动：第一版进了历史，最新快照不到十分钟——按节流，再来一次小改动不会存。
@@ -154,7 +154,7 @@ describe('features/bookReplace › 经网关写、历史版本', () => {
     assert.match(t.read('chapters/001-入宗.md'), /林婉推开山门/);
     assert.match(t.read('chapters/003-夜访.md'), /夜里林婉来过/);
     assert.match(t.read('chapters/006-归来.md'), /林晚回来了/);
-    assert.match(t.read('.novelforge/summaries/006-归来.md'), /林婉归来/);
+    assert.match(t.read('.novelwarden/summaries/006-归来.md'), /林婉归来/);
   });
 
   test('汇总：几个文件几处', () => {
@@ -179,7 +179,7 @@ describe('features/bookReplace › 经网关写、历史版本', () => {
   });
 
   test('frontmatter 里机器记的账一个字没动', () => {
-    const plot = bundle.plotFile.parsePlotFile(t.read('.novelforge/summaries/004-北行.md'), '.novelforge/summaries/004-北行.md');
+    const plot = bundle.plotFile.parsePlotFile(t.read('.novelwarden/summaries/004-北行.md'), '.novelwarden/summaries/004-北行.md');
     assert.equal(plot.upstreamHash, 'deadbeef');
     assert.equal(plot.no, 4);
   });
@@ -209,19 +209,19 @@ describe('features/bookReplace › 乐观锁、未保存、范围、还不是小
   test('不在勾着的范围里的、内部文件：不写', async () => {
     const t = await setup('scope');
     const { request } = await previewAndRequest(t, { scopes: ['chapter'] });
-    const plotRel = '.novelforge/summaries/001-入宗.md';
+    const plotRel = '.novelwarden/summaries/001-入宗.md';
     const plotBefore = t.read(plotRel);
-    const projectJson = t.read('.novelforge/project.json');
+    const projectJson = t.read('.novelwarden/project.json');
     const extra = [
       { path: plotRel, hash: bundle.fsm.hash(plotBefore), hits: [{ start: plotBefore.indexOf('林晚'), end: plotBefore.indexOf('林晚') + 2 }] },
-      { path: '.novelforge/project.json', hash: bundle.fsm.hash(projectJson), hits: [{ start: 0, end: 1 }] },
+      { path: '.novelwarden/project.json', hash: bundle.fsm.hash(projectJson), hits: [{ start: 0, end: 1 }] },
     ];
     const summary = await replace(t, { ...request, files: [...request.files, ...extra] });
-    assert.deepEqual(summary.skipped.map((s) => [s.path, s.reason]), [[plotRel, 'outOfScope'], ['.novelforge/project.json', 'outOfScope']]);
+    assert.deepEqual(summary.skipped.map((s) => [s.path, s.reason]), [[plotRel, 'outOfScope'], ['.novelwarden/project.json', 'outOfScope']]);
     assert.equal(t.read(plotRel), plotBefore);
     // project.json 会因为正文换了而重算一次章节清单（manifest），但第一个字没被当成「一处」换掉。
-    assert.doesNotThrow(() => JSON.parse(t.read('.novelforge/project.json')));
-    assert.equal(t.read('.novelforge/project.json')[0], projectJson[0]);
+    assert.doesNotThrow(() => JSON.parse(t.read('.novelwarden/project.json')));
+    assert.equal(t.read('.novelwarden/project.json')[0], projectJson[0]);
   });
 
   test('勾着的那几处对不上（不是一处匹配）：整份不写', async () => {
@@ -233,8 +233,8 @@ describe('features/bookReplace › 乐观锁、未保存、范围、还不是小
     assert.match(t.read(first.path), /林晚/);
   });
 
-  test('还不是小说工程（没有 .novelforge/）：存不了历史版本，不换', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-book-replace-bare-'));
+  test('还不是小说工程（没有 .novelwarden/）：存不了历史版本，不换', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-book-replace-bare-'));
     try {
       fs.mkdirSync(path.join(dir, 'chapters'));
       fs.writeFileSync(path.join(dir, 'chapters', '001-楔子.md'), '林晚推门。');
@@ -292,7 +292,7 @@ describe('features/bookReplace › 第 18 条：指纹链', () => {
     assert.equal(r.plot.upstreamStale, false);
     assert.deepEqual(summary.chainKept, ['第 1 章 入宗']);
     // 定稿那份细纲里的出场（cast）也跟着换了名字。
-    assert.match(t.read('.novelforge/summaries/001-入宗.md'), /cast: \[林婉\(阿晚\)\]/);
+    assert.match(t.read('.novelwarden/summaries/001-入宗.md'), /cast: \[林婉\(阿晚\)\]/);
   });
 
   test('只改了细纲（正文未保存被跳过）：正文挂 ⟳，汇总里说出来', async () => {
@@ -316,9 +316,9 @@ describe('features/bookReplace › 第 18 条：指纹链', () => {
   test('细纲的上游：挂着 ⟳ 的照挂（旧指纹原样留着），没记过的照旧不记', async () => {
     const r4 = await row(t, 4);
     assert.equal(r4.plot.upstreamStale, true);
-    assert.match(t.read('.novelforge/summaries/004-北行.md'), /upstreamHash: deadbeef/);
-    assert.match(t.read('.novelforge/summaries/004-北行.md'), /林婉北行/);
-    const p5 = t.read('.novelforge/summaries/005-远行.md');
+    assert.match(t.read('.novelwarden/summaries/004-北行.md'), /upstreamHash: deadbeef/);
+    assert.match(t.read('.novelwarden/summaries/004-北行.md'), /林婉北行/);
+    const p5 = t.read('.novelwarden/summaries/005-远行.md');
     assert.match(p5, /林婉远行/);
     assert.doesNotMatch(p5, /upstreamHash/);
   });
@@ -327,9 +327,9 @@ describe('features/bookReplace › 第 18 条：指纹链', () => {
 describe('features/bookReplace › 第 18 条：细纲在这一次里却被跳过', () => {
   test('正文换了、细纲因为未保存被跳过：定稿过的章同样回到待定稿，汇总里说「只改了正文」', async () => {
     const t = await setup('plot-dirty');
-    const { request } = await previewAndRequest(t, { scopes: ['chapter', 'plot'] }, { dirty: ['.novelforge/summaries/001-入宗.md'] });
+    const { request } = await previewAndRequest(t, { scopes: ['chapter', 'plot'] }, { dirty: ['.novelwarden/summaries/001-入宗.md'] });
     const summary = await replace(t, request);
-    assert.deepEqual(summary.skipped.map((s) => [s.path, s.reason]), [['.novelforge/summaries/001-入宗.md', 'dirty']]);
+    assert.deepEqual(summary.skipped.map((s) => [s.path, s.reason]), [['.novelwarden/summaries/001-入宗.md', 'dirty']]);
     assert.equal((await row(t, 1)).summary.stale, true);
     assert.ok(summary.bodyOnly.includes('第 1 章 入宗'), JSON.stringify(summary.bodyOnly));
     assert.ok(!summary.chainKept.includes('第 1 章 入宗'));
@@ -352,7 +352,7 @@ describe('features/bookReplace › 第 18 条：情节大纲（各章细纲的�
 
 describe('features/bookReplace › 角色卡改名与派生数据', () => {
   let t;
-  const cardRel = '.novelforge/characters/林晚.md';
+  const cardRel = '.novelwarden/characters/林晚.md';
   const tree = async () => {
     t.project.invalidate();
     return bundle.projectView.buildProjectTree(t.project);

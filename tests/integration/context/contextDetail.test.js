@@ -36,7 +36,7 @@ const config = (extra = {}) => ({
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 /** 一章约 2000 字，十来段：上一章结尾要真被截。 */
 function chapterText(no) {
@@ -82,7 +82,7 @@ function plotText(no) {
 
 /** 五条都与第 13 章有关（区间盖住第 13 章），「精简」只带得下 3 条。一条线一个文件。 */
 const THREADS = ['玉佩', '名册', '大火', '师父', '来信'].map((name) => [
-  `.novelforge/threads/${name}之谜.md`,
+  `.novelwarden/threads/${name}之谜.md`,
   `---\nkind: 支线\nplan: 10-20\n---\n\n# ${name}之谜\n\n## 意图\n${name}的来历。\n`,
 ]);
 
@@ -106,7 +106,7 @@ async function setupManuscript() {
   }
   t.write(PLOT(N + 1), plotText(N + 1));
   t.write(
-    '.novelforge/characters/林昭.md',
+    '.novelwarden/characters/林昭.md',
     '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿\n\n## 外貌\n\n左眉有一道疤\n\n## 当前状态\n\n在查案\n'
   );
   for (const [rel, text] of THREADS) {
@@ -117,7 +117,7 @@ async function setupManuscript() {
   for (let no = 1; no <= N; no++) {
     const ch = chapters.find((c) => c.order === no);
     t.write(
-      `.novelforge/summaries/${pad3(no)}-第${no}章.md`,
+      `.novelwarden/summaries/${pad3(no)}-第${no}章.md`,
       `---\nno: ${no}\ntitle: 第${no}章\nsourceHash: ${ch.contentHash}\ncast: [林昭]\n---\n\n# 第${no}章 第${no}章\n\n## 梗概\n\n第${no}章的事。\n\n## 出场人物\n\n林昭\n\n## 连续性事实\n\n- 林昭收起第${no}块令牌 〔证据：「林昭在第${no}章把第${no}块令牌塞进怀里。」〕\n`
     );
   }

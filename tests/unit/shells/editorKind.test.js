@@ -32,7 +32,7 @@ before(() => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-editor-kind-'));
   put('chapters/001-雨夜.md', '# 雨夜\n\n林昭推开客栈的门。\n');
   put('drafts/001-雨夜.md', '草稿\n');
-  put('.novelforge/characters/林昭.md', '# 林昭\n');
+  put('.novelwarden/characters/林昭.md', '# 林昭\n');
   put('notes.txt', '随手记\n');
 });
 after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -59,7 +59,7 @@ describe('内置编辑器的文件负载带 kind', () => {
   });
 
   test('角色卡是 character', async () => {
-    assert.equal(await openKind('.novelforge/characters/林昭.md'), 'character');
+    assert.equal(await openKind('.novelwarden/characters/林昭.md'), 'character');
   });
 
   test('不在任何区里的文件是 other', async () => {
@@ -127,9 +127,9 @@ describe('内置编辑器的文件负载带 kind', () => {
   test('保存回执与磁盘核对的新版也带称呼', async () => {
     const sent = [];
     const host = hostWith(sent);
-    await host.saveFromEditor('.novelforge/characters/林昭.md', '# 林昭\n\n改过。\n');
+    await host.saveFromEditor('.novelwarden/characters/林昭.md', '# 林昭\n\n改过。\n');
     assert.equal(sent.find((m) => m.type === 'editorSaved').file.label.tag, '角色');
-    await host.checkEditorFiles([{ path: '.novelforge/characters/林昭.md', hash: 'stale' }]);
+    await host.checkEditorFiles([{ path: '.novelwarden/characters/林昭.md', hash: 'stale' }]);
     const changed = sent.find((m) => m.type === 'editorDiskChanged');
     assert.ok(changed, JSON.stringify(sent.map((m) => m.type)));
     assert.equal(changed.file.label.title, '林昭');

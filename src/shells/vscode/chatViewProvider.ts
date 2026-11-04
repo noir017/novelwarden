@@ -5,7 +5,7 @@ import { htmlFor, webviewOptions } from './webview';
 
 /**
  * 侧边栏宿主。视图在 package.json 里注册为 `novelForge.chat`，
- * 与树视图同处 Novel Forge 活动栏容器。
+ * 与树视图同处 Novelwarden 活动栏容器。
  *
  * 面板内部用 tabbar 切换 对话/历史/设置，参考 Roo 的做法——
  * 侧边栏本来就窄，多开几个 view 不如一个视图内切页。

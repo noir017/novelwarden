@@ -33,7 +33,7 @@ const config = (extra = {}) => ({
   ...extra,
 });
 
-const PLOT2 = '.novelforge/summaries/002-第2章.md';
+const PLOT2 = '.novelwarden/summaries/002-第2章.md';
 const plotText = (no) =>
   ['---', `no: ${no}`, `title: 第${no}章`, 'targetWords: 1200', '---', '', `# 第${no}章 第${no}章`, '', '## 梗概', '', '往下查。', '', '## 出场人物', '', '林昭', '', '## 关键事件', '', '林昭下井。', '', '## 看点', '', '- 井底有人。', ''].join('\n');
 
@@ -55,14 +55,14 @@ before(async () => {
   home = makeTempDir('skillLayerHome');
   bundle.skills.setUserSkillsDir(home.rel('skills'));
   t = await makeTempProject(bundle.project, { prefix: 'skillLayer', title: '技能层测试' });
-  t.write('.novelforge/summaries/001-第1章.md', plotText(1));
+  t.write('.novelwarden/summaries/001-第1章.md', plotText(1));
   t.write(PLOT2, plotText(2));
   t.write('chapters/001-第1章.md', '# 第1章\n\n第一章的正文。\n');
   t.write('chapters/002-第2章.md', '# 第2章\n\n第二章已经写了一半。\n');
-  t.write('.novelforge/skills/场面写法/SKILL.md', '---\ndisplay_name: 场面写法\n---\n每一场都要有一个选择。\n');
-  t.write('.novelforge/skills/带参考/SKILL.md', '---\ndisplay_name: 带参考\n---\n先读 references/a.md，交稿前过 references/b.md。\n');
-  t.write('.novelforge/skills/带参考/references/a.md', '这是一条很长的参考。'.repeat(1500));
-  t.write('.novelforge/skills/带参考/references/b.md', '交稿清单。');
+  t.write('.novelwarden/skills/场面写法/SKILL.md', '---\ndisplay_name: 场面写法\n---\n每一场都要有一个选择。\n');
+  t.write('.novelwarden/skills/带参考/SKILL.md', '---\ndisplay_name: 带参考\n---\n先读 references/a.md，交稿前过 references/b.md。\n');
+  t.write('.novelwarden/skills/带参考/references/a.md', '这是一条很长的参考。'.repeat(1500));
+  t.write('.novelwarden/skills/带参考/references/b.md', '交稿清单。');
   home.write('skills/review-hard/SKILL.md', '---\nname: review-hard\n---\n逐条找出与细纲对不上的地方。\n');
   t.project.invalidate();
 });
@@ -74,7 +74,7 @@ after(() => {
 });
 
 function bind(bindings) {
-  t.write('.novelforge/skills.json', JSON.stringify({ version: 1, bindings }));
+  t.write('.novelwarden/skills.json', JSON.stringify({ version: 1, bindings }));
 }
 
 function build(request, cfg = config()) {
@@ -166,7 +166,7 @@ describe('skill 层 · 正文层的四张配方', () => {
 
   test('写正文：带写正文那一份，本工程的技能点得开', async () => {
     const item = skillItem(await build(WRITE()));
-    assert.deepEqual([item.status, item.label, item.source], ['included', '技能 · 场面写法', '.novelforge/skills/场面写法/SKILL.md']);
+    assert.deepEqual([item.status, item.label, item.source], ['included', '技能 · 场面写法', '.novelwarden/skills/场面写法/SKILL.md']);
   });
 
   test('续写那几轮也带', async () => {
@@ -191,7 +191,7 @@ describe('skill 层 · 正文层的四张配方', () => {
 
 describe('skill 层 · 带不上的时候', () => {
   test('放不下：整份不带，写明需要多少；消息里一个字都没有', async () => {
-    t.write('.novelforge/skills/大部头/SKILL.md', `---\nname: x\n---\n${'这是很长的一段写作方法。'.repeat(400)}\n`);
+    t.write('.novelwarden/skills/大部头/SKILL.md', `---\nname: x\n---\n${'这是很长的一段写作方法。'.repeat(400)}\n`);
     bind({ planning: 'project:大部头' });
     const b = await build(SETTING, config({ contextWindow: 3000, maxOutputTokens: 500 }));
     const item = skillItem(b);
@@ -203,12 +203,12 @@ describe('skill 层 · 带不上的时候', () => {
   test('绑着的技能找不到了：dropped 说原因，来源指向绑定文件', async () => {
     bind({ planning: 'user:gone' });
     const item = skillItem(await build(SETTING));
-    assert.deepEqual([item.status, item.source], ['dropped', '.novelforge/skills.json']);
+    assert.deepEqual([item.status, item.source], ['dropped', '.novelwarden/skills.json']);
     assert.ok(item.note.includes('找不到了'), item.note);
   });
 
   test('绑定文件读不懂：dropped 说读不懂', async () => {
-    t.write('.novelforge/skills.json', '{');
+    t.write('.novelwarden/skills.json', '{');
     const item = skillItem(await build(SETTING));
     assert.ok(item.status === 'dropped' && item.note.includes('读不懂'), JSON.stringify(item));
   });
@@ -221,7 +221,7 @@ describe('skill 层 · 带不上的时候', () => {
   });
 
   test('没有绑定文件：这一层什么都不出', async () => {
-    t.remove('.novelforge/skills.json');
+    t.remove('.novelwarden/skills.json');
     assert.equal(skillItem(await build(SETTING)), undefined);
   });
 });

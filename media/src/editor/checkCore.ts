@@ -6,7 +6,7 @@
  * | 类别 | 词从哪来 | 怎么找 | 算几个问题 |
  * |---|---|---|---|
  * | 禁用词 | 后端推来的 `banned`（`style.md` 禁用词表 + 全局要求里禁止的词 + 古代题材的现代说法） | `locateTerms`，**区分大小写**——与写完一章之后的 `countBanned` 同一个函数 | 每一处算一个 |
- * | 敏感词 | 后端推来的 `sensitive`（`.novelforge/sensitive.txt`） | `locateTerms` 的 `foldCase`：英文不分大小写、全角当半角 | 每一处算一个 |
+ * | 敏感词 | 后端推来的 `sensitive`（`.novelwarden/sensitive.txt`） | `locateTerms` 的 `foldCase`：英文不分大小写、全角当半角 | 每一处算一个 |
  * | 比喻词 | `SIMILE_WORDS`（与生成链同一张表） | `locateTerms`（`countSimiles` 也建在它上面） | **全章超过 `SIMILE_LIMIT` 才算**，算超出的那几个；没超不高亮 |
  * | 英文缩写 | 正文本身 | `latinAcronymRanges`（`latinAcronyms` 建在它上面） | 每一处算一个 |
  *

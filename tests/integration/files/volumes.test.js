@@ -95,12 +95,12 @@ describe('新章的落点：默认进最新的一卷', () => {
 
   test('建了空卷之后，接在最后的新章（细纲）落进它', () => {
     assert.equal(results.afterVolume, '第二卷');
-    assert.equal(results.plotPath, '.novelforge/summaries/第二卷/003-雪夜.md');
+    assert.equal(results.plotPath, '.novelwarden/summaries/第二卷/003-雪夜.md');
   });
 
   test('「新建章节文件」不给落点也进最新的一卷，细纲跟着镜像', () => {
     assert.equal(results.chapter, 'chapters/第二卷/003-雪夜.txt');
-    assert.equal(results.plotOfChapter, '.novelforge/summaries/第二卷/003-雪夜.md');
+    assert.equal(results.plotOfChapter, '.novelwarden/summaries/第二卷/003-雪夜.md');
   });
 
   test('卷里有了章，下一章照旧跟上一章', () => {
@@ -158,7 +158,7 @@ describe('工程树：章节按卷分段', () => {
     await ws.writePlot(
       { no: 4, title: '北行', upstreamHash: '', done: false, sections: bundle.plotFile.emptyPlotSections() },
       undefined,
-      '.novelforge/summaries/第二卷/004.md'
+      '.novelwarden/summaries/第二卷/004.md'
     );
     fs.mkdirSync(t.rel('chapters/第三卷'));
     project.invalidate();

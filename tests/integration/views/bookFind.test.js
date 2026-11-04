@@ -49,14 +49,14 @@ before(async () => {
   t.write('chapters/第一卷/002-入镇.md', '# 入镇\n\n镇上没人认得林晚。\n');
   t.write('chapters/第一卷/003-夜访.txt', '夜里，林晚敲了敲门。');
   t.write('chapters/010-远行.md', '# 远行\n\n一个人走了。\n');
-  t.write('.novelforge/summaries/001-楔子.md', plotText(1, '楔子'));
-  t.write('.novelforge/summaries/第一卷/002-入镇.md', plotText(2, '入镇', '进镇'));
+  t.write('.novelwarden/summaries/001-楔子.md', plotText(1, '楔子'));
+  t.write('.novelwarden/summaries/第一卷/002-入镇.md', plotText(2, '入镇', '进镇'));
   t.write('drafts/001-楔子.md', '草稿里的林晚');
   t.write('drafts/封面.png', '林晚');
-  t.write('.novelforge/characters/林晚.md', '---\nname: 林晚\naliases: [阿晚]\n---\n\n# 林晚\n\n## 身份\n林晚是主角。\n');
-  t.write('.novelforge/lore/门派/青云宗.md', '---\ntitle: 青云宗\n---\n\n# 青云宗\n\n林晚拜入的门派。\n');
+  t.write('.novelwarden/characters/林晚.md', '---\nname: 林晚\naliases: [阿晚]\n---\n\n# 林晚\n\n## 身份\n林晚是主角。\n');
+  t.write('.novelwarden/lore/门派/青云宗.md', '---\ntitle: 青云宗\n---\n\n# 青云宗\n\n林晚拜入的门派。\n');
   // 老工程留下的 outline.md：情节大纲现在是各章细纲梗概的汇总，这一份不再读，也不在全书查找里。
-  t.write('.novelforge/outline.md', '# 情节大纲\n\n## 第1–5章：林晚入宗\n林晚拜入青云宗。\n');
+  t.write('.novelwarden/outline.md', '# 情节大纲\n\n## 第1–5章：林晚入宗\n林晚拜入青云宗。\n');
   project.invalidate();
 });
 

@@ -253,7 +253,7 @@ describe('页头任务条 · 所有页签都看得见', { skip: JSDOM_SKIP }, ()
       title: '批量写章',
       message: '第 1–3 章已写好（调用 3 次）。',
       level: 'info',
-      open: { plotRelPath: '.novelforge/summaries/003-夜访.md', label: '打开第 3 章' },
+      open: { plotRelPath: '.novelwarden/summaries/003-夜访.md', label: '打开第 3 章' },
     });
     const toast = ui.doc.getElementById('toast');
     assert.ok(!toast.classList.contains('hidden'));
@@ -262,7 +262,7 @@ describe('页头任务条 · 所有页签都看得见', { skip: JSDOM_SKIP }, ()
     assert.equal(btn?.textContent, '打开第 3 章');
     ui.sent.length = 0;
     ui.clickEl(btn);
-    assert.ok(ui.sent.some((m) => m.type === 'openChapter' && m.plotRelPath === '.novelforge/summaries/003-夜访.md'), JSON.stringify(ui.sent));
+    assert.ok(ui.sent.some((m) => m.type === 'openChapter' && m.plotRelPath === '.novelwarden/summaries/003-夜访.md'), JSON.stringify(ui.sent));
     assert.ok(toast.classList.contains('hidden'));
   });
 

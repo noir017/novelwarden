@@ -32,8 +32,8 @@ let beside = [];
 let replies = [];
 let fake;
 
-const P1 = '.novelforge/summaries/001-夜入青云.md';
-const P2 = '.novelforge/summaries/002-客栈.md';
+const P1 = '.novelwarden/summaries/001-夜入青云.md';
+const P2 = '.novelwarden/summaries/002-客栈.md';
 const CH1 = 'chapters/001-夜入青云.txt';
 
 before(async () => {
@@ -126,7 +126,7 @@ describe('openChapter', () => {
   });
 
   test('两样都没有：说找不到，什么都不开', async () => {
-    const r = await open('.novelforge/summaries/009.md');
+    const r = await open('.novelwarden/summaries/009.md');
     assert.deepEqual(r.opened, []);
     assert.ok(r.toasts.some((m) => m.startsWith('error:')), JSON.stringify(r.toasts));
   });
@@ -153,16 +153,16 @@ describe('openChapter', () => {
   // 只认 `summaries/` 根下，点章节名只开了正文，旁边那份细纲打不开。
   test('正文在卷目录里：旁边打开的是 summaries/ 同一个卷目录里的那份细纲', async () => {
     t.write('chapters/第二卷/003-雪夜.txt', '雪下了一夜。\n');
-    t.write('.novelforge/summaries/第二卷/003-雪夜.md', '---\nno: 3\ntitle: 雪夜\n---\n\n## 关键事件\n\n- 雪下了一夜。\n');
+    t.write('.novelwarden/summaries/第二卷/003-雪夜.md', '---\nno: 3\ntitle: 雪夜\n---\n\n## 关键事件\n\n- 雪下了一夜。\n');
     project.invalidate();
     try {
       const r = await open('chapters/第二卷/003-雪夜.txt');
       assert.deepEqual(r.opened, ['chapters/第二卷/003-雪夜.txt']);
-      assert.deepEqual(r.beside, ['.novelforge/summaries/第二卷/003-雪夜.md']);
+      assert.deepEqual(r.beside, ['.novelwarden/summaries/第二卷/003-雪夜.md']);
     } finally {
       // 第 3 章有正文、第 2 章没有会让后面「重写…」先问一句章号断了（features/chapterGap.ts）。
       t.remove('chapters/第二卷');
-      t.remove('.novelforge/summaries/第二卷');
+      t.remove('.novelwarden/summaries/第二卷');
       project.invalidate();
     }
   });
@@ -170,7 +170,7 @@ describe('openChapter', () => {
 
 describe('openChapter：没有细纲按模板建、旁边开哪一份跟上一次走', () => {
   const CH4 = 'chapters/004-远行.md';
-  const P4 = '.novelforge/summaries/004-远行.md';
+  const P4 = '.novelwarden/summaries/004-远行.md';
   const D1 = 'drafts/001-夜入青云.txt';
   const D4 = 'drafts/004-远行.md';
   const results = {};
@@ -281,7 +281,7 @@ describe('chapterAction', () => {
  * 取消就什么都不做；「讨论」那条（setTarget）不在这里——它只切层、不花钱。
  */
 describe('rewriteArchitecture', () => {
-  const PREMISE = '.novelforge/premise.md';
+  const PREMISE = '.novelwarden/premise.md';
 
   before(() => {
     t.write(PREMISE, '# 故事前提\n\n少年入青云，一路被人看不起。\n');

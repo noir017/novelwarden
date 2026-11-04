@@ -77,7 +77,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: novelforge-${{ matrix.name }}
+          name: novelwarden-${{ matrix.name }}
           # 只收安装包，不收 90 MB 的 sidecar 中间产物。各平台产出什么由 Tauri
           # 按平台决定，所以这里用通配而不是写死目录名。
           path: |

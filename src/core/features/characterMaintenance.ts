@@ -24,7 +24,7 @@ const log = scoped('角色卡');
  *   根因已在 [../identity.ts](../identity.ts) 修掉，但已经建出来的卡还在。
  *
  * 两条动作都只改 frontmatter（经 `rewriteFrontmatter`），**作者手写的正文一个
- * 字节都不动**；被合并掉的卡按「不真删」搬进 `.novelforge/.trash/`。写回与搬走都经网关（`write`
+ * 字节都不动**；被合并掉的卡按「不真删」搬进 `.novelwarden/.trash/`。写回与搬走都经网关（`write`
  * 传 `review: false`——动手前的确认框就是那一问；`remove`），守卫照过，改写之前的旧卡存一版历史（AGENTS 第 7 条）。
  */
 
@@ -275,7 +275,7 @@ function countAppearances(group: DuplicateGroup): number {
 }
 
 function pairKey(a: string, b: string): string {
-  return a < b ? `${a} ${b}` : `${b} ${a}`;
+  return a < b ? `${a}\x00${b}` : `${b}\x00${a}`;
 }
 
 /**
@@ -315,7 +315,7 @@ export async function mergeDuplicateCharacterCards(project: NovelProject): Promi
           .map((g) => `${g.strength === 'summary' ? '●' : '○'} ${g.cards.map((c) => `「${c.name}」`).join(' / ')}`)
           .join('\n') + (groups.length > 8 ? `\n……另有 ${groups.length - 8} 组` : ''),
         `● ${strong} 组有摘要证据，○ ${groups.length - strong} 组只是名字像，需要你自己判断。`,
-        '不调模型。每组都会先问保留哪一张；被合并的卡搬进 .novelforge/.trash/，可手动找回。'
+        '不调模型。每组都会先问保留哪一张；被合并的卡搬进 .novelwarden/.trash/，可手动找回。'
           + '注意：**被合并卡的正文小节不会自动融合**，合并后建议对保留的卡跑一次「从头重建角色卡」。',
         labelHint,
       ]

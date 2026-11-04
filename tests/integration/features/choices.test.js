@@ -21,7 +21,7 @@ function makePlot(no, title, text, cast) {
   const stem = `${n}-${title}`;
   t.write(`chapters/${stem}.md`, `# ${title}\n\n${text}\n`);
   t.write(
-    `.novelforge/summaries/${stem}.md`,
+    `.novelwarden/summaries/${stem}.md`,
     `---\nno: ${no}\ntitle: ${title}\nsourceHash: x\ncast: [${cast.join(', ')}]\n---\n\n` +
       `# 第${no}章 ${title}\n\n## 梗概\n\n略。\n\n## 出场人物\n\n${cast.join('、')}\n\n## 关键事件\n\n甲乙丙。\n\n## 看点\n\n略。\n`
   );
@@ -70,7 +70,7 @@ describe('plotChoices', () => {
 
   // 只排了细纲、还没写正文的章照样要列出来——那正是作者接下来要写的那些。
   test('没写正文的章说「还没有正文」', async () => {
-    t.write('.novelforge/summaries/003-空的.md', '## 梗概\n\n略。\n\n## 关键事件\n\n丁。\n');
+    t.write('.novelwarden/summaries/003-空的.md', '## 梗概\n\n略。\n\n## 关键事件\n\n丁。\n');
     t.project.invalidate();
     const withEmpty = await choices.plotChoices(t.project);
     assert.equal(withEmpty.find((c) => c.value === 3).description, '还没有正文');
@@ -92,7 +92,7 @@ describe('characterChoices', () => {
   /** 一张卡：读到第 `updatedThrough` 章为止。 */
   function makeCard(name, updatedThrough) {
     t.write(
-      `.novelforge/characters/${name}.md`,
+      `.novelwarden/characters/${name}.md`,
       `---\nname: ${name}\naliases: []\ntags: [配角]\n` +
         (updatedThrough === undefined ? '' : `updatedThrough: ${updatedThrough}\n`) +
         `---\n\n# ${name}\n\n## 身份\n\n略。\n`
@@ -103,7 +103,7 @@ describe('characterChoices', () => {
     makeCard('林昭', 2);
     const list = await choices.characterChoices(t.project);
     const zhao = list.find((c) => c.label === '林昭');
-    assert.equal(zhao.value, '.novelforge/characters/林昭.md');
+    assert.equal(zhao.value, '.novelwarden/characters/林昭.md');
   });
 
   test('读全了就不挂「待读」', async () => {

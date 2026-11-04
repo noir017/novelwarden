@@ -76,7 +76,7 @@ keywords: [青崖, 青崖镇, 停舟]
 brief: 偏僻小镇，镇口设卡查过所，七年前遭过一场大火
 updatedThrough: 12      # 整合到第几章（水位）。没有就当 0
 bodyHash: …             # 机器最后一次写入正文时的指纹；对不上就是作者改过
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 
 # 青崖镇

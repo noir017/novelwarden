@@ -131,7 +131,7 @@ describe('文风与设定：交出去，账上记 0', () => {
     const r = await run({ action: 'style' });
     assert.equal(h.inputs.length, inputs + 1, '该先让作者挑样章');
     assert.equal(r.error, undefined, r.error);
-    assert.ok(r.text.includes('.novelforge/style.md'), r.text);
+    assert.ok(r.text.includes('.novelwarden/style.md'), r.text);
     assert.equal(fake.calls.length, 0);
     assert.equal(ctx.usage.calls, 0);
   });
@@ -162,7 +162,7 @@ describe('工具定义本身', () => {
   test('给了参数当场报错，不弹框', async () => {
     resetCtx();
     const before = h.confirms.length;
-    const r = await run({ action: 'threads', path: '.novelforge/summaries/001-夜入青云.md' });
+    const r = await run({ action: 'threads', path: '.novelwarden/summaries/001-夜入青云.md' });
     assert.equal(r.error, 'threads 不认 path。');
     assert.equal(h.confirms.length, before);
   });

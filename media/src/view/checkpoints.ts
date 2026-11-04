@@ -512,7 +512,7 @@ function buildFoot(p: Panel, d: CheckpointDiffView): HTMLElement {
       p.trashAdded = box.checked;
       sync();
     });
-    label.title = '缺省不动它们；勾上才搬（搬进 .novelforge/.trash/，不真删）';
+    label.title = '缺省不动它们；勾上才搬（搬进工程回收站，不真删）';
     label.append(box, `也把存档点之后新建的 ${added.length} 份搬进回收站`);
     row.appendChild(label);
   }

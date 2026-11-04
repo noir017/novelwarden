@@ -29,9 +29,9 @@ describe('watchGlobs（吃 glob 的宿主）', () => {
 
   test('元数据：project.json 与角色/设定两区', () => {
     const globs = watchGlobs(CONFIG);
-    assert.ok(globs.includes('.novelforge/project.json'));
-    assert.ok(globs.includes('.novelforge/characters/**'));
-    assert.ok(globs.includes('.novelforge/lore/**'));
+    assert.ok(globs.includes('.novelwarden/project.json'));
+    assert.ok(globs.includes('.novelwarden/characters/**'));
+    assert.ok(globs.includes('.novelwarden/lore/**'));
   });
 });
 
@@ -56,25 +56,25 @@ describe('shouldIgnoreChange（吃事件流的宿主）', () => {
   });
 
   test('挡掉回收站——删除是「搬进 .trash/」，不挡会多触发一轮全量重扫', () => {
-    assert.equal(shouldIgnoreChange('.novelforge/.trash/chapters/003.md'), true);
+    assert.equal(shouldIgnoreChange('.novelwarden/.trash/chapters/003.md'), true);
   });
 
   test('挡掉历史版本——网关每覆盖一份产物就先存一版，不挡会每存一个快照多一轮全量重扫', () => {
-    assert.equal(shouldIgnoreChange('.novelforge/history/chapters/003.md/2026-10-18_14-32-05+0800.txt'), true);
-    assert.equal(shouldIgnoreChange('.novelforge/history'), true);
-    assert.equal(shouldIgnoreChange('/home/me/书/.novelforge/history/.gitignore'), true);
-    assert.equal(shouldIgnoreChange('.novelforge\\history\\chapters\\003.md'), true);
+    assert.equal(shouldIgnoreChange('.novelwarden/history/chapters/003.md/2026-10-18_14-32-05+0800.txt'), true);
+    assert.equal(shouldIgnoreChange('.novelwarden/history'), true);
+    assert.equal(shouldIgnoreChange('/home/me/书/.novelwarden/history/.gitignore'), true);
+    assert.equal(shouldIgnoreChange('.novelwarden\\history\\chapters\\003.md'), true);
   });
 
-  test('只挡 .novelforge/history，不挡名字里恰好带 history 的章节与目录', () => {
+  test('只挡 .novelwarden/history，不挡名字里恰好带 history 的章节与目录', () => {
     assert.equal(shouldIgnoreChange('chapters/history/001-往事.md'), false);
-    assert.equal(shouldIgnoreChange('.novelforge/historyx.md'), false);
+    assert.equal(shouldIgnoreChange('.novelwarden/historyx.md'), false);
   });
 
-  test('插件壳的 glob 本来就扫不到快照（快照一律 .txt，.novelforge 下只认 .md）', () => {
+  test('插件壳的 glob 本来就扫不到快照（快照一律 .txt，.novelwarden 下只认 .md）', () => {
     const globs = watchGlobs(CONFIG);
-    assert.ok(globs.includes('.novelforge/**/*.md'));
-    assert.ok(!globs.some((g) => g.startsWith('.novelforge/history') || g === '.novelforge/**'));
+    assert.ok(globs.includes('.novelwarden/**/*.md'));
+    assert.ok(!globs.some((g) => g.startsWith('.novelwarden/history') || g === '.novelwarden/**'));
   });
 
   test('挡掉 node_modules', () => {

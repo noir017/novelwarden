@@ -28,8 +28,8 @@ let fake;
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
-const LORE = '.novelforge/lore';
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
+const LORE = '.novelwarden/lore';
 const TJG = `${LORE}/宗门/天机阁.md`;
 const CJG = `${LORE}/宗门/藏经阁.md`;
 const JCL = `${LORE}/地域/九层楼.md`;
@@ -167,8 +167,8 @@ before(() => {
 async function setupBook(prefix) {
   const t = await makeTempProject(bundle.project, { prefix, title: '天机录' });
   const project = t.project;
-  t.write('.novelforge/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
+  t.write('.novelwarden/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
   t.write(TJG, entry('天机阁', { keywords: ['天机阁', '阁里'], brief: '卖消息的楼' }));
   t.write(CJG, entry('藏经阁', { body: '（在这里写这条设定：它是什么、在哪、有什么规矩……）' }));
   t.write(JCL, entry('九层楼', { brief: '藏书楼', body: UNTOLD, bodyHash: bundle.fs.hash(UNTOLD) }));
@@ -313,7 +313,7 @@ describe('全部展开', () => {
         else if (p.endsWith('.md')) all.push(fs.readFileSync(p, 'utf8'));
       }
     };
-    walk(path.join(t.dir, '.novelforge'));
+    walk(path.join(t.dir, '.novelwarden'));
     assert.ok(!all.some((x) => x.includes('阁规是成文的还是口传的')));
   });
 
@@ -497,7 +497,7 @@ describe('拆完展开本批新设定', () => {
   before(async () => {
     t = await makeTempProject(bundle.project, { prefix: 'loreBatchPlots', title: '鬼市' });
     project = t.project;
-    t.write('.novelforge/config.md', '---\ntotalChapters: 2\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
+    t.write('.novelwarden/config.md', '---\ntotalChapters: 2\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
     writeOutline(t, OUTLINE);
     project.invalidate();
   });

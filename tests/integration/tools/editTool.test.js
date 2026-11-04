@@ -25,9 +25,9 @@ let project;
 let h;
 let ctx;
 
-const PLOT_REL = '.novelforge/summaries/001-夜入青云.md';
+const PLOT_REL = '.novelwarden/summaries/001-夜入青云.md';
 const CHAPTER_REL = 'chapters/001-夜入青云.txt';
-const NOTE_REL = '.novelforge/lore/门派.md';
+const NOTE_REL = '.novelwarden/lore/门派.md';
 
 const tool = () => bundle.tools.NOVEL_TOOLS.find((x) => x.name === 'edit');
 const run = (args) => tool().run(ctx, args);
@@ -223,7 +223,7 @@ describe('改细纲之后，同号那一章的正文挂 ⟳', () => {
  * 「定稿之后细纲又改过，正文可能没跟上」（作者定案 7），这一章仍算写完（第 18 条）。
  */
 describe('改一份定稿过的细纲：正文挂 ⟳，这一章仍算定稿过', () => {
-  const FINAL_REL = '.novelforge/summaries/002-藏书阁.md';
+  const FINAL_REL = '.novelwarden/summaries/002-藏书阁.md';
   let sourceHashBefore;
   let after_;
 
@@ -299,13 +299,13 @@ describe('守卫照旧拦着', () => {
 
   test('不存在的文件给 error 而不是抛', async () => {
     resetCtx();
-    const r = await run({ path: '.novelforge/summaries/999-没有这一章.md', old: 'a', new: 'b' });
+    const r = await run({ path: '.novelwarden/summaries/999-没有这一章.md', old: 'a', new: 'b' });
     assert.ok(r.error, JSON.stringify(r));
   });
 
   test('回收站里的东西改不了', async () => {
     resetCtx();
-    const r = await run({ path: '.novelforge/.trash/x.md', old: 'a', new: 'b' });
+    const r = await run({ path: '.novelwarden/.trash/x.md', old: 'a', new: 'b' });
     assert.ok(r.error, JSON.stringify(r));
   });
 });

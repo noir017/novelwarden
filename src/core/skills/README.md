@@ -8,7 +8,7 @@
 |---|---|
 | [library.ts](library.ts) | 三个来源怎么读（内置 / 我的技能库 / 本工程），附带文件按引用一层层读进来（`collectSkillFiles`，GitHub 也用它），我的技能库怎么装与卸。**每次都读盘**；不跟链接 |
 | [github.ts](github.ts) | 从 GitHub 装：**先检查、再确认安装**，`SKILL.md` 连同引用到的附带文件一起下；两步之间整份清单变了不装 |
-| [bindings.ts](bindings.ts) | 工程的阶段绑定（`.novelforge/skills.json`）：读、改、装配器问的那一句 `boundSkillFor` |
+| [bindings.ts](bindings.ts) | 工程的阶段绑定（`.novelwarden/skills.json`）：读、改、装配器问的那一句 `boundSkillFor` |
 | [builtin/](builtin/README.md) | 内置技能，**一个目录一份**（常规技能格式，与其余来源走同一条读法），现在只有一份去 AI 味。构建时由 `scripts/embed-skills.js` 内嵌成 `builtin/embedded.ts`（生成文件，不入库） |
 
 纯函数（解析 `SKILL.md`、兼容检查、绑定文件的格式、一次装配算哪个阶段、GitHub 地址）在 [model/writingSkill.ts](../model/writingSkill.ts)：它零运行时 import，前端直接用里面的阶段名与来源名。
@@ -37,8 +37,8 @@
 | 来源 | id | 在哪 | 怎么进来 |
 |---|---|---|---|
 | 内置 | `builtin:<目录名>` | 仓库里的 [builtin/<名字>/](builtin/README.md)，构建时内嵌进程序 | 随应用发布，删不掉，不自动绑 |
-| 我的技能库 | `user:<目录名>` | `~/.novelforge/skills/<名字>/SKILL.md`，所有工程共用 | 设置页「技能」或外部 agent 的 `skills install` 从 GitHub 装；也可以手放 |
-| 本工程 | `project:<目录名>` | `.novelforge/skills/<名字>/SKILL.md`，跟着工程走、可进 Git | 作者手放 |
+| 我的技能库 | `user:<目录名>` | `~/.novelwarden/skills/<名字>/SKILL.md`，所有工程共用 | 设置页「技能」或外部 agent 的 `skills install` 从 GitHub 装；也可以手放 |
+| 本工程 | `project:<目录名>` | `.novelwarden/skills/<名字>/SKILL.md`，跟着工程走、可进 Git | 作者手放 |
 
 **三个来源的身份都是目录名**，frontmatter 的 `name` 只用来显示（上游以 frontmatter 为准，手放的技能目录名与它不一样时，卸载删了个空）。名字可以是中文：字母或数字开头，其后可以有 `.` `_` `-`，最长 64。
 
@@ -47,17 +47,17 @@
 照搬上游的两步：
 
 1. **检查**：认四种地址（仓库首页 / `tree` 目录 / `blob` 文件 / `raw`），只要公开的 https；仓库首页先问一次默认分支。下载 `SKILL.md`，再按引用把附带文件一份份下下来（同一个分支、相对 `SKILL.md` 所在目录；404 当作没有，引用了却没有就判带不上），每份 10 秒超时、不跟重定向、合计 64 KiB 封顶；跑兼容检查，对整份清单（路径 + 内容）算 sha256，记在进程里那张表上。**不写任何文件**。检查结果带**正文**给作者看（上游装之前看不到），还会先说清装不装得了（不兼容、名字不能当目录名、同名的已经装了）。
-2. **安装**：没检查过不装；**重新下载**，hash 与落点都要与检查时一致；不兼容不装；同名不覆盖（要换新版先卸载旧的）；然后原样写进 `~/.novelforge/skills/<name>/`：`SKILL.md` 与引用到的附带文件。
+2. **安装**：没检查过不装；**重新下载**，hash 与落点都要与检查时一致；不兼容不装；同名不覆盖（要换新版先卸载旧的）；然后原样写进 `~/.novelwarden/skills/<name>/`：`SKILL.md` 与引用到的附带文件。
 
 设置页与 agent 共用那张检查表；两边装之前都先问作者（设置页的确认框 / `skills install` 的 `always` 闸门）。
 
-**卸载**只认我的技能库：整个目录挪进 `~/.novelforge/.trash/skills/`（同名加 `-2`），不真删（第 6 条的精神；上游是直接删）。本工程绑了它的阶段一起解绑；别的工程里绑了它的，下次生成在明细里写「找不到」后不带。
+**卸载**只认我的技能库：整个目录挪进 `~/.novelwarden/.trash/skills/`（同名加 `-2`），不真删（第 6 条的精神；上游是直接删）。本工程绑了它的阶段一起解绑；别的工程里绑了它的，下次生成在明细里写「找不到」后不带。
 
 **仓库里备的预设**：[skills/writing/](../../../skills/writing/README.md) 有 32 份改编自 jarvis-write（Apache-2.0）的预设（16 份文风绑写正文，8 份故事味道、8 份故事骨架绑规划），另有 1 份本仓库自己写的对峙场面去 AI 味（绑写正文）。它们**不进内置**，作者照那份 README 里的地址从 GitHub 装进我的技能库；[tests/contract/skillPresets.test.js](../../../tests/contract/skillPresets.test.js) 拿安装时同一个 `inspectSkillMarkdown` 把每份过一遍。
 
 ## 阶段绑定
 
-`.novelforge/skills.json`：`{ "version": 1, "bindings": { "drafting": "user:scene-craft" } }`。每个阶段最多一份，同一份可以绑几个阶段；没绑就什么都不带。写盘走 `Workspace.writeSkillBindings`（第 7 条）。
+`.novelwarden/skills.json`：`{ "version": 1, "bindings": { "drafting": "user:scene-craft" } }`。每个阶段最多一份，同一份可以绑几个阶段；没绑就什么都不带。写盘走 `Workspace.writeSkillBindings`（第 7 条）。
 
 | 阶段 | 对应 novelForge 的哪几次装配（`skillStageOf`） |
 |---|---|

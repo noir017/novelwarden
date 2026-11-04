@@ -11,7 +11,7 @@
 | [types.ts](types.ts) | ★ 契约。`ToolDef` / `ToolSpec` / `ToolContext` / `ToolResult` / `ToolIntent` / `ToolInvoker` |
 | [schema.ts](schema.ts) | 参数 schema 的写法与校验（描述怎么写、为什么必须扁平） |
 | [registry.ts](registry.ts) | ★ 一组 `ToolDef` + 一份环境 = 一个能被调用的工具集。执行、兜异常、记日志；`specOf` 给出对外的声明 |
-| [novel/](novel/index.ts) | Novel Forge 这套：读三件、`generate`、`write` / `edit`，以及六个工程动作工具（`actions.ts` 把一张动作表变成一个工具） |
+| [novel/](novel/index.ts) | Novelwarden 这套：读三件、`generate`、`write` / `edit`，以及六个工程动作工具（`actions.ts` 把一张动作表变成一个工具） |
 
 ## 谁绑、谁跑
 
@@ -64,7 +64,7 @@ intent: (args, project) => ({
 全在 `workspace/guard.ts`**。工具体里一行路径检查都没有；哪天要在这里写一段，
 说明绕过了网关，停下来重想（AGENTS 第 7 / 25 条）。
 
-**唯一的例外是 `skills install`**：它写的是工程外的我的技能库（`~/.novelforge/skills/`），没有网关可走。
+**唯一的例外是 `skills install`**：它写的是工程外的我的技能库（`~/.novelwarden/skills/`），没有网关可走。
 所以路径不由 agent 给（固定落在 `<技能库>/<frontmatter 的 name>/SKILL.md`，名字过 `isSkillName`），
 只装检查过、重新下载核对过 hash 的那一份，闸门是 `always`——动手前先问。见 [skills/README.md](../skills/README.md)。
 
@@ -96,9 +96,9 @@ intent: (args, project) => ({
 正文层这一章已经有字时，`writeMode` 说清是接着写（`continue`，落盘追加在末尾）还是整章重写（`rewrite`，
 缺省；落盘覆盖、先逐行对比）。修稿只从审稿报告卡进来，这里不给；审稿由作者自己在对话页发起。
 
-`target` 给一条设定条目的路径（`.novelforge/lore/` 下的 `.md`）就是**展开那一条**（完善设定，2026-10-19）：
+`target` 给一条设定条目的路径（`.novelwarden/lore/` 下的 `.md`）就是**展开那一条**（完善设定，2026-10-19）：
 `kindOfPath` 直接给出单条设定目标，不用特判；走「故事架构」档（与设定清单同一档），写 1 次、转写模型照抄成 JSON 1 次，
-转写不合格重转一次（`LORE_EXPAND_CALLS`）。设定目录本身仍是整批设定清单；角色目录本身（`.novelforge/characters`）同理是角色图谱——这两个目录只在 `generate` 里认（`settingDirPath`），网关的种类表照旧把它们当 `other`。还没定的问题只上作者的落盘卡片，不回给 agent。
+转写不合格重转一次（`LORE_EXPAND_CALLS`）。设定目录本身仍是整批设定清单；角色目录本身（`.novelwarden/characters`）同理是角色图谱——这两个目录只在 `generate` 里认（`settingDirPath`），网关的种类表照旧把它们当 `other`。还没定的问题只上作者的落盘卡片，不回给 agent。
 
 `settle` 一律不给：落定细纲、落定设定（完善设定二期，设定目录上的 `settle`）要沉淀的都是作者刚才的讨论，agent
 那边的历史永远是空的，喂空历史只会凭空编一份「结论」。报错指路对话页的 `/落定细纲`、`/落定设定`；描述里架构那一层
@@ -123,7 +123,7 @@ intent: (args, project) => ({
 | `install` | `always` | 装检查过的那一份。确认框写明是哪一份、说明、正文开头 200 字 |
 | `bind` | `always` | 绑到本工程的某个阶段。改的是往后每一次生成的提示词，下游没有 diff |
 
-`write` 新建 / 追加 `.novelforge/skills/**` 或 `skills.json` 也报 `always`（覆盖照旧走 diff）——不然 agent 用
+`write` 新建 / 追加 `.novelwarden/skills/**` 或 `skills.json` 也报 `always`（覆盖照旧走 diff）——不然 agent 用
 `write` 新建一份 `skills.json`，就绕过了 `bind` 那一问。
 
 ## 与 MCP 的对应
@@ -133,4 +133,4 @@ intent: (args, project) => ({
 | `ToolDef.name` / `description` / `parameters` | `tools/list` 的一条（`inputSchema`） |
 | `ToolInvoker.invoke` → `ToolInvocation` | `tools/call` 的请求与结果（`error` → `isError`） |
 | `ToolDef.mutating` / `costly` | `destructiveHint` / `readOnlyHint` |
-| `ToolIntent` | 没有对应物——**确认是宿主的事**，Novel Forge 自己那两问在 `controller/mcp.ts` |
+| `ToolIntent` | 没有对应物——**确认是宿主的事**，Novelwarden 自己那两问在 `controller/mcp.ts` |

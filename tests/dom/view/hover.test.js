@@ -71,7 +71,7 @@ describe('章节细纲的悬停浮窗', { skip: JSDOM_SKIP }, () => {
     Object.assign(
       {
         no: 1, title: '楔子', label: '第 1 章《楔子》', exists: true, finalized: true, stale: false,
-        relPath: '.novelforge/summaries/001-楔子.md',
+        relPath: '.novelwarden/summaries/001-楔子.md',
         sections: [
           { name: '梗概', text: '雨下了三天，林昭进入青崖镇。' },
           { name: '关键事件', text: '- 以旧牌子代替过所\n- 李叔放行' },
@@ -494,7 +494,7 @@ describe('行内副标题（别名）的悬停浮窗', { skip: JSDOM_SKIP }, () 
     tree = sampleTree();
     tree.characters.push({
       kind: 'file', label: '沈四娘',
-      relPath: '.novelforge/characters/沈四娘.md', detail: LONG_DETAIL,
+      relPath: '.novelwarden/characters/沈四娘.md', detail: LONG_DETAIL,
     });
     ui.post({ type: 'project', tree });
   });
@@ -596,13 +596,13 @@ describe('失败标记与悬停浮窗', { skip: JSDOM_SKIP }, () => {
   /** 等过收起的宽限（CLOSE_DELAY_MS 是 200ms）。 */
   const grace = () => wait(320);
 
-  const CARD = '.novelforge/characters/林昭.md';
+  const CARD = '.novelwarden/characters/林昭.md';
   // 失败挂在出错那份文件上（recordFailure 的 targetKey 就是它的路径）。
   // 写细纲 / 写正文失败挂在细纲上，定稿失败挂在正文上——章节行两侧都查。
-  const PLOT = '.novelforge/summaries/001-楔子.md';
+  const PLOT = '.novelwarden/summaries/001-楔子.md';
   const CHAPTER = 'chapters/002-入镇.md';
   // 生成架构文档失败挂在那份文档上。
-  const PREMISE = '.novelforge/premise.md';
+  const PREMISE = '.novelwarden/premise.md';
   /** 章节组的行（排掉复用了 .row-plot 样式的「故事架构」那几行）。 */
   const plotRow = (text) =>
     [...ui.doc.querySelectorAll('#projectBody .row-plot:not(.row-architecture)')]

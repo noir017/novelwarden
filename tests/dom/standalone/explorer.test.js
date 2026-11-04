@@ -36,30 +36,30 @@ describe('资源管理器（独立版「文件」页）', { skip: JSDOM_SKIP }, 
     assert.ok(first.dirs.includes(''), JSON.stringify(first));
   });
 
-  // 这一条是这个功能存在的理由：工程页永远看不见 .novelforge。
+  // 这一条是这个功能存在的理由：工程页永远看不见 .novelwarden。
   test('点开头的文件夹列得出来', () => {
     ui.post({
       type: 'dirListings',
-      listings: [listing('', { '.novelforge': 'dir', chapters: 'dir', 'README.md': 'file' })],
+      listings: [listing('', { '.novelwarden': 'dir', chapters: 'dir', 'README.md': 'file' })],
     });
-    assert.ok(ui.names().includes('.novelforge'), ui.names().join(','));
+    assert.ok(ui.names().includes('.novelwarden'), ui.names().join(','));
   });
 
   test('点开头的行压暗显示', () => {
-    assert.ok(ui.rows().some((r) => r.textContent.includes('.novelforge') && r.classList.contains('fx-dotted')));
+    assert.ok(ui.rows().some((r) => r.textContent.includes('.novelwarden') && r.classList.contains('fx-dotted')));
   });
 
   test('目录在文件之前', () => {
-    assert.equal(ui.names().join(','), '.novelforge,chapters,README.md', ui.names().join(','));
+    assert.equal(ui.names().join(','), '.novelwarden,chapters,README.md', ui.names().join(','));
   });
 
   // ---- 展开一个目录：懒加载，展开哪个才要哪个
   test('展开后请求那个目录', () => {
     ui.sent.length = 0;
-    ui.click(ui.rows().find((r) => r.textContent.includes('.novelforge')));
+    ui.click(ui.rows().find((r) => r.textContent.includes('.novelwarden')));
     expanded = ui.last('listDir');
     assert.ok(expanded, '没发出 listDir');
-    assert.ok(expanded.dirs.includes('.novelforge'), JSON.stringify(expanded));
+    assert.ok(expanded.dirs.includes('.novelwarden'), JSON.stringify(expanded));
   });
 
   test('请求带的是全量展开集合', () => {
@@ -73,9 +73,9 @@ describe('资源管理器（独立版「文件」页）', { skip: JSDOM_SKIP }, 
   test('子项挂在父目录下', () => {
     ui.post({
       type: 'dirListings',
-      listings: [listing('.novelforge', { summaries: 'dir', 'project.json': 'file' })],
+      listings: [listing('.novelwarden', { summaries: 'dir', 'project.json': 'file' })],
     });
-    assert.equal(ui.names().join(','), '.novelforge,summaries,project.json,chapters,README.md',
+    assert.equal(ui.names().join(','), '.novelwarden,summaries,project.json,chapters,README.md',
       ui.names().join(','));
   });
 
@@ -88,14 +88,14 @@ describe('资源管理器（独立版「文件」页）', { skip: JSDOM_SKIP }, 
   test('折叠后不再关注该目录', () => {
     ui.sent.length = 0;
     ui.click(ui.rows().find((r) => r.textContent.includes('summaries')));
-    ui.click(ui.rows().find((r) => r.textContent.includes('.novelforge')));
+    ui.click(ui.rows().find((r) => r.textContent.includes('.novelwarden')));
     collapsed = ui.last('listDir');
     assert.ok(collapsed, '没发出 listDir');
-    assert.ok(!collapsed.dirs.includes('.novelforge'), JSON.stringify(collapsed));
+    assert.ok(!collapsed.dirs.includes('.novelwarden'), JSON.stringify(collapsed));
   });
 
   test('子目录跟着一起收起', () => {
-    assert.ok(!collapsed.dirs.includes('.novelforge/summaries'), JSON.stringify(collapsed));
+    assert.ok(!collapsed.dirs.includes('.novelwarden/summaries'), JSON.stringify(collapsed));
   });
 
   // ---- 点文件：可编辑的进内置编辑器

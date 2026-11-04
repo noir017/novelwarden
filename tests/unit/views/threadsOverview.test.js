@@ -20,7 +20,7 @@ const { loadBundle } = require('../../helpers/load');
 
 const { views, tf } = loadBundle({ views: './src/core/views/threads.ts', tf: './src/core/model/threadFile.ts' });
 
-const DIR = '.novelforge/threads';
+const DIR = '.novelwarden/threads';
 
 /** 一条线：frontmatter + 伏笔 + 进展，经真解析器读出来（与 `readThreads` 同一条路）。 */
 function line(name, { kind = '支线', plan, intent = '', fores = [], events = [] } = {}, index = 0) {
@@ -65,7 +65,7 @@ function chapters() {
     volume,
     state,
     ...(state !== 'planned' ? { chapterPath: `chapters/${volume ? `${volume}/` : ''}00${no}.md` } : {}),
-    plotPath: `.novelforge/summaries/${volume ? `${volume}/` : ''}00${no}.md`,
+    plotPath: `.novelwarden/summaries/${volume ? `${volume}/` : ''}00${no}.md`,
   });
   return [c(1, 'finalized'), c(2, 'finalized'), c(3, 'finalized', '第一卷'), c(4, 'finalized', '第一卷'), c(5, 'written', '第一卷'), c(6, 'planned', '第一卷')];
 }

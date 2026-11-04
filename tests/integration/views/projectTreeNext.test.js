@@ -53,7 +53,7 @@ describe('工程页的全书下一步与对话页主按钮逐字一致', () => {
   });
 
   test('配置写好了：生成故事前提', async () => {
-    t.write('.novelforge/config.md', '---\ntotalChapters: 40\n---\n\n# 小说配置\n\n## 核心梗概\n\n少年入宗。\n');
+    t.write('.novelwarden/config.md', '---\ntotalChapters: 40\n---\n\n# 小说配置\n\n## 核心梗概\n\n少年入宗。\n');
     const { tree, chat } = await both();
     assert.equal(tree.next?.label, '生成故事前提', JSON.stringify(tree.next));
     assert.deepEqual(tree.next.target, { kind: 'setting', doc: 'premise' });
@@ -62,9 +62,9 @@ describe('工程页的全书下一步与对话页主按钮逐字一致', () => {
 
   // 设定名录：世界观之后是设定清单。一条条目都没有时，工程页「设定」组的空状态说的也是这一步。
   test('前四件齐了：生成设定清单，带调用次数', async () => {
-    t.write('.novelforge/premise.md', '# 故事前提\n\n## 核心冲突链\n\n宗门要他死。\n');
-    t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n少年。\n');
-    t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n灵根定命。\n');
+    t.write('.novelwarden/premise.md', '# 故事前提\n\n## 核心冲突链\n\n宗门要他死。\n');
+    t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n少年。\n');
+    t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n灵根定命。\n');
     const { tree, chat } = await both();
     assert.equal(tree.next?.label, '生成设定清单', JSON.stringify(tree.next));
     assert.deepEqual(tree.next.target, { kind: 'setting', doc: 'lore' });
@@ -72,11 +72,11 @@ describe('工程页的全书下一步与对话页主按钮逐字一致', () => {
     assert.deepEqual([tree.next.calls.low, tree.next.calls.high, tree.next.calls.max], [6, 12, 24]);
     assert.deepEqual(tree.next, chat);
     const row = tree.architecture.find((r) => r.key === 'lore');
-    assert.deepEqual(row, { key: 'lore', label: '设定清单', relPath: '.novelforge/lore', filled: false, detail: '待生成' });
+    assert.deepEqual(row, { key: 'lore', label: '设定清单', relPath: '.novelwarden/lore', filled: false, detail: '待生成' });
   });
 
   test('架构五件齐了：生成情节大纲（第 1–20 章）', async () => {
-    t.write('.novelforge/lore/宗门/青云宗.md', '---\ntitle: 青云宗\nkeywords: [青云宗]\nbrief: 正道大宗\n---\n\n# 青云宗\n');
+    t.write('.novelwarden/lore/宗门/青云宗.md', '---\ntitle: 青云宗\nkeywords: [青云宗]\nbrief: 正道大宗\n---\n\n# 青云宗\n');
     const { tree, chat } = await both();
     assert.equal(tree.next?.label, '生成情节大纲（第 1–20 章）', JSON.stringify(tree.next));
     assert.deepEqual(tree.next, chat);
@@ -95,7 +95,7 @@ describe('工程页的全书下一步与对话页主按钮逐字一致', () => {
 
   // 在写那一档：下一步是单章状态机的事（「写第 1 章」），工程页那一行自己带「去写这一章」。
   test('下一章有细纲了：工程页不再给全书下一步', async () => {
-    t.write('.novelforge/summaries/001-夜入青云.md', '---\nno: 1\ntitle: 夜入青云\n---\n\n## 梗概\n\n入宗。\n\n## 关键事件\n\n翻墙。\n\n## 看点\n\n墙内有人。\n');
+    t.write('.novelwarden/summaries/001-夜入青云.md', '---\nno: 1\ntitle: 夜入青云\n---\n\n## 梗概\n\n入宗。\n\n## 关键事件\n\n翻墙。\n\n## 看点\n\n墙内有人。\n');
     const { tree, chat } = await both();
     assert.equal(tree.next, undefined, JSON.stringify(tree.next));
     assert.equal(tree.bookStage, 'writing');

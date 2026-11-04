@@ -6,17 +6,33 @@ import { ConfigStore, PersistedSettings } from './config';
 
 /**
  * 文件后端的配置与密钥存储，双壳共用（独立版直接用；VS Code 壳在
- * 迁移完成后切过来）。落点统一在 ~/.novelforge/。
+ * 迁移完成后切过来）。落点统一在配置目录（默认 ~/.novelwarden/）。
  */
 
 /**
- * ~/.novelforge/ —— 配置与密钥的用户主目录存储。
+ * 配置目录 —— 配置与密钥的用户主目录存储。
  *
- * 环境变量 `NOVELFORGE_HOME` 可以把它挪到别处：Android 壳把家目录设成放书的公共目录
+ * 解析顺序：`NOVELWARDEN_HOME` > `NOVELFORGE_HOME` > 已存在的 ~/.novelwarden >
+ * 已存在的 ~/.novelforge > ~/.novelwarden。改名不能丢旧配置与密钥：旧目录还在、
+ * 新目录还没建时继续用旧的（作者确认迁移之前不碰它）。
+ *
+ * 环境变量可以把它挪到别处：Android 壳把家目录设成放书的公共目录
  * （新建一本书、打开文件夹都从家目录起），密钥却不能跟着落到别的 app 也读得到的地方，就指回 app 私有目录。
  */
 export function homeDir(): string {
-  return process.env.NOVELFORGE_HOME?.trim() || path.join(os.homedir(), '.novelforge');
+  const explicit = process.env.NOVELWARDEN_HOME?.trim() || process.env.NOVELFORGE_HOME?.trim();
+  if (explicit) {
+    return explicit;
+  }
+  const fresh = path.join(os.homedir(), '.novelwarden');
+  if (fsSync.existsSync(fresh)) {
+    return fresh;
+  }
+  const legacy = path.join(os.homedir(), '.novelforge');
+  if (fsSync.existsSync(legacy)) {
+    return legacy;
+  }
+  return fresh;
 }
 
 export class FileConfigStore implements ConfigStore {
@@ -44,7 +60,7 @@ export interface SecretStore {
 }
 
 /**
- * ~/.novelforge/secrets.json。JSON 无法写文件头注释，首次创建时
+ * 配置目录下的 secrets.json（旧装可能是 ~/.novelforge/secrets.json）。JSON 无法写文件头注释，首次创建时
  * 同目录放一个 README.txt 说明「不要提交 secrets.json」。
  * Windows 无 POSIX 权限位，仅依赖用户主目录隔离。
  */

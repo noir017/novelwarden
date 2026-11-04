@@ -29,10 +29,10 @@ let fake;
 let ctx;
 let settings;
 
-const PLOT_REL = '.novelforge/summaries/001-夜入青云.md';
+const PLOT_REL = '.novelwarden/summaries/001-夜入青云.md';
 const CHAPTER_REL = 'chapters/001-夜入青云.md';
-const OUTLINE_REL = '.novelforge/outline.md';
-const CONFIG_REL = '.novelforge/config.md';
+const OUTLINE_REL = '.novelwarden/outline.md';
+const CONFIG_REL = '.novelwarden/config.md';
 
 const tool = () => bundle.tools.NOVEL_TOOLS.find((x) => x.name === 'generate');
 const run = (args) => tool().run(ctx, args);

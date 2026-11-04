@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'node:path';
 import { PersistedSettings } from '../../core/config';
 import { normalizeProviders } from '../../core/model/providers';
 import { FileConfigStore, FileSecretStore } from '../../core/stores';
@@ -17,7 +18,7 @@ const LEGACY_KEYS = [
 ];
 
 /**
- * settings.json 的读取器，在 ~/.novelforge/config.json 尚不可用时兜底
+ * settings.json 的读取器，在 ~/.novelwarden/config.json 尚不可用时兜底
  *（未迁移、被删、或内容损坏——FileConfigStore.read 对坏 JSON 返回 undefined）。
  *
  * 必须连**新结构**的键一起读，不能只读 0.1.x 的单服务商键：
@@ -41,7 +42,7 @@ export const legacySettingsReader = {
 };
 
 /**
- * 一次性迁移：settings.json 的 novel.* + SecretStorage → ~/.novelforge/。
+ * 一次性迁移：settings.json 的 novel.* + SecretStorage → ~/.novelwarden/。
  * 已迁移过（config.json 存在）则跳过。迁移成功后不删旧配置，
  * 只在 VS Code 里提示「可清理」，避免用户回滚时丢东西。
  * 返回是否真的执行了迁移。
@@ -70,7 +71,8 @@ export async function migrateVscodeSettings(secrets: vscode.SecretStorage): Prom
   }
   await store.write(settings);
 
-  // SecretStorage → ~/.novelforge/secrets.json，key 命名与 registry 完全一致。
+  // SecretStorage → ~/.novelwarden/secrets.json。这里沿用旧的 `novel-forge.apiKey.*` 键名，
+  // 因为老用户的 Key 都存在这个前缀下；前缀若换新，registry 必须同时保留旧键的 fallback。
   const secretStore = new FileSecretStore();
   const ids = new Set<string>(normalizeProviders(settings.providers ?? []).map((p) => p.id));
   ids.add('openai');
@@ -93,8 +95,11 @@ export async function migrateVscodeSettings(secrets: vscode.SecretStorage): Prom
     }
   }
 
+  // 提示里的目录以实际落点为准：旧 ~/.novelforge/ 还活着时 FileConfigStore 就落在那里，
+  // 写死 ~/.novelwarden/ 会指错地方。
+  const configDir = path.dirname(store.filePath);
   void vscode.window.showInformationMessage(
-    'Novel Forge：配置与密钥已迁移到 ~/.novelforge/，VS Code 内的旧配置可手动清理。'
+    `Novelwarden：配置与密钥已迁移到 ${configDir}，VS Code 内的旧配置可手动清理。`
   );
   return true;
 }

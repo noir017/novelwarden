@@ -4,7 +4,7 @@
  * 两件事都**不调模型**（第 4 条：体检只是在正文里按词表找字）。
  *
  * - **推词表**：`pushState` 每跑一次就现算一份（`views/checkTerms.ts`：`style.md` 的禁用词表、小说配置、
- *   `.novelforge/sensitive.txt`），与上一次推的一样就不推——与 `chapterIndex` 同一个做法；新连上的前端不论变没变
+ *   `.novelwarden/sensitive.txt`），与上一次推的一样就不推——与 `chapterIndex` 同一个做法；新连上的前端不论变没变
  *   都推一份。只给有内置编辑器的宿主推（`Host.openInEditor` 这个能力），插件壳用不上，也就不为它多读两个文件。
  * - **编辑敏感词表…**：文件不在就经网关新建一份带说明注释的模板（`workspace.write`，`mode: 'create'`：同名报错、
  *   不覆盖），然后在编辑器里打开它；作者保存也走网关（编辑器那条路，乐观锁、存历史版本）。
@@ -51,7 +51,7 @@ export async function pushCheckTerms(c: ChatController, opts: { force?: boolean;
 /** 「编辑敏感词表…」：没有就新建模板，然后在编辑器里打开。 */
 export async function editSensitiveWords(c: ChatController): Promise<void> {
   if (!(await c.project.isInitialized())) {
-    c.toast('这个目录还不是小说工程（没有 .novelforge/），没有敏感词表可编辑。', 'error');
+    c.toast('这个目录还不是小说工程（没有 .novelwarden/），没有敏感词表可编辑。', 'error');
     return;
   }
   const rel = c.project.relPath(c.project.sensitivePath);

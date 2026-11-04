@@ -1,6 +1,6 @@
 /**
  * WorkspaceHub：一个进程同时开几个工程，每个窗口（连接）各绑一个或者空着。
- * 测试写进临时目录，设置存内存，不碰 ~/.novelforge。
+ * 测试写进临时目录，设置存内存，不碰 ~/.novelwarden。
  *
  * FileHost / ChatController / initHost 共享模块级单例，必须 loadBundle。
  */
@@ -35,7 +35,7 @@ let projA;
 let projB;
 /** 不在任何窗口上下文里的广播（启动期的 getHost()）。 */
 let stray;
-/** 设置存内存，不碰 ~/.novelforge/config.json。 */
+/** 设置存内存，不碰 ~/.novelwarden/config.json。 */
 let config;
 /** @type {InstanceType<typeof WorkspaceHub>} */
 let hub;
@@ -402,7 +402,7 @@ describe('WorkspaceHub：欢迎页新建一本书', () => {
       // 真实路径：与打开之后的 currentId 同一个口径。
       assert.equal(made.root, real(path.join(parent, '雪夜')));
       assert.equal(made.importFrom, '/tmp/原稿.txt');
-      const manifest = JSON.parse(fs.readFileSync(path.join(parent, '雪夜', '.novelforge', 'project.json'), 'utf8'));
+      const manifest = JSON.parse(fs.readFileSync(path.join(parent, '雪夜', '.novelwarden', 'project.json'), 'utf8'));
       assert.equal(manifest.title, '雪夜');
       assert.equal(manifest.author, '某某');
       // 还没打开：开在这个窗口还是新窗口是前端的事。

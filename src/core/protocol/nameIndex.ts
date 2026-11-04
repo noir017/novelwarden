@@ -36,7 +36,7 @@ export interface NameEntry {
 }
 
 export interface NameIndex {
-  /** 还不是小说工程（没有 `.novelforge/project.json`）时为 false，`names` 是空的。 */
+  /** 还不是小说工程（没有 `.novelwarden/project.json`）时为 false，`names` 是空的。 */
   initialized: boolean;
   /** 角色卡在前（按名字），其次设定条目，最后是未建条目（按出现章数降序）。 */
   names: NameEntry[];

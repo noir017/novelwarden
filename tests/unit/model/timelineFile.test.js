@@ -19,10 +19,10 @@ const { loadModule } = require('../../helpers/load');
 const t = loadModule('src/core/model/timelineFile.ts');
 const th = loadModule('src/core/model/threadFile.ts');
 
-const REL = '.novelforge/threads/时间线.md';
+const REL = '.novelwarden/threads/时间线.md';
 
 function file(start, lines, calendar = '简单历') {
-  return ['---', `calendar: ${calendar}`, `start: ${start}`, 'generatedBy: novel-forge', '---', '', '# 时间线', '', ...lines, ''].join('\n');
+  return ['---', `calendar: ${calendar}`, `start: ${start}`, 'generatedBy: novelwarden', '---', '', '# 时间线', '', ...lines, ''].join('\n');
 }
 
 describe('数字', () => {

@@ -1,11 +1,11 @@
 /**
- * 会话存储 SessionStore 的读写、容错、列表与旧目录迁移。
+ * 会话存储 SessionStore 的读写、容错与列表。
  * 迁自 scripts/smoke-session.js（全部 70 条）。
  *
  * 两点与别的集成用例不同：
  *
  * 1. **不 initialize 工程**。原脚本只 `NovelProject.open(WORK)`，
- *    `新建不落盘` 那条断言的正是 `.novelforge/sessions` 压根不存在，
+ *    `新建不落盘` 那条断言的正是 `.novelwarden/sessions` 压根不存在，
  *    所以这里用 makeTempDir 而不是 makeTempProject。
  * 2. **vscode 桩必须在 loadModule 之前装**。bundle 是 `external: ['vscode']`，
  *    模块体在 _compile 时就会 require('vscode')。原脚本装完从不还原，
@@ -39,7 +39,7 @@ describe('session.ts · SessionStore', () => {
     sessionMod = loadModule('src/core/model/session.ts');
 
     ({ dir: WORK } = makeTempDir('session'));
-    sessionsDir = path.join(WORK, '.novelforge', 'sessions');
+    sessionsDir = path.join(WORK, '.novelwarden', 'sessions');
     const project = projectMod.NovelProject.open(WORK);
     store = new sessionMod.SessionStore(project);
   });
@@ -56,7 +56,7 @@ describe('session.ts · SessionStore', () => {
       project = projectMod.NovelProject.open(WORK);
     });
 
-    test('sessionsDir 指向 .novelforge/sessions', () => {
+    test('sessionsDir 指向 .novelwarden/sessions', () => {
       assert.equal(project.sessionsDir, sessionsDir, project.sessionsDir);
     });
 
@@ -73,7 +73,7 @@ describe('session.ts · SessionStore', () => {
 
     before(async () => {
       s = store.create({
-        target: { kind: 'manuscript', plotRelPath: '.novelforge/summaries/004-夜访.md' },
+        target: { kind: 'manuscript', plotRelPath: '.novelwarden/summaries/004-夜访.md' },
         targetNo: 4,
       });
       // 「新会话无轮次」「新建不落盘」都必须在 push / write 之前取值。
@@ -121,7 +121,7 @@ describe('session.ts · SessionStore', () => {
     });
 
     test('新会话继承创作目标', () => {
-      assert.equal(s.target.plotRelPath, '.novelforge/summaries/004-夜访.md');
+      assert.equal(s.target.plotRelPath, '.novelwarden/summaries/004-夜访.md');
     });
 
     test('阶段跟着目标走', () => {
@@ -178,7 +178,7 @@ describe('session.ts · SessionStore', () => {
     });
 
     test('读回创作目标', () => {
-      assert.equal(back.target.plotRelPath, '.novelforge/summaries/004-夜访.md');
+      assert.equal(back.target.plotRelPath, '.novelwarden/summaries/004-夜访.md');
     });
 
     test('读回阶段与能力', () => {
@@ -316,7 +316,7 @@ describe('session.ts · SessionStore', () => {
 
       // 该阶段不支持的能力也要回落——正文阶段没有 split。
       fs.writeFileSync(path.join(sessionsDir, 'badcap.json'), JSON.stringify({
-        target: { kind: 'manuscript', plotRelPath: '.novelforge/summaries/001-x.md' },
+        target: { kind: 'manuscript', plotRelPath: '.novelwarden/summaries/001-x.md' },
         stage: 'manuscript', capability: 'split', turns: [],
       }));
       badcap = await store.read('badcap');
@@ -409,7 +409,7 @@ describe('session.ts · SessionStore', () => {
     });
 
     test('但目标本身保留', () => {
-      assert.equal(badcap.target.plotRelPath, '.novelforge/summaries/001-x.md');
+      assert.equal(badcap.target.plotRelPath, '.novelwarden/summaries/001-x.md');
     });
   });
 
@@ -430,8 +430,8 @@ describe('session.ts · SessionStore', () => {
 
       await store.delete(older.id);
       deletedRead = await store.read(older.id);
-      // 落点与工程页的删除同一套（`trashPathFor`）：回收站里保留原相对路径 `.novelforge/sessions/<id>.json`。
-      trashed = fs.existsSync(path.join(WORK, '.novelforge', '.trash', '.novelforge', 'sessions', `${older.id}.json`));
+      // 落点与工程页的删除同一套（`trashPathFor`）：回收站里保留原相对路径 `.novelwarden/sessions/<id>.json`。
+      trashed = fs.existsSync(path.join(WORK, '.novelwarden', '.trash', '.novelwarden', 'sessions', `${older.id}.json`));
       ghostDelete = await store.delete('nope');
     });
 
@@ -455,7 +455,7 @@ describe('session.ts · SessionStore', () => {
       assert.equal(deletedRead, undefined);
     });
 
-    test('删除移入 .novelforge/.trash，保留原相对路径（.trash/.novelforge/sessions/<id>.json）', () => {
+    test('删除移入 .novelwarden/.trash，保留原相对路径（.trash/.novelwarden/sessions/<id>.json）', () => {
       assert.ok(trashed);
     });
 
@@ -466,7 +466,7 @@ describe('session.ts · SessionStore', () => {
 
   // 第 6 条：会话删除与工程页的删除同一套落点——同名加序号，不盖掉上一次删的。
   describe('同一个 id 删两次：两份都留在回收站', () => {
-    const trashOf = (name) => path.join(WORK, '.novelforge', '.trash', '.novelforge', 'sessions', name);
+    const trashOf = (name) => path.join(WORK, '.novelwarden', '.trash', '.novelwarden', 'sessions', name);
     let id;
     let first;
     let second;
@@ -486,7 +486,7 @@ describe('session.ts · SessionStore', () => {
 
       first = fs.existsSync(trashOf(`${id}.json`)) ? JSON.parse(fs.readFileSync(trashOf(`${id}.json`), 'utf8')) : undefined;
       second = fs.existsSync(trashOf(`${id}-2.json`)) ? JSON.parse(fs.readFileSync(trashOf(`${id}-2.json`), 'utf8')) : undefined;
-      flatLeft = fs.existsSync(path.join(WORK, '.novelforge', '.trash', `${id}.json`));
+      flatLeft = fs.existsSync(path.join(WORK, '.novelwarden', '.trash', `${id}.json`));
     });
 
     test('第一次删的那一份原样在 <id>.json', () => {
@@ -569,88 +569,6 @@ describe('session.ts · SessionStore', () => {
       const turnIds = new Set();
       for (let i = 0; i < 200; i++) turnIds.add(sessionMod.makeTurnId());
       assert.equal(turnIds.size, 200, `got ${turnIds.size}`);
-    });
-  });
-
-  describe('旧目录迁移', () => {
-    // 只有 .novel/ 时应判定需要迁移；rename 后内容原样搬过去。
-    let legacyRoot;
-    let legacyDir;
-    let needsBefore;
-    let initializedBefore;
-    let legacyGone;
-    let initializedAfter;
-    let needsAfter;
-    let needsWithBoth;
-
-    before(async () => {
-      ({ dir: legacyRoot } = makeTempDir('legacy'));
-
-      legacyDir = path.join(legacyRoot, '.novel');
-      fs.mkdirSync(path.join(legacyDir, 'summaries'), { recursive: true });
-      fs.writeFileSync(path.join(legacyDir, 'project.json'), JSON.stringify({ version: 1, title: '旧工程', chapters: [] }));
-      fs.writeFileSync(path.join(legacyDir, 'style.md'), '# 文风指南\n\n旧的内容。\n');
-      fs.writeFileSync(path.join(legacyDir, 'summaries', '001.md'), '细纲内容');
-
-      const legacy = projectMod.NovelProject.open(legacyRoot);
-      needsBefore = await legacy.needsMigration();
-      initializedBefore = await legacy.isInitialized();
-
-      await legacy.migrateLegacyDir();
-      // 「旧目录已消失」必须当场取值：这一节末尾会把 .novel/ 重新建出来。
-      legacyGone = !fs.existsSync(legacyDir);
-      initializedAfter = await legacy.isInitialized();
-      needsAfter = await legacy.needsMigration();
-
-      // 两个目录都在时不该动手——用户可能是有意保留的。
-      fs.mkdirSync(path.join(legacyRoot, '.novel'), { recursive: true });
-      fs.writeFileSync(path.join(legacyRoot, '.novel', 'project.json'), '{}');
-      needsWithBoth = await legacy.needsMigration();
-    });
-
-    // 原脚本只在成功路径删它，抛异常就漏在 temp 里；这里挂到 after()。
-    after(() => cleanup(legacyRoot));
-
-    test('检测到需要迁移', () => {
-      assert.equal(needsBefore, true);
-    });
-
-    test('迁移前 isInitialized 为 false', () => {
-      assert.equal(initializedBefore, false);
-    });
-
-    test('新目录已存在', () => {
-      assert.ok(fs.existsSync(path.join(legacyRoot, '.novelforge')));
-    });
-
-    test('旧目录已消失', () => {
-      assert.ok(legacyGone);
-    });
-
-    test('manifest 搬过去了', () => {
-      assert.ok(fs.existsSync(path.join(legacyRoot, '.novelforge', 'project.json')));
-    });
-
-    test('子目录一并搬过去', () => {
-      assert.ok(fs.existsSync(path.join(legacyRoot, '.novelforge', 'summaries', '001.md')));
-    });
-
-    test('文件内容原样', () => {
-      assert.ok(
-        fs.readFileSync(path.join(legacyRoot, '.novelforge', 'style.md'), 'utf8').includes('旧的内容')
-      );
-    });
-
-    test('迁移后 isInitialized 为 true', () => {
-      assert.equal(initializedAfter, true);
-    });
-
-    test('迁移后不再提示迁移', () => {
-      assert.equal(needsAfter, false);
-    });
-
-    test('新目录已存在时不判定为需迁移', () => {
-      assert.equal(needsWithBoth, false);
     });
   });
 });

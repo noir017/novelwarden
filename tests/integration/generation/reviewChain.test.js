@@ -32,8 +32,8 @@ let project;
 let settings = {};
 let script = [];
 
-const P2 = '.novelforge/summaries/002-客栈.md';
-const P3 = '.novelforge/summaries/003-夜访.md';
+const P2 = '.novelwarden/summaries/002-客栈.md';
+const P3 = '.novelwarden/summaries/003-夜访.md';
 
 const CH2 = [
   '雨下了一整夜。林昭推开客栈的门，檐下的灯笼被风吹得直晃。',

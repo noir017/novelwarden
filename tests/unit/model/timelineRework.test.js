@@ -19,10 +19,10 @@ const { loadModule } = require('../../helpers/load');
 
 const t = loadModule('src/core/model/timelineFile.ts');
 
-const REL = '.novelforge/threads/时间线.md';
+const REL = '.novelwarden/threads/时间线.md';
 
 function file(start, lines, calendar = '简单历') {
-  return ['---', `calendar: ${calendar}`, `start: ${start}`, 'generatedBy: novel-forge', '---', '', '# 时间线', '', ...lines, ''].join('\n');
+  return ['---', `calendar: ${calendar}`, `start: ${start}`, 'generatedBy: novelwarden', '---', '', '# 时间线', '', ...lines, ''].join('\n');
 }
 const tlOf = (start, lines, calendar) => t.parseTimelineFile(file(start, lines, calendar), REL);
 const entry = (line, cal) => t.parseTimelineLine(line, cal).entry;
@@ -477,7 +477,7 @@ describe('作者在界面上改（「改时间…」「改历法与起点」）'
 
   test('改历法与起点：只换那两个键；没有就加；还没有文件按模板新建', () => {
     const out = t.setTimelineHead(raw, { calendar: '公历', start: '2026-03-07' });
-    assert.ok(out.startsWith('---\ncalendar: 公历\nstart: 2026-03-07\ngeneratedBy: novel-forge\n---\n'), out);
+    assert.ok(out.startsWith('---\ncalendar: 公历\nstart: 2026-03-07\ngeneratedBy: novelwarden\n---\n'), out);
     assert.ok(out.includes('- 第 4 章：怎么也认不出'));
     const bare = t.setTimelineHead('---\ngeneratedBy: x\n---\n\n# 时间线\n', { start: '三月初五' });
     assert.ok(bare.startsWith('---\ngeneratedBy: x\nstart: 三月初五\n---\n'), bare);

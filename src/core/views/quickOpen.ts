@@ -24,9 +24,9 @@ import type {
  *
  * - **章节与细纲**：`NovelProject.listChapters()` / `listPlots()`。这两份列表在工程上缓存着（每次 `pushState`
  *   重算 `ViewState` 时就填上了，作者按 Ctrl+P 时几乎总是热的）——热的时候这一步**零读盘**；冷的时候各递归
- *   扫一遍 `chapters/` 与 `.novelforge/summaries/`、每个文件读一次（与工程页同一趟，之后的人搭这一班车）。
- * - **角色卡**：递归列 `.novelforge/characters/`，每张卡读一次（要 frontmatter 里的名字与别名）。
- * - **设定条目**：递归列 `.novelforge/lore/`，每条读一次（要标题）。
+ *   扫一遍 `chapters/` 与 `.novelwarden/summaries/`、每个文件读一次（与工程页同一趟，之后的人搭这一班车）。
+ * - **角色卡**：递归列 `.novelwarden/characters/`，每张卡读一次（要 frontmatter 里的名字与别名）。
+ * - **设定条目**：递归列 `.novelwarden/lore/`，每条读一次（要标题）。
  * - **草稿**：递归列 `drafts/`，**只列不读**。
  * - **架构几件与大纲 / 文风 / 叙事线 / 全文大纲**：七个固定路径各 `stat` 一次，有文件的才列。
  *

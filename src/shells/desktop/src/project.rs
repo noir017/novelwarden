@@ -1,5 +1,8 @@
 //! 把旧桌面壳的 `<app_config_dir>/shell.json` 迁到 sidecar 会读的
-//! `~/.novelforge/window.json`。只迁一次：window.json 已经在就不碰。
+//! `~/.novelwarden/window.json`。只迁一次：window.json 已经在就不碰。
+//!
+//! 配置目录改名后仍认旧目录：`~/.novelforge/` 还在、`~/.novelwarden/` 还没建时继续用旧目录
+//! （不搬、不删），否则老用户升级后配置、密钥与「最近工程」会凭空消失。
 
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -36,9 +39,32 @@ fn shell_path(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(dir.join("shell.json"))
 }
 
-fn novelforge_dir() -> Option<PathBuf> {
+fn home() -> Option<PathBuf> {
     let home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE"))?;
-    Some(PathBuf::from(home).join(".novelforge"))
+    Some(PathBuf::from(home))
+}
+
+/// 与 `src/core/stores.ts` 的 `homeDir()` 同一套判定：
+/// `NOVELWARDEN_HOME` > `NOVELFORGE_HOME` > 已存在的 ~/.novelwarden >
+/// 已存在的 ~/.novelforge > ~/.novelwarden。
+fn config_dir() -> Option<PathBuf> {
+    let explicit =
+        std::env::var_os("NOVELWARDEN_HOME").or_else(|| std::env::var_os("NOVELFORGE_HOME"));
+    if let Some(dir) = explicit {
+        if !dir.is_empty() {
+            return Some(PathBuf::from(dir));
+        }
+    }
+    let home = home()?;
+    let fresh = home.join(".novelwarden");
+    if fresh.exists() {
+        return Some(fresh);
+    }
+    let legacy = home.join(".novelforge");
+    if legacy.exists() {
+        return Some(legacy);
+    }
+    Some(fresh)
 }
 
 fn last_project(app: &AppHandle) -> Option<PathBuf> {
@@ -54,7 +80,7 @@ fn last_project(app: &AppHandle) -> Option<PathBuf> {
 
 /// 若 `window.json` 还不存在，且旧 `shell.json` 里有还在的工程目录，写入一次。
 pub fn migrate_shell_json_once(app: &AppHandle) -> Result<(), String> {
-    let Some(dir) = novelforge_dir() else {
+    let Some(dir) = config_dir() else {
         return Ok(());
     };
     let win_path = dir.join("window.json");
@@ -64,7 +90,7 @@ pub fn migrate_shell_json_once(app: &AppHandle) -> Result<(), String> {
     let Some(root) = last_project(app) else {
         return Ok(());
     };
-    std::fs::create_dir_all(&dir).map_err(|e| format!("建 ~/.novelforge 失败：{e}"))?;
+    std::fs::create_dir_all(&dir).map_err(|e| format!("建 {} 失败：{e}", dir.display()))?;
     let root_str = root.to_string_lossy().to_string();
     let name = file_name(&root);
     let opened_at = SystemTime::now()

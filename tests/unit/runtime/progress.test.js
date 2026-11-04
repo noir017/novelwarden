@@ -97,7 +97,7 @@ describe('长任务', () => {
 
   test('宿主进度带前缀', () => {
     assert.ok(
-      hostProgressCalls.every((c) => c.startsWith('Novel Forge：')),
+      hostProgressCalls.every((c) => c.startsWith('Novelwarden：')),
       hostProgressCalls[0]
     );
   });

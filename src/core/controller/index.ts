@@ -895,7 +895,7 @@ export class ChatController {
       await this.pushSessions();
     } else if (this.tab === 'settings') {
       await pushSettings(this);
-      // 「技能」那一页每次都重扫：作者可能刚往 .novelforge/skills/ 里放了一份。
+      // 「技能」那一页每次都重扫：作者可能刚往 .novelwarden/skills/ 里放了一份。
       await pushSkillsTo(this, this);
     } else if (this.tab === 'logs') {
       // 切到日志页时补一份全量；此后靠 sink 增量追加。

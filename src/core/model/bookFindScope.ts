@@ -23,10 +23,10 @@ export const BOOK_FIND_SCOPE_LABEL: Record<BookFindScope, string> = {
 /** 勾选框的提示：这一项搜哪些文件。 */
 export const BOOK_FIND_SCOPE_HINT: Record<BookFindScope, string> = {
   chapter: '章节根下的正文（按章号）',
-  plot: '每一章的细纲（.novelforge/summaries/ 下，按章号）',
+  plot: '每一章的细纲（.novelwarden/summaries/ 下，按章号）',
   draft: 'drafts/ 下的草稿',
-  character: '角色卡（.novelforge/characters/）',
-  lore: '设定条目（.novelforge/lore/）',
+  character: '角色卡（.novelwarden/characters/）',
+  lore: '设定条目（.novelwarden/lore/）',
   doc: '情节大纲、小说配置、故事前提、世界观、文风指南、叙事线、全文大纲',
 };
 

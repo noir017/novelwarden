@@ -13,7 +13,7 @@ import type { TimelineDayState, TimelineSeason } from '../model/timelineFile';
 import type { TimelineIssueView } from './views';
 
 export interface TimelineOverview {
-  /** 还不是小说工程（没有 `.novelforge/project.json`）时为 false，其余都是空的。 */
+  /** 还不是小说工程（没有 `.novelwarden/project.json`）时为 false，其余都是空的。 */
   initialized: boolean;
   /** `threads/时间线.md`（还没有这份文件时也给：补推会建它）。 */
   relPath: string;

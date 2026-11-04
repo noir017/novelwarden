@@ -73,7 +73,7 @@ let project;
 let builderMod;
 let vs;
 
-const PLOT = (no, title) => `.novelforge/summaries/${String(no).padStart(3, '0')}-${title}.md`;
+const PLOT = (no, title) => `.novelwarden/summaries/${String(no).padStart(3, '0')}-${title}.md`;
 const lastUser = (b) => b.messages[b.messages.length - 1].content;
 const ids = (b) => new Map(b.items.map((i) => [i.id, i]));
 
@@ -81,7 +81,7 @@ before(async () => {
   t = copyFixture('manuscript-recipe');
   vs = installVscodeStub({ level: 'full', root: t.dir, config: {} });
   // 第 4 章《空匣》示例工程里本来就排好了细纲（计划，还没写正文）；后面几章在这里补上。
-  const plots = path.join(t.dir, '.novelforge/summaries');
+  const plots = path.join(t.dir, '.novelwarden/summaries');
   // 示例工程第 5–10 章是只有梗概的空壳（大纲排到了第 10 章）：换成下面这几份，免得同一章两份细纲。
   for (const name of fs.readdirSync(plots).filter((f) => /^0(0[5-9]|10)/.test(f))) {
     fs.rmSync(path.join(plots, name));
@@ -367,7 +367,7 @@ describe('正文配方 · 续写那几轮（精简配方）', () => {
   const step = { kind: 'continuation', tail: '他推开了井边那扇门。门后是一段向下的石阶。', written: 700, remaining: 500, recovery: false };
   before(async () => {
     // 第 2 章的细纲定稿过、填上连续性事实：续写那几轮也要看见它（百章实验里续写写了一章的大半）。
-    const s2 = path.join(t.dir, '.novelforge/summaries/002-客栈里的女人.md');
+    const s2 = path.join(t.dir, '.novelwarden/summaries/002-客栈里的女人.md');
     fs.writeFileSync(s2, fs.readFileSync(s2, 'utf8').replace(/(## 连续性事实\r?\n\r?\n)（待补充）/, '$1- 沈氏住进走廊尽头的房间'));
     project.invalidate();
     const base = { action: WRITE, target: { kind: 'manuscript', plotRelPath: PLOT(4, '空匣') }, ask: ASK, targetWords: 1200 };

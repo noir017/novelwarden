@@ -19,7 +19,7 @@
  * | 1 | 路径规范化（绝对路径 / `..` 逃逸 / 空串） | `WsError('outOfRoot')` |
  * | 2 | 工程根包含检查（解析成绝对路径再比一次） | `WsError('outOfRoot')` |
  * | 3 | 固定目录保护（改名/删除） | `WsError('protected')` |
- * | 4 | `.trash/` 内容不可**改**（读得到，作者要能找回东西）；历史版本 `.novelforge/history/` 写不进去（同样读得到） | `WsError('inTrash')` / `WsError('inHistory')` |
+ * | 4 | `.trash/` 内容不可**改**（读得到，作者要能找回东西）；历史版本 `.novelwarden/history/`（旧工程 `.novelforge/history/`）写不进去（同样读得到） | `WsError('inTrash')` / `WsError('inHistory')` |
  * | 5 | 大小上限 2MB（读、写各一次） | `WsError('tooLarge')` |
  * | 6 | 同名不覆盖（`mode: 'create'`） | `WsError('exists')` |
  * | 7 | 覆盖前审阅（`reviewReplace` 或确认框） | 用户拒绝 → 调用方 `{skipped:true}` |
@@ -34,7 +34,7 @@ import * as path from 'node:path';
 import { getHost } from '../host';
 import { scoped } from '../runtime/logger';
 import { hash } from '../model/fs';
-import { NovelProject } from '../model/project';
+import { LEGACY_NOVEL_DIRS, NOVEL_DIR, NovelProject } from '../model/project';
 import { normalizeRel } from './kind';
 
 const log = scoped('工作区');
@@ -43,7 +43,7 @@ export type WsErrorCode =
   | 'outOfRoot'
   | 'protected'
   | 'inTrash'
-  /** 历史版本（`.novelforge/history/`）里写不进去：那是网关自己存的副本。读得到。 */
+  /** 历史版本（`.novelwarden/history/`，旧工程是 `.novelforge/history/`）里写不进去：那是网关自己存的副本。读得到。 */
   | 'inHistory'
   /** 目录复制进它自己里面。 */
   | 'intoSelf'
@@ -86,54 +86,76 @@ export class WsConflictError extends WsError {
 export const MAX_EDITABLE_BYTES = 2 * 1024 * 1024;
 
 /**
+ * 元数据目录名，从新到旧。旧工程没迁移时数据在旧目录里——**两个都保护**，
+ * 免得哪条文件操作把作者还没迁移的那一份整个搬走或删掉。
+ */
+const METADATA_DIRS = [NOVEL_DIR, ...LEGACY_NOVEL_DIRS];
+
+/**
+ * 元数据目录下被代码写死名字的那些子目录。改了名就等于那批数据凭空消失，
+ * **而界面上只会显示「还没生成过」**。所以这里列的是全部固定子目录，
+ * 不只是作者常看见的那几个。
+ */
+const METADATA_SUBDIRS = [
+  'characters',
+  'lore',
+  'summaries',
+  // 叙事线：一条线一个文件（model/threadFile.ts）。整个目录搬走或删掉，所有线一起「还没排过」。
+  'threads',
+  'skills',
+  // 场景、卷、中转站三层都已经删掉（见 model/pipeline.ts 的文件头），细纲也从 `plots/`
+  // 搬进了 `summaries/`，但老工程磁盘上那几个目录还在，而且是作者的文件。留在这张表里，
+  // 免得哪条文件操作把它们整棵删掉——代码不再读它们，不等于可以替作者处置它们。
+  'plots',
+  'scenes',
+  'volumes',
+  'manuscripts',
+  'sessions',
+  '.trash',
+  // 历史版本：网关自己存的副本（workspace/history.ts）。整个目录搬走或删掉，所有文件的历史一起没了。
+  'history',
+  // 存档点（workspace/checkpoints.ts）：内部文件，本来就碰不到；列在这里与历史版本一样多一道保险。
+  'checkpoints',
+];
+
+/**
  * 工程的固定目录：改名/搬走会让工程结构散架（章节索引、草稿镜像、
  * 元数据与会话）。
  *
- * `.novelforge/` 下的每一个目录名都被代码写死在某处查找逻辑里：细纲（连同全文大纲）、角色、
- * 设定与会话存储都是按目录名拼出来的，改了名就等于那批数据凭空
- * 消失，**而界面上只会显示「还没生成过」**。所以这里列的是全部固定子目录，
- * 不只是作者常看见的那几个。
+ * 元数据目录按**磁盘上实际存在的那个**（{@link NovelProject.novelDirName}）与两级旧名字一起算：
+ * 旧工程没迁移时读写落在旧目录，作者也不该经由文件页把它搬走。
  */
 export function isProtectedPath(project: NovelProject, relPath: string): boolean {
   const rel = normalizeRel(relPath);
   if (!rel) {
     return true;
   }
-  const fixed = [
-    project.relPath(project.chaptersDir),
-    project.relPath(project.draftsDir),
-    '.novelforge',
-    '.novelforge/characters',
-    '.novelforge/lore',
-    '.novelforge/summaries',
-    // 叙事线：一条线一个文件（model/threadFile.ts）。整个目录搬走或删掉，所有线一起「还没排过」。
-    '.novelforge/threads',
-    '.novelforge/skills',
-    // 场景、卷、中转站三层都已经删掉（见 model/pipeline.ts 的文件头），细纲也从 `plots/`
-    // 搬进了 `summaries/`，但老工程磁盘上那几个目录还在，而且是作者的文件。留在这张表里，
-    // 免得哪条文件操作把它们整棵删掉——代码不再读它们，不等于可以替作者处置它们。
-    '.novelforge/plots',
-    '.novelforge/scenes',
-    '.novelforge/volumes',
-    '.novelforge/manuscripts',
-    '.novelforge/sessions',
-    '.novelforge/.trash',
-    // 历史版本：网关自己存的副本（workspace/history.ts）。整个目录搬走或删掉，所有文件的历史一起没了。
-    '.novelforge/history',
-    // 存档点（workspace/checkpoints.ts）：内部文件，本来就碰不到；列在这里与历史版本一样多一道保险。
-    '.novelforge/checkpoints',
-  ];
-  return fixed.includes(rel);
+  const fixed = new Set<string>([project.relPath(project.chaptersDir), project.relPath(project.draftsDir)]);
+  for (const dir of new Set([...METADATA_DIRS, project.novelDirName])) {
+    fixed.add(dir);
+    for (const sub of METADATA_SUBDIRS) {
+      fixed.add(`${dir}/${sub}`);
+    }
+  }
+  return fixed.has(rel);
 }
 
+/** 工程库的文件名。改名前的库（`novelforge.db`）不删，也一样当内部文件。 */
+const DB_FILES = ['novelwarden.db', 'novelforge.db'];
+const DB_SUFFIXES = ['', '-wal', '-shm', '-journal'];
+/** 三个元数据目录下的两种库文件名（连同 WAL 带出的后缀）。 */
+const DB_PATHS = new Set(
+  METADATA_DIRS.flatMap((dir) => DB_FILES.flatMap((name) => DB_SUFFIXES.map((suffix) => `${dir}/${name}${suffix}`)))
+);
+
 /**
- * Novel Forge 自己的内部文件：工程库（`novelforge.db` 与 WAL 模式带出的 `-wal` / `-shm`）、会话记录与存档点。
+ * Novelwarden 自己的内部文件：工程库（`novelwarden.db` 与 WAL 模式带出的 `-wal` / `-shm`，
+ * 旧库 `novelforge.db` 同理）、会话记录与存档点。
  * 它们不是作品内容，读出来是二进制乱码、对话流水或一堆按 hash 命名的对象，改坏了是整页起不来、存档点退不回去。
  * 所以列目录、搜索里看不见，读当不存在，写、改、搬一律拒绝。存档点只经「存档点」面板看（workspace/checkpoints.ts）。
  */
 export function isInternalPath(project: NovelProject, rel: string): boolean {
-  const db = `${project.relPath(project.novelDir)}/novelforge.db`;
-  if (rel === db || rel === `${db}-wal` || rel === `${db}-shm` || rel === `${db}-journal`) {
+  if (DB_PATHS.has(rel)) {
     return true;
   }
   const sessions = project.relPath(project.sessionsDir);
@@ -146,19 +168,25 @@ export function isInternalPath(project: NovelProject, rel: string): boolean {
   );
 }
 
-/** 这条路径在回收站里。`.trash/` 里躺着刚删掉的东西，不是操作对象。 */
+/** 回收站目录（新旧元数据目录都认）。`.trash/` 里躺着刚删掉的东西，不是操作对象。 */
+function trashDirs(project: NovelProject): string[] {
+  return [...new Set([project.relPath(project.trashDir), ...METADATA_DIRS.map((dir) => `${dir}/.trash`)])];
+}
+
+/** 这条路径在回收站里（当前工程的，或旧元数据目录下的）。 */
 export function isInTrash(project: NovelProject, rel: string): boolean {
-  const trash = project.relPath(project.trashDir);
-  return rel === trash || rel.startsWith(`${trash}/`);
+  return trashDirs(project).some((trash) => rel === trash || rel.startsWith(`${trash}/`));
 }
 
 /**
- * 这条路径在历史版本里（`.novelforge/history/`，见 workspace/history.ts）。那是一份份旧稿：检索跳过它，
- * 与回收站同一个理由——搜出来的不是现在的书。
+ * 这条路径在历史版本里（`.novelwarden/history/`，旧工程是 `.novelforge/history/`；见 workspace/history.ts）。那是一份份旧稿：检索跳过它，
+ * 与回收站同一个理由——搜出来的不是现在的书。新旧目录都认。
  */
 export function isInHistory(project: NovelProject, rel: string): boolean {
-  const history = project.relPath(project.historyDir);
-  return rel === history || rel.startsWith(`${history}/`);
+  const history = [
+    ...new Set([project.relPath(project.historyDir), ...METADATA_DIRS.map((dir) => `${dir}/history`)]),
+  ];
+  return history.some((dir) => rel === dir || rel.startsWith(`${dir}/`));
 }
 
 /**
@@ -292,7 +320,7 @@ export async function guardWrite(
 /**
  * 写、建、复制的落点共用的一道：这三处**不是作者的操作对象**，什么都写不进去——
  *
- * - Novel Forge 自己的内部文件（会话、工程库、存档点）：`protected`
+ * - Novelwarden 自己的内部文件（会话、工程库、存档点）：`protected`
  * - 回收站：`inTrash`（里面躺着删掉的东西，往里写等于伪造一份「删掉过的」）
  * - 历史版本：`inHistory`（网关自己存的副本；往里塞文件，「历史」面板里就多出一份作者从没存过的「旧版」）
  *
@@ -300,7 +328,7 @@ export async function guardWrite(
  */
 function guardArea(project: NovelProject, rel: string): void {
   if (isInternalPath(project, rel)) {
-    throw new WsError('protected', `「${rel}」是 Novel Forge 自己的内部文件，不能写。`);
+    throw new WsError('protected', `「${rel}」是 Novelwarden 自己的内部文件，不能写。`);
   }
   if (isInTrash(project, rel)) {
     throw new WsError('inTrash', `回收站里的内容不能写：${rel}`);
@@ -328,7 +356,7 @@ export async function guardCreate(project: NovelProject, relPath: string): Promi
 }
 
 /**
- * 复制的来源过一遍：在工程内、存在、不是符号链接、不是固定目录（整个 `chapters/`、`.novelforge/` 这种复制一份出来只是一堆
+ * 复制的来源过一遍：在工程内、存在、不是符号链接、不是固定目录（整个 `chapters/`、`.novelwarden/` 这种复制一份出来只是一堆
  * 重号的章，与文件页从前的规矩一样不收）、不是内部文件（会话与工程库读当不存在，也就复制不出来）。
  *
  * **回收站与历史版本里的东西可以复制出来**：复制只读来源，读得到就复制得出来——这是在工程里找回一份的入口，
@@ -344,7 +372,7 @@ export async function guardCopySource(
     throw new WsError('protected', `「${rel}」是工程的固定目录，不能整个复制。`);
   }
   if (isInternalPath(project, rel)) {
-    throw new WsError('protected', `「${rel}」是 Novel Forge 自己的内部文件，不能复制。`);
+    throw new WsError('protected', `「${rel}」是 Novelwarden 自己的内部文件，不能复制。`);
   }
   let stat: import('node:fs').Stats;
   try {
@@ -372,7 +400,7 @@ export async function guardMutate(project: NovelProject, relPath: string): Promi
     throw new WsError('protected', `「${rel}」是工程的固定目录，不能改名或搬走。`);
   }
   if (isInternalPath(project, rel)) {
-    throw new WsError('protected', `「${rel}」是 Novel Forge 自己的内部文件，不能改名、搬走或删除。`);
+    throw new WsError('protected', `「${rel}」是 Novelwarden 自己的内部文件，不能改名、搬走或删除。`);
   }
   if (isInTrash(project, rel)) {
     throw new WsError('inTrash', `回收站里的内容不能操作：${rel}`);

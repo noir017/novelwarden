@@ -137,7 +137,7 @@ describe('参数不对就当场报错，不花钱', () => {
 
   test('create 给了 path：说清只有哪几个认', async () => {
     resetCtx();
-    const r = await run({ action: 'create', name: '林昭', path: '.novelforge/characters/林昭.md' });
+    const r = await run({ action: 'create', name: '林昭', path: '.novelwarden/characters/林昭.md' });
     assert.equal(r.error, 'create 不认 path，只有 update / rebuild / reviewState 认。');
   });
 
@@ -154,7 +154,7 @@ describe('转发给工程页那几个函数', () => {
     resetCtx();
     const r = await run({ action: 'cleanAliases' });
     assert.equal(r.error, undefined, r.error);
-    assert.ok(r.text.includes('别名清理已交给 Novel Forge 执行'), r.text);
+    assert.ok(r.text.includes('别名清理已交给 Novelwarden 执行'), r.text);
     assert.ok(h.toasts.some((m) => m.includes('还没有角色卡')), JSON.stringify(h.toasts));
     assert.equal(fake.calls.length, 0);
     assert.equal(ctx.usage.calls, 0);

@@ -24,8 +24,8 @@ let project;
 
 const N = 4;
 const CH = (no) => `chapters/00${no}-第${no}章.md`;
-const GLOBAL = '.novelforge/summaries/global.md';
-const STYLE = '.novelforge/style.md';
+const GLOBAL = '.novelwarden/summaries/global.md';
+const STYLE = '.novelwarden/style.md';
 
 /** 文风那一次要提示词规定的小节齐全才算完整（照着系统提示词里的 `## ` 回）；别的一律给一段话。 */
 function reply(messages) {
@@ -72,7 +72,7 @@ before(async () => {
   // 四章都定稿过：细纲记下的 sourceHash 对得上正文。
   for (const ch of await project.listChapters()) {
     t.write(
-      `.novelforge/summaries/00${ch.order}-第${ch.order}章.md`,
+      `.novelwarden/summaries/00${ch.order}-第${ch.order}章.md`,
       `---\nno: ${ch.order}\ntitle: 第${ch.order}章\nsourceHash: ${ch.contentHash}\ncast: [林昭]\n---\n\n# 第${ch.order}章 第${ch.order}章\n\n## 梗概\n\n第${ch.order}章的事。\n`
     );
   }

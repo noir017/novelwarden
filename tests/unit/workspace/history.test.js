@@ -21,14 +21,14 @@ before(() => {
   bundle.host.initHost(makeFakeHost({ settings: () => ({}) }).host);
   h = bundle.history;
   // 只算路径，不碰盘。
-  project = bundle.project.NovelProject.open(path.join(os.tmpdir(), 'novelforge-history-unit'));
+  project = bundle.project.NovelProject.open(path.join(os.tmpdir(), 'novelwarden-history-unit'));
 });
 
 const MIN = 60_000;
 
 describe('快照目录镜像原文件的相对路径', () => {
-  test('章节：.novelforge/history/<原路径>/，扩展名留在目录名里', () => {
-    assert.equal(h.historyDirOf(project, 'chapters/第一卷/003-深处.txt'), '.novelforge/history/chapters/第一卷/003-深处.txt');
+  test('章节：.novelwarden/history/<原路径>/，扩展名留在目录名里', () => {
+    assert.equal(h.historyDirOf(project, 'chapters/第一卷/003-深处.txt'), '.novelwarden/history/chapters/第一卷/003-深处.txt');
   });
 
   test('同名不同扩展名各是各的目录，不撞车', () => {
@@ -36,16 +36,16 @@ describe('快照目录镜像原文件的相对路径', () => {
     assert.notEqual(h.historyDirOf(project, 'chapters/003'), h.historyDirOf(project, 'chapters/003.md'));
   });
 
-  test('.novelforge/ 里的文件同样原样镜像（细纲、角色卡）', () => {
+  test('.novelwarden/ 里的文件同样原样镜像（细纲、角色卡）', () => {
     assert.equal(
-      h.historyDirOf(project, '.novelforge/summaries/第一卷/003-深处.md'),
-      '.novelforge/history/.novelforge/summaries/第一卷/003-深处.md'
+      h.historyDirOf(project, '.novelwarden/summaries/第一卷/003-深处.md'),
+      '.novelwarden/history/.novelwarden/summaries/第一卷/003-深处.md'
     );
-    assert.equal(h.historyDirOf(project, '.novelforge/characters/林昭.md'), '.novelforge/history/.novelforge/characters/林昭.md');
+    assert.equal(h.historyDirOf(project, '.novelwarden/characters/林昭.md'), '.novelwarden/history/.novelwarden/characters/林昭.md');
   });
 
   test('反斜杠归一、越界给 undefined', () => {
-    assert.equal(h.historyDirOf(project, 'chapters\\001.md'), '.novelforge/history/chapters/001.md');
+    assert.equal(h.historyDirOf(project, 'chapters\\001.md'), '.novelwarden/history/chapters/001.md');
     assert.equal(h.historyDirOf(project, '../外面.md'), undefined);
     assert.equal(h.historyDirOf(project, '/etc/passwd'), undefined);
   });

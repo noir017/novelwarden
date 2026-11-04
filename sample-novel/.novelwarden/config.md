@@ -6,7 +6,7 @@ structure: three_act
 pov: third_limited
 totalChapters: 30
 wordsPerChapter: 400
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 
 # 小说配置

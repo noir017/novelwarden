@@ -44,7 +44,7 @@ export interface Host {
   readonly name: 'vscode' | 'standalone';
   /** 该宿主能否提供 vscode-lm（Copilot）模型。 */
   readonly supportsVscodeLm: boolean;
-  /** 设置读写后端：插件暂用 settings.json，独立版用 ~/.novelforge/config.json。 */
+  /** 设置读写后端：插件暂用 settings.json，独立版用 ~/.novelwarden/config.json。 */
   readonly config: ConfigStore;
 
   input(opts: InputOptions): Promise<string | undefined>;

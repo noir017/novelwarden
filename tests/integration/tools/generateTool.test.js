@@ -7,7 +7,7 @@
  * 1. **产物不回灌**——返回文本里只有形状与 draftId，一个正文字都没有。
  *    三千字正文塞回循环，agent 每走一步重烧一遍。
  * 2. **层由路径决定**：架构三件、大纲、细纲各有自己的路径（细纲在
- *    `.novelforge/summaries/NNN-标题.md`，与单章摘要并成了一份）；**正文层给章节路径**
+ *    `.novelwarden/summaries/NNN-标题.md`，与单章摘要并成了一份）；**正文层给章节路径**
  *    （`chapters/NNN-标题.md`），工具按章号去认同号的细纲（细纲号 = 章号），
  *    target 以那份细纲的路径为身份。老工程的中转站、卷纲、`plots/` 路径认不出，一律拦下。
  * 3. **能力由 STAGE_CAPABILITIES 说了算**（discuss / generate / settle / review），`split` 随卷与中转站一起删了；
@@ -59,10 +59,10 @@ let deltas;
 /** 存进 DraftStore 的草稿。 */
 let stored;
 
-const PLOT_REL = '.novelforge/summaries/001-夜入青云.md';
+const PLOT_REL = '.novelwarden/summaries/001-夜入青云.md';
 /** 第 1 章的正文路径。文件还不存在——正文就是要写到这里。 */
 const CHAPTER_REL = 'chapters/001-夜入青云.md';
-const CONFIG_REL = '.novelforge/config.md';
+const CONFIG_REL = '.novelwarden/config.md';
 
 let replyFn = () => PLOT_JSON;
 const tool = () => bundle.tools.NOVEL_TOOLS.find((x) => x.name === 'generate');
@@ -225,7 +225,7 @@ describe('history 恒为空', () => {
     await run({ target: PLOT_REL, capability: 'generate', ask: '排一下' });
   });
 
-  // agent 的工具调用不是作者的讨论。混进去，装配器会把 `list .novelforge/summaries`
+  // agent 的工具调用不是作者的讨论。混进去，装配器会把 `list .novelwarden/summaries`
   // 当成作者提的创作要求。
   test('装配出的消息里没有工具调用的痕迹', () => {
     const all = JSON.stringify(fake.calls[0]);
@@ -307,7 +307,7 @@ describe('给章节路径：按章号认成正文层', () => {
     project.invalidate();
     resetCtx();
     await run({ target: 'chapters/003-雪夜.md', capability: 'generate' });
-    assert.deepEqual(stored[0].draft.target, { kind: 'manuscript', plotRelPath: '.novelforge/summaries/003-雪夜.md' });
+    assert.deepEqual(stored[0].draft.target, { kind: 'manuscript', plotRelPath: '.novelwarden/summaries/003-雪夜.md' });
   });
 
   test('章节还不存在、也没有细纲时同样认成正文层', async () => {
@@ -315,7 +315,7 @@ describe('给章节路径：按章号认成正文层', () => {
     await run({ target: 'chapters/002-藏书阁.md', capability: 'generate' });
     const target = stored[0].draft.target;
     assert.equal(target.kind, 'manuscript', JSON.stringify(target));
-    assert.ok(target.plotRelPath.startsWith('.novelforge/summaries/002'), JSON.stringify(target));
+    assert.ok(target.plotRelPath.startsWith('.novelwarden/summaries/002'), JSON.stringify(target));
   });
 });
 
@@ -427,8 +427,8 @@ describe('对设定清单调 generate（target 是设定目录）', () => {
         ? JSON.stringify({ entries: [{ title: '青云宗', body: '## 概要\n正道第一大宗，山门在北。' }] })
         : JSON.stringify({ categories: ['宗门'], entries: [{ title: '青云宗', category: '宗门', keywords: [], brief: '正道大宗' }] });
     };
-    intent = tool().intent({ target: '.novelforge/lore' }, project);
-    r = await run({ target: '.novelforge/lore/', capability: 'generate' });
+    intent = tool().intent({ target: '.novelwarden/lore' }, project);
+    r = await run({ target: '.novelwarden/lore/', capability: 'generate' });
   });
 
   test('确认框说的是「设定清单」，不是一个光秃秃的目录', () => {
@@ -456,14 +456,14 @@ describe('对设定清单调 generate（target 是设定目录）', () => {
 
   // 别的目录不认：角色区、章节区里的目录不是一件产物。
   test('设定目录下的子目录不认，给 error', async () => {
-    const res = await run({ target: '.novelforge/lore/宗门', capability: 'generate' });
-    assert.ok(res.error && res.error.includes('设定清单给 .novelforge/lore'), res.error);
+    const res = await run({ target: '.novelwarden/lore/宗门', capability: 'generate' });
+    assert.ok(res.error && res.error.includes('设定清单给 .novelwarden/lore'), res.error);
   });
 });
 
 /*
  * 角色图谱同样没有自己的文件：target 给角色目录本身（工程页「故事架构」那一行的路径）。从前这里只认设定目录，
- * 外部 agent 照 `list` 的说法给 .novelforge/characters 会被当成认不出的路径，只能绕去「补齐架构」。
+ * 外部 agent 照 `list` 的说法给 .novelwarden/characters 会被当成认不出的路径，只能绕去「补齐架构」。
  */
 describe('对角色图谱调 generate（target 是角色目录）', () => {
   let r;
@@ -478,8 +478,8 @@ describe('对角色图谱调 generate（target 是角色目录）', () => {
           { name: '沈青', role: '盟友', 身份: '客栈老板娘' },
         ],
       });
-    intent = tool().intent({ target: '.novelforge/characters' }, project);
-    r = await run({ target: '.novelforge/characters/', capability: 'generate' });
+    intent = tool().intent({ target: '.novelwarden/characters' }, project);
+    r = await run({ target: '.novelwarden/characters/', capability: 'generate' });
   });
 
   test('确认框说的是「角色图谱」', () => {
@@ -497,8 +497,8 @@ describe('对角色图谱调 generate（target 是角色目录）', () => {
   });
 
   test('角色目录下的子目录照样不认，报错里说清角色图谱给哪个路径', async () => {
-    const res = await run({ target: '.novelforge/characters/主角', capability: 'generate' });
-    assert.ok(res.error && res.error.includes('角色图谱给 .novelforge/characters'), res.error);
+    const res = await run({ target: '.novelwarden/characters/主角', capability: 'generate' });
+    assert.ok(res.error && res.error.includes('角色图谱给 .novelwarden/characters'), res.error);
   });
 });
 
@@ -570,7 +570,7 @@ describe('settle 明确不支持', () => {
 describe('落定设定也不给', () => {
   test('设定目录上的 settle 同样拒绝，指路 /落定设定，不调模型、不报账', async () => {
     resetCtx();
-    const r = await run({ target: '.novelforge/lore', capability: 'settle' });
+    const r = await run({ target: '.novelwarden/lore', capability: 'settle' });
     assert.ok(r.error && r.error.includes('/落定设定') && r.error.includes('/落定细纲'), r.error);
     assert.equal(fake.calls.length, 0);
     assert.equal(ctx.usage.calls, 0);
@@ -601,7 +601,7 @@ describe('认不出的路径', () => {
   });
 
   test('error 里给出各层正确的路径形状', () => {
-    assert.ok(r.error.includes('.novelforge/summaries/'), r.error);
+    assert.ok(r.error.includes('.novelwarden/summaries/'), r.error);
     assert.ok(r.error.includes('chapters/'), r.error);
     assert.ok(r.error.includes('list'), r.error);
   });
@@ -620,10 +620,10 @@ describe('认不出的路径', () => {
   // 不再认它们：对着它们生成，产物没有落点（流水线不读那里），只会白花一次钱。
   // （`summaries/` 子目录里的单章摘要不在此列：细纲镜像正文的相对路径，它就是那一章的细纲。）
   for (const [what, legacy] of [
-    ['中转站正文', '.novelforge/manuscripts/001-夜入青云.md'],
-    ['卷纲', '.novelforge/volumes/01-觉醒之日.md'],
-    ['plots/ 下的细纲', '.novelforge/plots/001-夜入青云.md'],
-    ['按卷分目录的细纲', '.novelforge/plots/01-觉醒之日/001-夜入青云.md'],
+    ['中转站正文', '.novelwarden/manuscripts/001-夜入青云.md'],
+    ['卷纲', '.novelwarden/volumes/01-觉醒之日.md'],
+    ['plots/ 下的细纲', '.novelwarden/plots/001-夜入青云.md'],
+    ['按卷分目录的细纲', '.novelwarden/plots/01-觉醒之日/001-夜入青云.md'],
   ]) {
     test(`老工程的${what}路径认不出，不调模型`, async () => {
       resetCtx();
@@ -714,7 +714,7 @@ describe('工具定义本身', () => {
 
   test('描述里给出各层的路径形状（架构 / 细纲 / 章节）', () => {
     const d = tool().description;
-    assert.ok(d.includes('config.md') && d.includes('.novelforge/summaries/') && d.includes('chapters/'), d);
+    assert.ok(d.includes('config.md') && d.includes('.novelwarden/summaries/') && d.includes('chapters/'), d);
   });
 
   // agent 照着描述里的老路径给 `plots/`，会被当场拦下（见上面「认不出的路径」）——白走一趟。

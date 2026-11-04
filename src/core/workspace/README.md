@@ -24,7 +24,7 @@
   `writtenFrom`（正文据以写成的细纲指纹），定稿要在同一份细纲上记 `sourceHash`（正文的指纹）
   并刷新 `writtenFrom`，漏了新鲜度链就断
 - 删除一律进 `.trash/`；同名目标一律报错退出——**会话删除的落点也是同一套**（`trashPathFor`：保留原相对路径，会话落在
-  `.trash/.novelforge/sessions/<id>.json`，同名加序号），不真删不是文件独有的行为（AGENTS 第 6 条）。会话不走网关的写入
+  `.trash/.novelwarden/sessions/<id>.json`，同名加序号），不真删不是文件独有的行为（AGENTS 第 6 条）。会话不走网关的写入
   （它是内部文件，网关本来就拒写 `sessions/`），只共用落点规则：`trashPathFor` 实现在 `model/project.ts`，这里重新导出
   （`model/` 不能反过来依赖网关）。定稿改写细纲之前，旧版也照这一套复制一份进去
 - 覆盖一份已有的创作产物之前，旧内容先存一版历史（`history.ts`，见下面「历史版本」）
@@ -59,7 +59,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 | 1 | 路径规范化（绝对路径 / `..` 逃逸 / 空串） | `WsError('outOfRoot')` |
 | 2 | 工程根包含检查（解析成绝对路径再比一次） | `WsError('outOfRoot')` |
 | 3 | 固定目录保护（改名/删除） | `WsError('protected')` |
-| 4 | `.trash/` 内容不可改（**读得到**，作者要能找回东西）；历史版本 `.novelforge/history/` **写不进去**（同样读得到）——往里写、搬进去、复制进去、在里面建目录都拒 | `WsError('inTrash')` / `WsError('inHistory')` |
+| 4 | `.trash/` 内容不可改（**读得到**，作者要能找回东西）；历史版本 `.novelwarden/history/` **写不进去**（同样读得到）——往里写、搬进去、复制进去、在里面建目录都拒 | `WsError('inTrash')` / `WsError('inHistory')` |
 | 5 | 大小上限 2MB（读、写各一次） | `WsError('tooLarge')` |
 | 6 | 同名不覆盖（`mode: 'create'`） | `WsError('exists')` |
 | 7 | 覆盖前审阅（`reviewReplace` 或确认框）。请求合并（`opts.merge`），独立版的合并视图交回作者挑过、改过的那一份时写它（五期 W11） | 用户拒绝 → `{ skipped: true }` |
@@ -68,7 +68,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 **区界限不在这里**：`fileOps` 的三区约束（章节挪不进角色目录）是**工程页的
 产品承诺**，比这里的工程根约束更严。那一层留在 `fileOps` 里，先判区再调网关。
 
-**写不进去的三处**（`guardWrite`、`guardCreate` 共用一道）：Novel Forge 自己的内部文件（会话 `sessions/`、工程库、存档点 `checkpoints/`，`protected`）、
+**写不进去的三处**（`guardWrite`、`guardCreate` 共用一道）：Novelwarden 自己的内部文件（会话 `sessions/`、工程库、存档点 `checkpoints/`，`protected`）、
 回收站（`inTrash`）、历史版本（`inHistory`）。`write`、`move` 的落点、`copy` 的落点、`mkdir` 都过它。历史版本那一条是后补的：
 从前守卫只拦前两处，作者的操作能往「历史」面板里塞一份从没存过的「旧版」。回收站与历史版本都**读得到**（会话与存档点读当不存在）。
 
@@ -86,7 +86,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 
 | | 规则 |
 |---|---|
-| 来源（`guardCopySource`） | 工程内、存在、不是符号链接、不是固定目录（整个 `chapters/`、`.novelforge/` 不收，与文件页从前一样）、不是内部文件（会话、工程库复制不出来）。**⚑ 回收站与历史版本里的东西复制得出来**：复制只读来源，读得到就复制得出来，原件一个字节不动——这是在工程里找回一份的入口（搬出来仍然不行，那是改回收站，`guardMutate`） |
+| 来源（`guardCopySource`） | 工程内、存在、不是符号链接、不是固定目录（整个 `chapters/`、`.novelwarden/` 不收，与文件页从前一样）、不是内部文件（会话、工程库复制不出来）。**⚑ 回收站与历史版本里的东西复制得出来**：复制只读来源，读得到就复制得出来，原件一个字节不动——这是在工程里找回一份的入口（搬出来仍然不行，那是改回收站，`guardMutate`） |
 | 落点（`guardCreate`） | 写不进去的三处一律拒；**同名不覆盖、不加序号**（第 3 条，与文件页从前的粘贴一样：粘回原目录报「已经在这个目录里」，目标已有报「同名」）；目录不能复制进它自己里面（`intoSelf`）；父目录不在就补齐（与 `move` 一样） |
 | 目录 | 先把整棵树列出来、**逐个文件**过一遍落点守卫，全过了才动手——拦下一份就整个不复制，不留半棵树。目录里的符号链接不跟进去，跳过并在 `side` 里说出来 |
 | 字节 | 原样拷贝（`COPYFILE_EXCL`，竞态里也不盖掉别处刚建的文件）：GBK 的章节、图片都不转码。没有大小上限——与 `move` 一样，复制不把内容读进编辑器或模型 |
@@ -103,16 +103,16 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 | 种类 | 判定 | 解析 / 渲染 | 上游指纹 | 伴生 |
 |---|---|---|---|---|
 | `setting` | `config.md` / `premise.md` / `world.md`（带 `doc`） | `settingFile.ts`；配置的 frontmatter 产物没给就沿用磁盘那份 | — | — |
-| `outline` | 固定路径 `.novelforge/outline.md`——**磁盘上没有这份文件**，见下面「情节大纲」 | 读：各章细纲梗概的汇总；写：按章号拆回各章细纲（`writeOutline`，不经 handler） | — | — |
+| `outline` | 固定路径 `.novelwarden/outline.md`——**磁盘上没有这份文件**，见下面「情节大纲」 | 读：各章细纲梗概的汇总；写：按章号拆回各章细纲（`writeOutline`，不经 handler） | — | — |
 | `style` / `globalSummary` | 固定路径 | 纯文本 | — | — |
 | `threads` | `threads/` 这一层的 `.md`（叙事线重做：一条线一个文件，「未归属的伏笔.md」也是；子目录里的、别的扩展名、目录本身、七期的 `threads.md` 判 `other`）；`threads/` 是受保护的固定目录 | 纯文本（格式与外科式写入在 `model/threadFile.ts`） | —（链外） | — |
-| `skill` | `.novelforge/skills.json` 与 `.novelforge/skills/**` | 纯文本（`plain`，不加 frontmatter） | — | — |
-| `sensitive` | `.novelforge/sensitive.txt`（自定义敏感词表，内置编辑器的写作体检用） | 纯文本（`plain`） | —（链外：没有创作阶段、不进装配器，改了它不让任何一章挂 ⟳） | — |
+| `skill` | `.novelwarden/skills.json` 与 `.novelwarden/skills/**` | 纯文本（`plain`，不加 frontmatter） | — | — |
+| `sensitive` | `.novelwarden/sensitive.txt`（自定义敏感词表，内置编辑器的写作体检用） | 纯文本（`plain`） | —（链外：没有创作阶段、不进装配器，改了它不让任何一章挂 ⟳） | — |
 | `plot` | `summaries/` 下（各级子目录都算，镜像正文的路径）+ 数字前缀 + markdown | `plotFile.ts`（七节加「设定」一节） | 写入记这一份梗概的指纹（`plotSynopsisHash`；梗概就是情节大纲里这一章那一条）；定稿记的 `sourceHash` / `cast` 由 `finalizePlot` 写，重写细纲时原样沿用 | — |
 | `chapter` | 章节根下 + 数字前缀 + 扩展名不在黑名单 | `chapterFile.ts` | —（正文依据的细纲指纹记在细纲的 `writtenFrom` 上） | 改名/移动带草稿与细纲（整个卷目录也带，连同它们的历史版本）；写后 `syncManifest` |
 | `character` / `lore` | 各自区 + `.md`（设定条目另给 `stage: 'setting'` 与单条设定目标 `{ kind: 'lore', relPath }`，完善设定：MCP 的 `generate` 给条目路径就是展开它；设定目录、角色目录本身仍是 `other`，设定清单、角色图谱只在 `generate` 里认） | frontmatter | — | — |
 | `draft` | `drafts/` 下 | 纯文本 | — | **永不自动进上下文** |
-| `other` | 其余工程内文本（含老工程的 `plots/` 与历史版本 `.novelforge/history/`——后者读得到、写不进，守卫 4） | 纯文本 | — | — |
+| `other` | 其余工程内文本（含老工程的 `plots/` 与历史版本 `.novelwarden/history/`——后者读得到、写不进，守卫 4） | 纯文本 | — | — |
 
 三条判定上的取舍：
 
@@ -130,7 +130,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
    是作者的东西，磁盘上一个字节都不动，但代码里彻底不认——`guard.ts` 的
    `isProtectedPath` 仍然把那几个目录列为受保护目录，免得哪条文件操作把它们整棵删掉。
 5. **敏感词表单列一种 `sensitive`，不落 `other`**：它与 `other` 一样在指纹链之外、装配器不读，但它是作者手维护的词表，改坏了要找得回来——`other` 不存历史版本，`sensitive` 存。新建经「编辑敏感词表…」（`controller/check.ts`：`write` 的 `mode: 'create'`，同名报错、不覆盖；作者点的那一下就是那一问，文件本来不在，没有可审阅的），保存走内置编辑器那条路（乐观锁，`review: false`），都不弹覆盖审阅。
-6. **`.novelforge/history/` 下的东西都判成 `other`**：那是一份份旧稿（历史版本），装配器只按种类与固定目录读，
+6. **`.novelwarden/history/` 下的东西都判成 `other`**：那是一份份旧稿（历史版本），装配器只按种类与固定目录读，
    碰不到它（与第 10 条「草稿不进上下文」同一个道理）；它们自己也就不会再被存历史版本。
 
 ## 历史版本（`history.ts`）
@@ -141,15 +141,15 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 **布局**——每份文件一个目录，每个快照一个以时间命名的文件：
 
 ```
-.novelforge/history/
+.novelwarden/history/
 ├── .gitignore                                第一次建这个目录时放进来，内容 `*`
 ├── chapters/第一卷/003-深处.txt/              目录名 = 原文件的相对路径（连扩展名，`003.md` 与 `003.txt` 不撞车）
 │   ├── 2026-10-18_14-32-05+0800.txt          被覆盖那一刻的本地时间 + 时区
 │   └── 2026-10-18_14-32-05+0800-2.txt        同一秒里的第二个
-└── .novelforge/summaries/第一卷/003-深处.md/  `.novelforge/` 里的文件同样原样镜像
+└── .novelwarden/summaries/第一卷/003-深处.md/  `.novelwarden/` 里的文件同样原样镜像
 ```
 
-- 快照**字节原样拷贝**（不转码，GBK 的旧稿存下来还是 GBK），扩展名一律 `.txt`：插件壳的监听吃 `.novelforge/**/*.md`，
+- 快照**字节原样拷贝**（不转码，GBK 的旧稿存下来还是 GBK），扩展名一律 `.txt`：插件壳的监听吃 `.novelwarden/**/*.md`，
   不是 `.md` 就不会每存一版多跑一轮全量重扫；内置编辑器与「文件」页照样打得开。
 - 时间从文件名读（`parseSnapshotFileName`），不看 mtime——拷来拷去 mtime 会变；带时区，换了时区也排得对。
 
@@ -157,7 +157,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 
 | 情形 | 存不存 |
 |---|---|
-| `kindOfPath` 是 `other`（工程根的随手记、`README`、老工程的 `plots/`……）、还不是小说工程（没有 `.novelforge/`） | 不存——不替作者凭空建出一个工程目录（敏感词表是 `sensitive`，存） |
+| `kindOfPath` 是 `other`（工程根的随手记、`README`、老工程的 `plots/`……）、还不是小说工程（没有 `.novelwarden/`） | 不存——不替作者凭空建出一个工程目录（敏感词表是 `sensitive`，存） |
 | 新内容与旧内容一样（什么都没覆盖）、旧内容与最新一个快照一样 | 不存 |
 | 最新快照不到 10 分钟，且「旧内容 ↔ 最新快照」「旧内容 ↔ 新内容」两处改动都在 300 字以内（公共前后缀粗算，`changedChars`） | 不存——自动保存每两秒存一次时攒不出几百个快照 |
 | 其余（第一次、隔了 10 分钟以上、整章重写 / 修稿 / 一键排版 / 定稿这类大改） | 存 |
@@ -167,7 +167,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 删它们不违背第 6 条「不真删」——第 6 条护的是作者的东西，这里删的是网关为了「找得回来」额外抄的那几份，作者自己的
 文件一个字节都没动。
 
-**`.gitignore`**：只在建出 `.novelforge/history/` 的那一次放（内容 `*`，Git 默认不收快照）。作者删掉它就是想让 Git
+**`.gitignore`**：只在建出 `.novelwarden/history/` 的那一次放（内容 `*`，Git 默认不收快照）。作者删掉它就是想让 Git
 收这些快照，之后不再补回来。
 
 **哪些写入存**：`write`（`overwrite` 与 `append`；编辑器保存、生成落盘、`edit`、`setParagraphStyle`，以及功能层审阅过的
@@ -181,11 +181,11 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 
 **网关之外剩下的写盘**都不是作者的创作产物、按设计不走这里（`tests/contract/gatewayWrites.test.js` 逐个文件数着）：会话文件
 （`model/session.ts`，内部文件，网关拒写 `sessions/`；删会话只共用 `trashPathFor` 落点）、新工程的固定目录与 manifest
-（`model/project.ts` 的 `scaffold` / `createManifest`）、`.novel/` → `.novelforge/` 迁移、工程库（SQLite，第 17 条）、
-工程外的配置（`stores.ts`，`~/.novelforge/`）与我的技能库（`skills/library.ts`）。它们都不存历史版本。
+（`model/project.ts` 的 `scaffold` / `createManifest`）、旧目录 `.novel/`、`.novelforge/` → `.novelwarden/` 的迁移（仅在作者确认后改名，不删旧目录）、工程库（SQLite，第 17 条）、
+工程外的配置（`stores.ts`，`~/.novelwarden/`）与我的技能库（`skills/library.ts`）。它们都不存历史版本。
 
 **快照跟着改名、搬家走**（`moveHistory`）：快照按路径存，所以网关 `move` 成功之后，把搬的那一份（或整个目录）在
-`.novelforge/history/` 下的快照目录也挪到新路径下——在新路径上打开「历史」面板，看得到改名之前存的版本（章节改名时同步
+`.novelwarden/history/` 下的快照目录也挪到新路径下——在新路径上打开「历史」面板，看得到改名之前存的版本（章节改名时同步
 标题行存下的那一版也在里面）。
 
 - **覆盖面**：单个文件；整个目录（分卷目录改名，下面每份文件的快照整棵跟着走）；伴生搬家——章节改名、移动时草稿与细纲
@@ -196,7 +196,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 - **搬快照失败不挡搬家**：新位置被一个文件占了、磁盘满、权限……都只记一条 warn（「没能把 … 的历史版本搬到 …，搬家照常」），
   `moveHistory` 不抛，搬家本身不失败也不回滚（与「存快照失败不挡保存」同一个口径）；没搬过去的快照留在旧路径下，一个不丢。
 - **删除不搬**：`remove` / `deletePlot` 进回收站时快照留在原路径。作者从 `.trash/` 把文件搬回原处，历史也就回来了。
-- 搬进、搬出 `.novelforge/history/` 本身的东西不搬快照（那里的东西本来就不存历史）。
+- 搬进、搬出 `.novelwarden/history/` 本身的东西不搬快照（那里的东西本来就不存历史）。
 
 **定稿写回两份都留**：`.trash/` 那一份照旧（永不裁剪，定稿完成提示里说的就是它），历史版本里也存一版——编辑器的
 「历史」面板里找得到、对比得了；七节整体换掉，节流拦不住它。
@@ -205,7 +205,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 不抛，调用方照常写盘（第 1 条）。
 
 **不进上下文、不触发重扫、删不掉、写不进**：`kindOfPath` 判 `other`；全文检索跳过它（`isInHistory`，与 `.trash/` 同一个理由：
-搜出来的不是现在的书）；`watchPolicy.shouldIgnoreChange` 挡掉它的变动；`isProtectedPath` 把 `.novelforge/history`
+搜出来的不是现在的书）；`watchPolicy.shouldIgnoreChange` 挡掉它的变动；`isProtectedPath` 把 `.novelwarden/history`
 列为固定目录（类文件操作搬不走、删不掉整个目录；工程页的三个区本来就够不着它）；守卫 4 拒绝作者的操作往里写、搬、复制、
 建目录（`inHistory`——快照只由这一层自己存）。「文件」页照常看得见、点得开，单份快照也**复制得出来**。
 
@@ -220,18 +220,18 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 历史版本管**一份文件**被覆盖之前的那一版；存档点管**整本书一起**：作者在工程页「存档点…」里手动存一个（带一句备注），
 批量动作之前机器自动存一个（`features/checkpoint.ts` 的 `checkpointBefore`）。之后看每个存档点跟现在比改了哪几份，
 整本或单份退回去。设计见 [docs/design/plans/2026-10-20-checkpoints.md](../../../docs/design/plans/2026-10-20-checkpoints.md)。
-**不用 git**：作者自己可能在用 git，app 自动提交会刷作者的提交历史、整本 checkout 会盖掉没提交的改动；Novel Forge 不碰 `.git`。
+**不用 git**：作者自己可能在用 git，app 自动提交会刷作者的提交历史、整本 checkout 会盖掉没提交的改动；Novelwarden 不碰 `.git`。
 
 **布局**——按内容寻址，同样的内容只存一份：
 
 ```
-.novelforge/checkpoints/
+.novelwarden/checkpoints/
 ├── .gitignore                               第一次建这个目录时放进来，内容 `*`（同历史版本）
 ├── objects/3f/a9c1…                         文件内容：sha256 前两位当目录、余下 62 位当文件名；字节原样，不转码、不压缩
 └── points/2026-10-20_22-30-05+0800.json     一个存档点一份清单：time / note / auto / files（路径 → sha、字节、字数）/ skipped
 ```
 
-- **存哪些**（`trackedFiles`）：`kindOfPath` 不是 `other` 的，与历史版本同一个口径；只扫章节根、草稿根与 `.novelforge/`，
+- **存哪些**（`trackedFiles`）：`kindOfPath` 不是 `other` 的，与历史版本同一个口径；只扫章节根、草稿根与 `.novelwarden/`，
   隐藏目录（含回收站）、会话、历史版本、存档点自己都不进。超过 2 MB 的单份不存，记进 `skipped`（第 2 条），跟现在比时
   也不算「之后新建」。
 - **先写对象、最后写清单**，两样都先写临时文件再改名：清单是提交点，写到一半失败只剩没人引用的对象，清理时带走。
@@ -292,7 +292,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 ## 情节大纲（`writeOutline`）
 
 情节大纲**没有文件**，是各章细纲「梗概」的汇总（[设计稿](../../../docs/design/plans/2026-10-22-outline-from-plots.md)）。
-`.novelforge/outline.md` 这个路径仍是它的身份：`read` / `edit` / `write` 认出它（`isOutline`）就不碰磁盘——
+`.novelwarden/outline.md` 这个路径仍是它的身份：`read` / `edit` / `write` 认出它（`isOutline`）就不碰磁盘——
 
 - **读**：`NovelProject.readOutlineDoc`——标题行、一段说明、一章一条（每个章号认下的那一份细纲里梗概非空的）。hash 按这一份算，
   内置编辑器的乐观锁、磁盘核对（`checkEditorFiles`）照常用；编辑器存盘不因「磁盘上没有这份文件」报 `FileGoneError`。
@@ -312,7 +312,7 @@ manifest 最后同步一次。指纹链的收尾走 `restampPlotChain`（见下�
 
 四条实现约束：
 
-1. **跳过 `.trash/`、历史版本与二进制**——回收站里躺着刚删掉的东西，搜出来等于没删；`.novelforge/history/`
+1. **跳过 `.trash/`、历史版本与二进制**——回收站里躺着刚删掉的东西，搜出来等于没删；`.novelwarden/history/`
    是一份份被覆盖掉的旧稿，同理。
 2. **单文件读入有上限**（复用 `MAX_EDITABLE_BYTES`），超了跳过并计入 `dropped`。
 3. **`dropped > 0` 必须在返回值里说出来**（第 2 条）——agent 的工具会把它转述给

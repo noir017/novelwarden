@@ -65,18 +65,18 @@ jobs:
             keytool -list -keystore "$NOVELFORGE_KEYSTORE" -storepass "$NOVELFORGE_KEYSTORE_PASSWORD" -alias novelforge | grep -i fingerprint
             src/shells/android/scripts/build.sh release
             rm -f "$NOVELFORGE_KEYSTORE"
-            cp src/shells/android/app/build/outputs/apk/release/app-release.apk novelforge-android.apk
+            cp src/shells/android/app/build/outputs/apk/release/app-release.apk novelwarden-android.apk
           elif [ "$RELEASE" = "true" ]; then
             echo "::error::仓库 secrets 里缺 NOVELFORGE_KEYSTORE_BASE64 / NOVELFORGE_KEYSTORE_PASSWORD（Android 发版密钥）"
             exit 1
           else
             echo "::warning::没有发版密钥，出的是 debug 签名的包：和发版的包签名不同，不能互相覆盖安装"
             src/shells/android/scripts/build.sh debug
-            cp src/shells/android/app/build/outputs/apk/debug/app-debug.apk novelforge-android-debug.apk
+            cp src/shells/android/app/build/outputs/apk/debug/app-debug.apk novelwarden-android-debug.apk
           fi
 
       - uses: actions/upload-artifact@v4
         with:
           name: android
-          path: novelforge-android*.apk
+          path: novelwarden-android*.apk
           if-no-files-found: error

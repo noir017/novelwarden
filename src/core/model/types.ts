@@ -29,7 +29,7 @@ export interface SummaryCast {
   aliases: string[];
 }
 
-/** 角色卡，存于 .novelforge/characters/<slug>.md。 */
+/** 角色卡，存于 .novelwarden/characters/<slug>.md。 */
 export interface CharacterCard {
   /** 文件名（不含扩展名）。 */
   slug: string;
@@ -127,7 +127,7 @@ export const CHARACTER_DETAIL_LIMITS: Record<Exclude<keyof CharacterSections, '�
 export const CHARACTER_ESSENTIAL_KEYS: (keyof CharacterSections)[] = ['身份', '当前状态', '暗设'];
 
 /**
- * 设定条目，存于 `.novelforge/lore/<分类>/<名>.md`。格式与认法在 model/loreFile.ts。
+ * 设定条目，存于 `.novelwarden/lore/<分类>/<名>.md`。格式与认法在 model/loreFile.ts。
  */
 export interface LoreEntry {
   /** 去掉扩展名的相对路径（`宗门/正道/青云宗`）。 */
@@ -150,7 +150,7 @@ export interface LoreEntry {
   body: string;
 }
 
-/** .novelforge/project.json 的结构。 */
+/** .novelwarden/project.json 的结构。 */
 export interface ProjectManifest {
   /** 数据格式版本，便于日后迁移。 */
   version: number;

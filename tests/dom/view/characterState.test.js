@@ -11,7 +11,7 @@ const { describe, test, before } = require('node:test');
 const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, sampleTree } = require('../../helpers/dom');
 
-const LIN = '.novelforge/characters/林昭.md';
+const LIN = '.novelwarden/characters/林昭.md';
 
 describe('角色行 · 当前状态', { skip: JSDOM_SKIP }, () => {
   let ui;
@@ -23,7 +23,7 @@ describe('角色行 · 当前状态', { skip: JSDOM_SKIP }, () => {
     const tree = sampleTree();
     tree.characters = [
       ...tree.characters.map((n) => (n.relPath === LIN ? { ...n, detail: '主角 · 状态截至第 3 章' } : n)),
-      { kind: 'file', label: '沈氏', relPath: '.novelforge/characters/沈氏.md', detail: '' },
+      { kind: 'file', label: '沈氏', relPath: '.novelwarden/characters/沈氏.md', detail: '' },
     ];
     tree.failures = {
       [LIN]: [

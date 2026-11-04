@@ -34,10 +34,10 @@ let gates;
 
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
-const TJG = '.novelforge/lore/宗门/天机阁.md';
-const JCL = '.novelforge/lore/地域/九层楼.md';
-const GS = '.novelforge/lore/地域/鬼市.md';
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
+const TJG = '.novelwarden/lore/宗门/天机阁.md';
+const JCL = '.novelwarden/lore/地域/九层楼.md';
+const GS = '.novelwarden/lore/地域/鬼市.md';
 const LORE_DIR = { kind: 'setting', doc: 'lore' };
 const PLOT3 = { kind: 'plot', plotRelPath: PLOT(3) };
 const QUESTION = '鬼市开在哪座城下？';
@@ -170,9 +170,9 @@ before(async () => {
   });
   t = await makeTempProject(bundle.project, { prefix: 'loreSettle', title: '天机录' });
   project = t.project;
-  t.write('.novelforge/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
-  t.write('.novelforge/world.md', '# 世界观\n\n## 规则与漏洞\n\n江湖消息都从天机阁买。\n');
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
+  t.write('.novelwarden/config.md', '---\ngenre: 武侠\ntotalChapters: 30\nwordsPerChapter: 400\n---\n\n# 小说配置\n\n## 核心梗概\n\n林昭查旧案。\n');
+  t.write('.novelwarden/world.md', '# 世界观\n\n## 规则与漏洞\n\n江湖消息都从天机阁买。\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\ntags: [主角]\n---\n\n# 林昭\n\n## 身份\n\n孤儿。\n');
   // 作者写过的：明面、暗设都有，整合到了第 1 章。
   t.write(
     TJG,
@@ -185,8 +185,8 @@ before(async () => {
   );
   // 只有一句话（细纲带出来的空条目）。
   t.write(JCL, entry('九层楼', { brief: '天机阁的藏书楼' }));
-  t.write('.novelforge/lore/宗门/青云宗.md', entry('青云宗', { brief: '正道第一宗', body: '## 概要\n剑修。' }));
-  fs.mkdirSync(path.join(t.dir, '.novelforge/lore/地域'), { recursive: true });
+  t.write('.novelwarden/lore/宗门/青云宗.md', entry('青云宗', { brief: '正道第一宗', body: '## 概要\n剑修。' }));
+  fs.mkdirSync(path.join(t.dir, '.novelwarden/lore/地域'), { recursive: true });
 
   t.write(CH(1), '# 第1章\n\n第1章的正文。\n');
   project.invalidate();
@@ -303,7 +303,7 @@ describe('落定', () => {
   test('还没定的问题不写进任何工程文件', () => {
     const walk = (dir) =>
       fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? walk(path.join(dir, d.name)) : [path.join(dir, d.name)]));
-    const hits = walk(path.join(t.dir, '.novelforge'))
+    const hits = walk(path.join(t.dir, '.novelwarden'))
       .filter((f) => !f.includes(`${path.sep}sessions${path.sep}`) && !f.endsWith('.db') && !f.includes(`${path.sep}.history${path.sep}`))
       .filter((f) => fs.readFileSync(f, 'utf8').includes(QUESTION));
     assert.deepEqual(hits, []);
@@ -328,7 +328,7 @@ describe('放弃与重来', () => {
       questions: [],
     }, '再定一个黑水渡');
     assert.equal(read(TJG), before1);
-    assert.ok(fs.existsSync(path.join(t.dir, '.novelforge/lore/地域/黑水渡.md')));
+    assert.ok(fs.existsSync(path.join(t.dir, '.novelwarden/lore/地域/黑水渡.md')));
     assert.ok(toasts().some((m) => m.includes('保留原样的 天机阁')), toasts().join('|'));
   });
 
@@ -366,7 +366,7 @@ describe('拦下：解析不了、一条都没定', () => {
     assert.equal(fake.callCount(), 2);
     assert.ok(fake.calls[1][0].content.includes('格式转写员'), fake.calls[1][0].content);
     assert.ok(gate.detail.includes('一共调了 2 次模型'), gate.detail);
-    assert.ok(fs.existsSync(path.join(t.dir, '.novelforge/lore/地域/乱葬岗.md')));
+    assert.ok(fs.existsSync(path.join(t.dir, '.novelwarden/lore/地域/乱葬岗.md')));
   });
 
   test('一条都没定下来：没有卡片、不算失败，气泡里说清并列出还没定的', async () => {

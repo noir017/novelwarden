@@ -1,5 +1,5 @@
 /**
- * ~/.novelforge/window.json：测试一律写进临时目录，不碰真实主目录。
+ * ~/.novelwarden/window.json：测试一律写进临时目录，不碰真实主目录。
  */
 const { describe, test, before, after } = require('node:test');
 const assert = require('node:assert/strict');

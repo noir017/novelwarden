@@ -27,7 +27,7 @@ function makeDraft(over = {}) {
   return {
     id: 'd1',
     action: { stage: 'plot', capability: 'generate' },
-    target: { kind: 'plot', plotRelPath: '.novelforge/summaries/001-夜入青云.md' },
+    target: { kind: 'plot', plotRelPath: '.novelwarden/summaries/001-夜入青云.md' },
     raw: '{"关键事件":"进宗门"}',
     artifact: { kind: 'plot', sections: { 梗概: '', 关键事件: '进宗门', 看点: '' } },
     summary: '细纲 · 1/8 节',
@@ -150,7 +150,7 @@ describe('随会话往返一趟', () => {
   });
 
   test('落点跟着一起回来了', () => {
-    assert.equal(reloaded.drafts[0].target.plotRelPath, '.novelforge/summaries/001-夜入青云.md');
+    assert.equal(reloaded.drafts[0].target.plotRelPath, '.novelwarden/summaries/001-夜入青云.md');
   });
 
   test('动作跟着一起回来了', () => {
@@ -185,7 +185,7 @@ describe('正文草稿的写法与长度随会话往返', () => {
       makeDraft({
         id: 'm1',
         action: { stage: 'manuscript', capability: 'generate' },
-        target: { kind: 'manuscript', plotRelPath: '.novelforge/summaries/003-夜访.md' },
+        target: { kind: 'manuscript', plotRelPath: '.novelwarden/summaries/003-夜访.md' },
         raw: '他推开了门。',
         writeMode: 'continue',
         length: { words: 2980, target: 3000, added: 1200, rounds: 2, reached: true },
@@ -272,7 +272,7 @@ describe('没有 drafts 字段的老会话', () => {
     session.turns.push({ id: 't1', role: 'user', content: '你好', at: '2026-08-15T10:00:00.000Z' });
     await store.write(session);
     // 手工抹掉 drafts 键，模拟二期之前写下的会话文件。
-    const file = path.join(WORK, '.novelforge', 'sessions', `${session.id}.json`);
+    const file = path.join(WORK, '.novelwarden', 'sessions', `${session.id}.json`);
     const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
     delete raw.drafts;
     fs.writeFileSync(file, JSON.stringify(raw, null, 2), 'utf8');

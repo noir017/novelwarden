@@ -201,7 +201,7 @@ describe('临时标签：文件页与工程页的单击 / 双击', { skip: JSDOM
     const label = [...ui.doc.querySelectorAll('#projectBody .row-label')].find((l) => l.textContent === '林昭');
     click(label, 1);
     const msg = ui.last('openEditor');
-    assert.deepEqual({ path: msg.path, preview: msg.preview }, { path: '.novelforge/characters/林昭.md', preview: true });
+    assert.deepEqual({ path: msg.path, preview: msg.preview }, { path: '.novelwarden/characters/林昭.md', preview: true });
   });
 });
 

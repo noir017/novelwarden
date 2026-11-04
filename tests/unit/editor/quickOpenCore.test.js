@@ -38,7 +38,7 @@ function sampleIndex() {
       title,
       volume,
       chapterPath: `chapters/${dir}${stem}.md`,
-      plotPath: `.novelforge/summaries/${dir}${stem}.md`,
+      plotPath: `.novelwarden/summaries/${dir}${stem}.md`,
       words: 3000 + no,
       ...extra,
     };
@@ -51,20 +51,20 @@ function sampleIndex() {
       ch(3, '夜访', '第一卷'),
       ch(12, '夜入青云', '第一卷'),
       // 只有细纲、还没有正文。
-      { no: 13, title: '青云夜', volume: '第二卷', plotPath: '.novelforge/summaries/第二卷/013-青云夜.md', words: 0 },
+      { no: 13, title: '青云夜', volume: '第二卷', plotPath: '.novelwarden/summaries/第二卷/013-青云夜.md', words: 0 },
       ch(105, '林昭归来', '第二卷'),
       ch(120, '风雪', '第二卷'),
     ],
     characters: [
-      { name: '林昭', aliases: ['阿昭', '小林'], path: '.novelforge/characters/林昭.md' },
-      { name: '李叔', aliases: [], path: '.novelforge/characters/配角/李叔.md' },
+      { name: '林昭', aliases: ['阿昭', '小林'], path: '.novelwarden/characters/林昭.md' },
+      { name: '李叔', aliases: [], path: '.novelwarden/characters/配角/李叔.md' },
     ],
-    lore: [{ title: '示例设定', path: '.novelforge/lore/example-setting.md' }],
+    lore: [{ title: '示例设定', path: '.novelwarden/lore/example-setting.md' }],
     docs: [
-      { key: 'config', label: '小说配置', path: '.novelforge/config.md' },
-      { key: 'outline', label: '情节大纲', path: '.novelforge/outline.md' },
-      { key: 'style', label: '文风指南', path: '.novelforge/style.md' },
-      { key: 'threads', label: '沈家旧案', path: '.novelforge/threads/沈家旧案.md' },
+      { key: 'config', label: '小说配置', path: '.novelwarden/config.md' },
+      { key: 'outline', label: '情节大纲', path: '.novelwarden/outline.md' },
+      { key: 'style', label: '文风指南', path: '.novelwarden/style.md' },
+      { key: 'threads', label: '沈家旧案', path: '.novelwarden/threads/沈家旧案.md' },
     ],
     drafts: [{ path: 'drafts/第一卷/003-夜访.md', name: '003-夜访.md', no: 3 }],
   };
@@ -188,7 +188,7 @@ describe('quickOpenCore › 标题、名字与别名', () => {
     const hit = first('青云夜');
     assert.equal(hit.entry.key, 'chapter:13');
     assert.equal(hit.detail, '第 13 章 · 第二卷 · 只有细纲');
-    assert.equal(hit.entry.path, '.novelforge/summaries/第二卷/013-青云夜.md');
+    assert.equal(hit.entry.path, '.novelwarden/summaries/第二卷/013-青云夜.md');
   });
 
   test('角色别名命中角色卡，小字里高亮那个别名', () => {
@@ -280,9 +280,9 @@ describe('quickOpenCore › 空输入与最近打开的', () => {
 
   test('最近打开的排在前面，再接前几章（已经列过的章不重复）', () => {
     const { hits } = search('', {
-      recent: ['.novelforge/characters/林昭.md', 'chapters/第一卷/003-夜访.md'],
+      recent: ['.novelwarden/characters/林昭.md', 'chapters/第一卷/003-夜访.md'],
     });
-    assert.deepEqual(hits.slice(0, 2).map((h) => h.entry.key), ['file:.novelforge/characters/林昭.md', 'chapter:3']);
+    assert.deepEqual(hits.slice(0, 2).map((h) => h.entry.key), ['file:.novelwarden/characters/林昭.md', 'chapter:3']);
     assert.deepEqual(hits.slice(0, 2).map((h) => h.group), ['recent', 'recent']);
     assert.equal(hits.filter((h) => h.entry.key === 'chapter:3').length, 1);
     assert.equal(hits[2].group, 'chapters');
@@ -291,14 +291,14 @@ describe('quickOpenCore › 空输入与最近打开的', () => {
   test('同一章的正文与细纲算一条；不在索引里的（删了、不是这几类）跳过', () => {
     const { hits } = search('', {
       recent: [
-        '.novelforge/summaries/第一卷/012-夜入青云.md',
+        '.novelwarden/summaries/第一卷/012-夜入青云.md',
         'chapters/第一卷/012-夜入青云.md',
         'notes/随手记.md',
-        '.novelforge/outline.md',
+        '.novelwarden/outline.md',
       ],
     });
     const recent = hits.filter((h) => h.group === 'recent').map((h) => h.entry.key);
-    assert.deepEqual(recent, ['chapter:12', 'file:.novelforge/outline.md']);
+    assert.deepEqual(recent, ['chapter:12', 'file:.novelwarden/outline.md']);
   });
 
   test('最近打开的最多列 8 条，前几章最多 10 章', () => {
@@ -333,7 +333,7 @@ describe('quickOpenCore › 上限与性能', () => {
       title: `第${i + 1}回的标题林昭`,
       volume: `第${Math.floor(i / 100) + 1}卷`,
       chapterPath: `chapters/第${Math.floor(i / 100) + 1}卷/${String(i + 1).padStart(4, '0')}.md`,
-      plotPath: `.novelforge/summaries/第${Math.floor(i / 100) + 1}卷/${String(i + 1).padStart(4, '0')}.md`,
+      plotPath: `.novelwarden/summaries/第${Math.floor(i / 100) + 1}卷/${String(i + 1).padStart(4, '0')}.md`,
       words: 3000,
     })),
     characters: [],
@@ -402,7 +402,7 @@ describe('quickOpenCore › 小工具', () => {
   test('章节的打开路径：有正文是正文，没有正文是细纲', () => {
     const ch12 = catalog.entries.find((e) => e.key === 'chapter:12');
     assert.equal(ch12.path, 'chapters/第一卷/012-夜入青云.md');
-    assert.deepEqual(ch12.paths, ['chapters/第一卷/012-夜入青云.md', '.novelforge/summaries/第一卷/012-夜入青云.md']);
+    assert.deepEqual(ch12.paths, ['chapters/第一卷/012-夜入青云.md', '.novelwarden/summaries/第一卷/012-夜入青云.md']);
   });
 
   test('没有标题的章主名称是「第 N 章」，但这几个字不参与名字匹配（章号另认）', () => {

@@ -86,7 +86,7 @@ async function callTool(
   const lease = c.beginGeneration();
   if (!lease) {
     return {
-      text: 'Novel Forge 的对话页里正在跑另一个生成任务。等它结束再试，或者请作者先停掉它。',
+      text: 'Novelwarden 的对话页里正在跑另一个生成任务。等它结束再试，或者请作者先停掉它。',
       isError: true,
     };
   }

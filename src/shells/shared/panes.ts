@@ -136,7 +136,7 @@ export function chatPane(opts: PaneOptions = {}): string {
     <!-- 打开的文件夹还不是小说工程：消息区只放这一块（W12）。由 #messages 上的 uninit 类切换。 -->
     <div class="empty" id="initHint">
       <p><strong>下一步：把这个文件夹初始化成小说工程</strong></p>
-      <p>会创建 chapters/ 与 .novelforge/ 目录及模板文件。</p>
+      <p>会创建 chapters/ 与 .novelwarden/ 目录及模板文件。</p>
       <p><button class="primary" id="initProjectBtn">初始化小说工程</button></p>
     </div>
   </div>
@@ -213,7 +213,7 @@ export function projectPane(): string {
 }
 
 /**
- * 文件页：磁盘上真实的目录结构，含 `.novelforge/` 等点开头的文件夹。
+ * 文件页：磁盘上真实的目录结构，含 `.novelwarden/` 等点开头的文件夹。
  *
  * 目前只有独立版装配它——插件形态由 VS Code 自己的资源管理器承担这件事。
  * 放在这里而不是放进独立版壳，是为了第四个壳想要它时直接装配，不必去抄。
@@ -228,7 +228,7 @@ export function filesPane(): string {
     <button class="icon-btn" id="filesRefresh" title="刷新">⟳</button>
   </div>
   <div class="fx-body" id="filesBody"></div>
-  <div class="hint fx-foot">这里是工程目录的原样结构，含 <code>.novelforge/</code> 等点开头的文件夹。文本文件在内置编辑器里打开，其余交系统程序。</div>
+  <div class="hint fx-foot">这里是工程目录的原样结构，含 <code>.novelwarden/</code> 等点开头的文件夹。文本文件在内置编辑器里打开，其余交系统程序。</div>
 </section>`;
 }
 
@@ -256,7 +256,7 @@ export function historyPane(): string {
     <span>对话历史</span>
     <span class="meta" id="historyMeta"></span>
   </div>
-  <div class="hint">会话保存在 <code>.novelforge/sessions/</code>，可随工程一起提交。</div>
+  <div class="hint">会话保存在 <code>.novelwarden/sessions/</code>，可随工程一起提交。</div>
   <ul class="sessions" id="sessionList"></ul>
 </section>`;
 }
@@ -287,7 +287,7 @@ export function logsPane(): string {
  * 设置页：服务商与模型、默认模型、高级设置（分档 / 任务档位 / 请求调度）、上下文管理。
  *
  * 存储说明对两个壳是同一句话——插件壳在迁移之后也用 `FileConfigStore`
- * （`~/.novelforge/config.json`）。这里**不再按壳分叉**：从前那句「设置写入工作区
+ * （`~/.novelwarden/config.json`）。这里**不再按壳分叉**：从前那句「设置写入工作区
  * settings.json」只在独立版才被前端改掉，于是插件形态长期显示着一句不成立的话。
  */
 export function settingsPane(opts: PaneOptions = {}): string {
@@ -437,7 +437,7 @@ export function settingsPane(opts: PaneOptions = {}): string {
   <div class="actions" id="settingsSaveRow">
     <button class="primary" id="saveSettingsBtn">保存设置</button>${nativeBtn}
   </div>
-  <div class="hint" id="settingsStorageHint">设置写入 <code>~/.novelforge/config.json</code>；API Key 存在 <code>~/.novelforge/secrets.json</code>，不进配置文件。</div>
+  <div class="hint" id="settingsStorageHint">设置写入 <code>~/.novelwarden/config.json</code>；API Key 存在 <code>~/.novelwarden/secrets.json</code>，不进配置文件。</div>
 </section>`;
 }
 

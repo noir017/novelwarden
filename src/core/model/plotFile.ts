@@ -1,5 +1,5 @@
 /**
- * 一章的细纲（`.novelforge/summaries/<与正文相同的相对路径>.md`）的格式定义。
+ * 一章的细纲（`.novelwarden/summaries/<与正文相同的相对路径>.md`）的格式定义。
  *
  * **纯函数、零 I/O**，与 chapterFile.ts / settingFile.ts 同类；
  * 路径规则与读写在 model/project.ts，解析与渲染只在这里定义一次。
@@ -481,7 +481,7 @@ export function renderPlotFile(plot: WritablePlot): string {
     status: plot.done ? 'done' : undefined,
     preflightOk: plot.preflightOk?.length ? renderPreflightOk(plot.preflightOk) : undefined,
     factCheckOk: plot.factCheckOk ? 'true' : undefined,
-    generatedBy: 'novel-forge',
+    generatedBy: 'novelwarden',
   });
   const body = stringifySections(plot.sections as unknown as Record<string, string>, PLOT_SECTION_KEYS, {
     keepEmpty: true,

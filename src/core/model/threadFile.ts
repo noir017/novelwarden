@@ -1,6 +1,6 @@
 /**
  * 叙事线（2026-10-20 重做，设计见 docs/design/plans/2026-10-20-narrative-threads.md）：**一条线一个文件**
- * `.novelforge/threads/<线名>.md`，挂不上线的伏笔单放 `threads/未归属的伏笔.md`。
+ * `.novelwarden/threads/<线名>.md`，挂不上线的伏笔单放 `threads/未归属的伏笔.md`。
  *
  * ```markdown
  * ---
@@ -9,7 +9,7 @@
  * plan: 3-40              # 计划第几章开、第几章收；可以只写开头（3-）或不写
  * progressThrough: 12     # 「当前进度」写到第几章
  * progressHash: …         # 机器最后一次写「当前进度」时的指纹
- * generatedBy: novel-forge
+ * generatedBy: novelwarden
  * ---
  *
  * # 林昭与沈青
@@ -768,7 +768,7 @@ export function renderThreadFile(t: NewThread): string {
     kind: t.kind,
     origin: t.origin,
     plan: planText(t.from, t.to),
-    generatedBy: 'novel-forge',
+    generatedBy: 'novelwarden',
   });
   return [
     fm,

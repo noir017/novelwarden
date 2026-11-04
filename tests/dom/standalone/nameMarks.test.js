@@ -25,7 +25,7 @@ const SHIMS = ['pointerCapture', 'confirm', 'scrollIntoView', 'clipboard'];
 const URL = `http://localhost/?project=${encodeURIComponent('/书/青云剑录')}`;
 const PREFS_KEY = 'novelforge.editor.prefs';
 const CH = 'chapters/001-楔子.md';
-const CARD = '.novelforge/characters/林昭.md';
+const CARD = '.novelwarden/characters/林昭.md';
 /** 等微任务跑完（图层在微任务里重算）。 */
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 /** 等一帧多（鼠标在下一帧量；jsdom 没有 rAF，退回 16ms 定时器）。 */
@@ -37,10 +37,10 @@ const NAMES = {
   initialized: true,
   names: [
     { name: '林昭', aliases: ['阿昭'], source: 'character', category: '', brief: '青云宗外门弟子。', path: CARD },
-    { name: '林昭阳', aliases: [], source: 'character', category: '', brief: '', path: '.novelforge/characters/林昭阳.md' },
-    { name: '沈怀山', aliases: [], source: 'character', category: '', brief: '', path: '.novelforge/characters/沈怀山.md' },
-    { name: '青云宗', aliases: ['青云门'], source: 'lore', category: '门派', brief: '正道第一大宗', path: '.novelforge/lore/门派/青云宗.md' },
-    { name: '青崖镇', aliases: [], source: 'lore', category: '地点', brief: '', path: '.novelforge/lore/地点/青崖镇.md' },
+    { name: '林昭阳', aliases: [], source: 'character', category: '', brief: '', path: '.novelwarden/characters/林昭阳.md' },
+    { name: '沈怀山', aliases: [], source: 'character', category: '', brief: '', path: '.novelwarden/characters/沈怀山.md' },
+    { name: '青云宗', aliases: ['青云门'], source: 'lore', category: '门派', brief: '正道第一大宗', path: '.novelwarden/lore/门派/青云宗.md' },
+    { name: '青崖镇', aliases: [], source: 'lore', category: '地点', brief: '', path: '.novelwarden/lore/地点/青崖镇.md' },
     { name: '黑水河', aliases: [], source: 'unfiled', category: '地点', brief: '河上起了雾' },
   ],
 };
@@ -187,7 +187,7 @@ describe('名词高亮：names 图层', { skip: JSDOM_SKIP }, () => {
   });
 
   test('配置这类文件不画', async () => {
-    h.open('.novelforge/config.md', '主角林昭。', 'setting');
+    h.open('.novelwarden/config.md', '主角林昭。', 'setting');
     await flush();
     assert.deepEqual(h.marks(), []);
   });
@@ -195,7 +195,7 @@ describe('名词高亮：names 图层', { skip: JSDOM_SKIP }, () => {
   test('与写作体检叠在同一段字上：两层的 class 都在那一段上', async () => {
     h.ui.post({
       type: 'checkTerms',
-      terms: { banned: ['青云门'], sensitive: [], sensitivePath: '.novelforge/sensitive.txt', sensitiveExists: false, sensitiveBad: [] },
+      terms: { banned: ['青云门'], sensitive: [], sensitivePath: '.novelwarden/sensitive.txt', sensitiveExists: false, sensitiveBad: [] },
     });
     h.open('chapters/002-下山.md', '他回到青云门。');
     await flush();
@@ -309,7 +309,7 @@ describe('名词高亮：悬停浮窗与 Ctrl+点击', { skip: JSDOM_SKIP }, () 
 
   test('Ctrl+点击设定名：打开设定条目', () => {
     h.mouse('mousedown', at(0, 4), { ctrlKey: true });
-    assert.equal(h.ui.last('openEditor').path, '.novelforge/lore/门派/青云宗.md');
+    assert.equal(h.ui.last('openEditor').path, '.novelwarden/lore/门派/青云宗.md');
   });
 
   test('Ctrl+点击未建条目：说一句，不打开', () => {

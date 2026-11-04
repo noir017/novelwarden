@@ -104,7 +104,7 @@ describe('静态资源', () => {
   });
 
   test('首页标题是产品名', () => {
-    assert.ok(html.includes('<title>Novel Forge</title>'), html.slice(0, 800));
+    assert.ok(html.includes('<title>Novelwarden</title>'), html.slice(0, 800));
   });
 
   // 「关于」里的版本号是编译时写进资源表的那一份，不是运行时去找 package.json
@@ -153,9 +153,9 @@ describe('WebSocket 与 Origin 校验', () => {
     // 示例工程第 5–10 章是只有梗概的空壳（大纲排到了第 10 章，大纲是各章细纲梗概的汇总）。
     assert.deepEqual(index.chapters.map((c) => c.no), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     const [ch1, , , ch4] = index.chapters;
-    assert.deepEqual([ch1.chapterPath, ch1.plotPath, ch1.plotExists], ['chapters/001-楔子.md', '.novelforge/summaries/001-楔子.md', true]);
+    assert.deepEqual([ch1.chapterPath, ch1.plotPath, ch1.plotExists], ['chapters/001-楔子.md', '.novelwarden/summaries/001-楔子.md', true]);
     // 第 4 章只排了细纲：没有正文，主路径是细纲。
-    assert.deepEqual([ch4.chapterPath, ch4.relPath], ['', '.novelforge/summaries/004-空匣.md']);
+    assert.deepEqual([ch4.chapterPath, ch4.relPath], ['', '.novelwarden/summaries/004-空匣.md']);
   });
 
   test('跨源 Origin 被拒 403', () => {
@@ -190,7 +190,7 @@ describe('MCP：外部 agent 的入口', () => {
     tools = await (await mcpPost(rpc(2, 'tools/list'), { 'mcp-session-id': sid })).json();
     // tools/call 回 SSE：取其中的回复，跳过进度通知。
     const sse = await (
-      await mcpPost(rpc(3, 'tools/call', { name: 'list', arguments: { path: '.novelforge' } }), { 'mcp-session-id': sid })
+      await mcpPost(rpc(3, 'tools/call', { name: 'list', arguments: { path: '.novelwarden' } }), { 'mcp-session-id': sid })
     ).text();
     read = sse
       .split('\n')
@@ -233,13 +233,13 @@ describe('内置编辑器：只读用例', () => {
     opened = await conn.waitFor((m) => m.type === 'editorOpen', 'editorOpen');
 
     // 单击打开（临时标签）与「原位换掉」的标记：后端不看，原样带回。
-    conn.send({ type: 'openEditor', path: '.novelforge/summaries/001-楔子.md', pane: 'draft', preview: true, replace: 'x.md' });
+    conn.send({ type: 'openEditor', path: '.novelwarden/summaries/001-楔子.md', pane: 'draft', preview: true, replace: 'x.md' });
     preview = await conn.waitFor((m) => m.type === 'editorOpen', 'preview editorOpen');
 
     conn.send({ type: 'openEditor', path: '../../../package.json' });
     escaped = await conn.waitFor((m) => m.type === 'editorError', '越界 editorError');
 
-    conn.send({ type: 'openEditor', path: '.novelforge/project.json' });
+    conn.send({ type: 'openEditor', path: '.novelwarden/project.json' });
     json = await conn.waitFor((m) => m.type === 'editorOpen', 'json editorOpen');
   });
 
@@ -296,7 +296,7 @@ describe('资源管理器：目录列举', () => {
     rootEntries = rootList.listings.find((l) => l.relPath === '').entries;
 
     // 一次多个目录：前端展开好几层时不该来回好几趟。
-    conn.send({ type: 'listDir', dirs: ['', 'chapters', '.novelforge'] });
+    conn.send({ type: 'listDir', dirs: ['', 'chapters', '.novelwarden'] });
     multi = await conn.waitFor((m) => m.type === 'dirListings' && m.listings.length === 3, '多目录 dirListings');
     chapters = multi.listings.find((l) => l.relPath === 'chapters');
 
@@ -315,9 +315,9 @@ describe('资源管理器：目录列举', () => {
     );
   });
 
-  // 这一条是「文件」页存在的理由：工程页永远看不见 .novelforge。
+  // 这一条是「文件」页存在的理由：工程页永远看不见 .novelwarden。
   test('列出点开头的目录', () => {
-    assert.ok(nameOf(rootEntries).includes('.novelforge'), nameOf(rootEntries).join(','));
+    assert.ok(nameOf(rootEntries).includes('.novelwarden'), nameOf(rootEntries).join(','));
   });
 
   test('列出章节目录', () => {
@@ -418,7 +418,7 @@ describe('选中一章 → 状态机决定落在哪一层', () => {
     // 连上时后端推过一轮全量状态，里面就有一条 session。不清掉的话
     // 下面的 waitFor 会立刻拿到那条旧的，而不是这次切目标的结果。
     conn.drain();
-    conn.send({ type: 'selectPlot', plotRelPath: '.novelforge/summaries/003-夜访.md' });
+    conn.send({ type: 'selectPlot', plotRelPath: '.novelwarden/summaries/003-夜访.md' });
     session = await conn.waitFor((m) => m.type === 'session', 'session');
     pipe = await conn.waitFor((m) => m.type === 'pipeline', 'pipeline');
 
@@ -428,7 +428,7 @@ describe('选中一章 → 状态机决定落在哪一层', () => {
     outlinePipe = await conn.waitFor((m) => m.type === 'pipeline', 'pipeline（大纲）');
 
     // 段刚被改名/删掉时不能让整条推送失败。
-    conn.send({ type: 'selectPlot', plotRelPath: '.novelforge/summaries/不存在.md' });
+    conn.send({ type: 'selectPlot', plotRelPath: '.novelwarden/summaries/不存在.md' });
     toasted = await conn.waitFor((m) => m.type === 'toast', 'toast');
   });
 
@@ -453,7 +453,7 @@ describe('选中一章 → 状态机决定落在哪一层', () => {
   });
 
   test('目标指向那一段', () => {
-    assert.equal(session.session.target.plotRelPath, '.novelforge/summaries/003-夜访.md');
+    assert.equal(session.session.target.plotRelPath, '.novelwarden/summaries/003-夜访.md');
   });
 
   test('推来流水线', () => {
@@ -477,7 +477,7 @@ describe('选中一章 → 状态机决定落在哪一层', () => {
   });
 
   test('全书的下一步落在第 4 章的细纲上', () => {
-    assert.equal(pipe.next?.target?.plotRelPath, '.novelforge/summaries/004-空匣.md', JSON.stringify(pipe.next));
+    assert.equal(pipe.next?.target?.plotRelPath, '.novelwarden/summaries/004-空匣.md', JSON.stringify(pipe.next));
   });
 
   // 写正文那一步按的是单章，不是一段区间。
@@ -515,7 +515,7 @@ describe('临时工程（写入类用例）', () => {
   before(async () => {
     conn.ws.close();
 
-    work = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-server-'));
+    work = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-server-'));
     fs.mkdirSync(path.join(work, 'chapters'), { recursive: true });
     fs.writeFileSync(path.join(work, rel), '# 测试\n\n初始内容。\n', 'utf8');
     await startServer({ root: work, port: EDIT_PORT, windowDir: e2eWindowDir });
@@ -773,7 +773,7 @@ describe('临时工程（写入类用例）', () => {
   });
 
   // 全书查找替换的主路径：查找 → 预览 → 替换（经网关、带预览时的 hash、先存一版历史）→ 历史里找得回替换前那一版。
-  // 放在这一节最后：要建 .novelforge/（小说工程才存历史版本），别影响前面那几节。
+  // 放在这一节最后：要建 .novelwarden/（小说工程才存历史版本），别影响前面那几节。
   describe('全书查找替换：查找 → 预览 → 替换 → 历史里找得回', () => {
     const target = 'chapters/003-全书.md';
     const original = '# 全书\n\n林晚推开门。林晚没有说话。\n';
@@ -786,7 +786,7 @@ describe('临时工程（写入类用例）', () => {
     let old;
 
     before(async () => {
-      fs.mkdirSync(path.join(work, '.novelforge'), { recursive: true });
+      fs.mkdirSync(path.join(work, '.novelwarden'), { recursive: true });
       // 经编辑器存下这一章（网关新建、pushState 让章节列表的缓存失效），与作者在编辑器里新建一章同一条路。
       edit.drain();
       edit.send({ type: 'saveFile', path: target, text: original });

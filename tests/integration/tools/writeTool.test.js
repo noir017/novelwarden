@@ -15,7 +15,7 @@
  * 顺带钉住一期下沉到写入路径上的记账：细纲的 `upstreamHash` 记的是**大纲里覆盖
  * 本章那一节**的指纹，不是全书大纲的——续写后面一段大纲不该让前面的细纲挂 ⟳。
  *
- * 细纲在 `.novelforge/summaries/NNN-标题.md`（与单章摘要并成了一份，七节）；老工程的
+ * 细纲在 `.novelwarden/summaries/NNN-标题.md`（与单章摘要并成了一份，七节）；老工程的
  * `plots/` 不再是细纲，细纲草稿写不进去。
  */
 const { describe, test, before, after } = require('node:test');
@@ -35,8 +35,8 @@ let ctx;
 let drafts;
 let reports;
 
-const PLOT_REL = '.novelforge/summaries/001-夜入青云.md';
-const PLOT2_REL = '.novelforge/summaries/002-藏书阁.md';
+const PLOT_REL = '.novelwarden/summaries/001-夜入青云.md';
+const PLOT2_REL = '.novelwarden/summaries/002-藏书阁.md';
 const CHAPTER_REL = 'chapters/003-雪夜.md';
 /** 两节的大纲：第 1 章落在前一节里。 */
 const OUTLINE = outlineOf(40, { title: '大纲', text: { 1: '林昭入宗。', 21: '林昭下山。' } });
@@ -335,7 +335,7 @@ describe('讨论类 draft 不能写成产物', () => {
  * 老提示词把细纲草稿往那里写，写进去也是一份没人认的文件——要当场拦下，而不是默默落一份。
  */
 describe('老的 plots/ 路径不接细纲草稿', () => {
-  const LEGACY_REL = '.novelforge/plots/001-夜入青云.md';
+  const LEGACY_REL = '.novelwarden/plots/001-夜入青云.md';
   let r;
 
   before(async () => {
@@ -370,13 +370,13 @@ describe('八条守卫照旧拦着', () => {
 
   test('写进回收站给 error', async () => {
     resetCtx();
-    const r = await run({ path: '.novelforge/.trash/x.md', content: 'x', mode: 'overwrite' });
+    const r = await run({ path: '.novelwarden/.trash/x.md', content: 'x', mode: 'overwrite' });
     assert.ok(r.error, JSON.stringify(r));
   });
 
   test('固定目录本身给 error', async () => {
     resetCtx();
-    const r = await run({ path: '.novelforge/summaries', content: 'x', mode: 'overwrite' });
+    const r = await run({ path: '.novelwarden/summaries', content: 'x', mode: 'overwrite' });
     assert.ok(r.error, JSON.stringify(r));
   });
 

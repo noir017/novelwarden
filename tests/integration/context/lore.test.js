@@ -39,7 +39,7 @@ const config = (contextDetail = 3) => ({
 });
 
 const pad3 = (n) => String(n).padStart(3, '0');
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 function plotText(no, { finalized = true, events = '- 林昭往前走。', lore, facts } = {}) {
   return [
@@ -99,13 +99,13 @@ before(async () => {
     t.write(`chapters/${pad3(no)}-第${no}章.md`, `# 第${no}章\n\n第${no}章的正文。\n`);
   }
   t.write(
-    '.novelforge/lore/地域/青崖镇.md',
+    '.novelwarden/lore/地域/青崖镇.md',
     entry('青崖镇', { keywords: ['青崖'], brief: '偏僻小镇', body: '镇口设卡。', updatedThrough: 1 })
   );
-  t.write('.novelforge/lore/信物/崖字令牌.md', entry('崖字令牌', { keywords: ['令牌'], body: '木牌，残缺的崖字。' }));
-  t.write('.novelforge/lore/宗门/正道/青云宗.md', entry('青云宗', { brief: '正道第一宗', body: '剑修。' }));
-  t.write('.novelforge/lore/地域/后山.md', entry('后山', { brief: '后山禁地', body: '有阵法。' }));
-  t.write('.novelforge/lore/过所.md', entry('过所', { brief: '出入凭证', body: '镇口查验。' }));
+  t.write('.novelwarden/lore/信物/崖字令牌.md', entry('崖字令牌', { keywords: ['令牌'], body: '木牌，残缺的崖字。' }));
+  t.write('.novelwarden/lore/宗门/正道/青云宗.md', entry('青云宗', { brief: '正道第一宗', body: '剑修。' }));
+  t.write('.novelwarden/lore/地域/后山.md', entry('后山', { brief: '后山禁地', body: '有阵法。' }));
+  t.write('.novelwarden/lore/过所.md', entry('过所', { brief: '出入凭证', body: '镇口查验。' }));
 
   t.write(PLOT(1), plotText(1, { lore: '- 青崖镇〔地域〕：镇口查过所\n- 后山〔地域〕' }));
   t.write(
@@ -238,12 +238,12 @@ describe('上限', () => {
 describe('排细纲', () => {
   before(() => {
     for (let i = 1; i <= 12; i++) {
-      t.write(`.novelforge/lore/杂项/物件${i}.md`, entry(`物件${i}`, { brief: `第${i}件` }));
+      t.write(`.novelwarden/lore/杂项/物件${i}.md`, entry(`物件${i}`, { brief: `第${i}件` }));
     }
     t.project.invalidate();
   });
   after(() => {
-    t.remove('.novelforge/lore/杂项');
+    t.remove('.novelwarden/lore/杂项');
     t.project.invalidate();
   });
 
@@ -279,7 +279,7 @@ describe('排细纲 · 写到后面', () => {
     late = await makeTempProject(bundle.project, { prefix: 'loreLayerLate', title: '后面' });
     const seen = { 湖泊: [1, 2, 3, 4, 5, 6, 7, 8], 街市: [1, 2, 3, 4, 5], 圣地: [22, 25], 戒律: [26], 暗号: [28] };
     for (const name of Object.keys(seen)) {
-      late.write(`.novelforge/lore/${name}.md`, entry(name, { brief: name }));
+      late.write(`.novelwarden/lore/${name}.md`, entry(name, { brief: name }));
     }
     for (const no of [...new Set(Object.values(seen).flat())]) {
       const names = Object.keys(seen).filter((name) => seen[name].includes(no));
@@ -326,8 +326,8 @@ describe('关键词命中 · 最长匹配', () => {
   let p;
   before(async () => {
     p = await makeTempProject(bundle.project, { prefix: 'loreLayerLongest', title: '最长匹配' });
-    p.write('.novelforge/lore/概念/秘境.md', entry('秘境', { brief: '各处秘境的统称', body: '幻池：水下不能开口。心枝：时间流速 22:90。' }));
-    p.write('.novelforge/lore/秘境/圣地秘境.md', entry('圣地秘境', { brief: '教派的据点', body: '外人进不去。' }));
+    p.write('.novelwarden/lore/概念/秘境.md', entry('秘境', { brief: '各处秘境的统称', body: '幻池：水下不能开口。心枝：时间流速 22:90。' }));
+    p.write('.novelwarden/lore/秘境/圣地秘境.md', entry('圣地秘境', { brief: '教派的据点', body: '外人进不去。' }));
     p.project.invalidate();
   });
   after(() => {
@@ -397,7 +397,7 @@ describe('架构那一层', () => {
   test('设定清单：一条条目都没有也给分类表（空目录也算）', async () => {
     const empty = await makeTempProject(bundle.project, { prefix: 'loreLayerEmpty', title: '空' });
     try {
-      empty.write('.novelforge/lore/宗门/.keep', '');
+      empty.write('.novelwarden/lore/宗门/.keep', '');
       empty.project.invalidate();
       const b = await bundle.builder.buildContext(
         empty.project,

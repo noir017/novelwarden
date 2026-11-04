@@ -99,7 +99,7 @@ describe('段落快捷键', { skip: JSDOM_SKIP }, () => {
 
   test('非正文复制：只隔一个换行', () => {
     style('blank');
-    open('.novelforge/characters/林昭.md', '- 甲\n- 乙', 'character');
+    open('.novelwarden/characters/林昭.md', '- 甲\n- 乙', 'character');
     select(1);
     press({ key: 'ArrowDown', altKey: true, shiftKey: true });
     assert.equal(area().value, '- 甲\n- 甲\n- 乙');
@@ -152,7 +152,7 @@ describe('段落快捷键', { skip: JSDOM_SKIP }, () => {
   });
 
   test('Cmd+Enter 也认；非正文沿用缩进', () => {
-    open('.novelforge/outline.md', '  - 第一卷\n下一行', 'outline');
+    open('.novelwarden/outline.md', '  - 第一卷\n下一行', 'outline');
     select(2);
     press({ key: 'Enter', metaKey: true });
     assert.equal(area().value, '  - 第一卷\n  \n下一行');

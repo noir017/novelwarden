@@ -382,7 +382,7 @@ export async function syncSummaries(project: NovelProject): Promise<number> {
     detail:
       `每章 ${each.low}–${each.high} 次（${each.why}）。\n` +
       (lanes > 1 ? `照正文更新细纲并发 ${lanes} 路；` : '照正文更新细纲逐章串行（并发数为 1）；') +
-      '角色状态、叙事线与故事时间按章号逐章串行（要一章一章往后推）。\n每章的旧版细纲先复制一份进 .novelforge/.trash/。',
+      '角色状态、叙事线与故事时间按章号逐章串行（要一章一章往后推）。\n每章的旧版细纲先复制一份进 .novelwarden/.trash/。',
     tasks: ['plotSummary', 'characterCard', 'transcribe'],
     // 定稿认叙事线带几条线、几条伏笔随详细度（`recordThreads`）。
     contextDetail: true,

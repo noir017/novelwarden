@@ -443,8 +443,8 @@ details.tool-row > summary.tool-line:hover {
   content: '▾';
 }
 
-/* 「已生成 4/4 节 · 已写入 .novelforge/outline.md」——单独一行，不挤进上面那行
-   （侧栏那点宽度会把它截成 `已写入 .novelforg…`，而这正是最要看清的一句）。 */
+/* 「已生成 4/4 节 · 已写入 .novelwarden/outline.md」——单独一行，不挤进上面那行
+   （侧栏那点宽度会把它截成 `已写入 .novelward…`，而这正是最要看清的一句）。 */
 .gen-state {
   display: flex;
   align-items: baseline;

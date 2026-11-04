@@ -234,7 +234,7 @@
 
 /* 面包屑（editor/breadcrumb.ts）：「细纲 › 第一卷 › 第 3 章 夜访」，原始路径在悬停提示上。
    太长时前面的段先省略（收缩权重大十倍），最后一段（这份文件）最后才让。
-   从前这里是原始路径 + direction: rtl 做左侧省略，`.novelforge/…` 开头的路径会把点号排到末尾。 */
+   从前这里是原始路径 + direction: rtl 做左侧省略，`.novelwarden/…` 开头的路径会把点号排到末尾。 */
 .ed-path {
   display: flex;
   align-items: center;

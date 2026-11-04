@@ -15,8 +15,8 @@
 | **起独立 Web 版（示例小说工作区）** | `npm run standalone -- sample-novel --verbose` | ❌ 见下 |
 | **起独立 Web 版（空窗口）** | `npm run standalone -- --verbose`（不带工程目录） | ❌ |
 | **起独立 Web 版（自选工程目录）** | 同上，目录来自输入框 | ❌ |
-| **独立版 CLI：初始化工程（自选目录）** | `novelforge init`，终端问答 | ❌ |
-| **跑单文件可执行（dist/novelforge）** | 先 `npm run dist`，再跑产物 | ❌ |
+| **独立版 CLI：初始化工程（自选目录）** | `novelwarden init`，终端问答 | ❌ |
+| **跑单文件可执行（dist/novelwarden）** | 先 `npm run dist`，再跑产物 | ❌ |
 | **运行桌面 App（开发模式）** | `npm run app:dev`（Tauri，需 Rust 工具链） | ❌ Rust 那半边见下 |
 
 任务（`Ctrl+Shift+B` 或命令面板「运行任务」）也按壳分：`watch` 是默认构建任务（插件壳用），

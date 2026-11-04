@@ -1,5 +1,5 @@
 /**
- * 工程内的 SQLite 库（`.novelforge/novelforge.db`）。
+ * 工程内的 SQLite 库（`.novelwarden/novelwarden.db`）。
  *
  * **Markdown 仍然是内容的唯一真相**。库里只放两类东西：
  * - `errors` —— 失败记录，驱动工程页上的红色感叹号（见 [errorLog.ts](errorLog.ts)）；
@@ -7,6 +7,7 @@
  *
  * 两者都是「可丢弃的痕迹」：把 db 文件删掉，全部功能照常，只是丢历史。
  * 别往这里放角色卡/摘要/设定的正文——那些作者要手改、要 diff、要进 Git。
+ * 改名前的 `novelforge.db` 留在原地不动（它只是痕迹，不迁移、不删除）。
  *
  * ## 两个壳要两个驱动
  *
@@ -48,8 +49,8 @@ import { NovelProject } from '../model/project';
 
 const log = scoped('数据库');
 
-/** 库文件名。放在 `.novelforge/` 下，与 summaries/ characters/ 平级。 */
-const DB_FILE = 'novelforge.db';
+/** 库文件名。放在元数据目录（`.novelwarden/`，旧工程是 `.novelforge/`）下，与 summaries/ characters/ 平级。 */
+const DB_FILE = 'novelwarden.db';
 
 /** 日志保留天数。超期的行在开库时删掉，库不会无限长。 */
 const LOG_RETENTION_DAYS = 30;
@@ -186,7 +187,7 @@ const failedRoots = new Set<string>();
  *
  * `opts.create` 为 false 时**库文件不存在就直接返回 undefined，不建库**。
  * 纯读取的调用方（`listActiveFailures`，工程页每次刷新都走）必须用这一档：
- * 否则光是打开工程页就会在作者的 `.novelforge/` 里凭空生出一个 db 文件，
+ * 否则光是打开工程页就会在作者的 `.novelwarden/` 里凭空生出一个 db 文件，
  * 而那个工程可能从来没出过错。写入方（记失败、写日志）才有理由建库。
  */
 export async function openDatabase(
@@ -412,7 +413,7 @@ export function flushPendingLogs(): void {
   } catch (err) {
     logWriteBroken = true;
     // 刻意用 console 而不是 log.warn：见 logWriteBroken 的注释。
-    console.error('[novel-forge] 日志写入数据库失败，已停止持久化：', (err as Error)?.message ?? err);
+    console.error('[novelwarden] 日志写入数据库失败，已停止持久化：', (err as Error)?.message ?? err);
   }
 }
 

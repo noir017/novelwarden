@@ -84,6 +84,7 @@ final class LocalServer {
             File node = new File(nativeDir, "libnode.so");
             if (!node.exists()) return status = new Status(url, token, false, "APK 里没有 node（libnode.so）");
 
+            // 目录名沿用旧名：app 私有目录里的配置与 API Key 不能因为改名丢一次。
             File config = new File(ctx.getFilesDir(), "novelforge");
             File tmp = new File(ctx.getCacheDir(), "server-tmp");
             //noinspection ResultOfMethodCallIgnored
@@ -101,8 +102,8 @@ final class LocalServer {
             env.put("LD_LIBRARY_PATH", nativeDir.getPath());
             env.put("HOME", books.getPath());
             // 配置与 API Key 留在 app 私有目录，别跟着家目录落到别的 app 也读得到的地方（src/core/stores.ts）
-            env.put("NOVELFORGE_HOME", config.getPath());
-            env.put("NOVELFORGE_TOKEN", token);
+            env.put("NOVELWARDEN_HOME", config.getPath());
+            env.put("NOVELWARDEN_TOKEN", token);
             env.put("TMPDIR", tmp.getPath());
             env.put("TZ", TimeZone.getDefault().getID());
             proc = pb.start();

@@ -21,7 +21,7 @@ const { describe, test, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, viewState, sampleTree } = require('../../helpers/dom');
 
-const TL = '.novelforge/threads/时间线.md';
+const TL = '.novelwarden/threads/时间线.md';
 
 const ev = (thread, color, type, what, evidence, foreshadowing) => ({
   thread,
@@ -44,7 +44,7 @@ function card(no, extra = {}) {
     detail: [`第 ${no} 章 · 详情`],
     problem: false,
     chapterPath: `chapters/00${no}.txt`,
-    plotPath: `.novelforge/summaries/00${no}.md`,
+    plotPath: `.novelwarden/summaries/00${no}.md`,
     machine: true,
     ...extra,
   };
@@ -300,7 +300,7 @@ describe('时间线总览 · 竖轴与卡片', { skip: JSDOM_SKIP }, () => {
       { type: 'projectAction', action: 'editTimeline', name: '3' },
       { type: 'projectAction', action: 'refreshTimeline', range: { from: 3, to: 8 } },
       { type: 'openChapter', plotRelPath: 'chapters/003.txt' },
-      { type: 'openEditor', path: '.novelforge/summaries/003.md', pane: 'main' },
+      { type: 'openEditor', path: '.novelwarden/summaries/003.md', pane: 'main' },
     ]);
     // 你定的那一行（不是机器写的）不给「重推这一章」。
     const mine = h.ui.itemsOf(h.ui.rightClick(h.card(6)));

@@ -43,14 +43,14 @@ export type ArtifactKind =
   | 'style'
   | 'globalSummary'
   /**
-   * 叙事线（2026-10-20 重做）：`.novelforge/threads/` 这一层的 `.md`，一条线一个文件，外加「未归属的伏笔」。
+   * 叙事线（2026-10-20 重做）：`.novelwarden/threads/` 这一层的 `.md`，一条线一个文件，外加「未归属的伏笔」。
    * 链外：没有创作阶段，由排线、定稿写（model/threadFile.ts）。七期那一份 `threads.md` 判 `other`。
    */
   | 'threads'
-  /** 写作技能：本工程的 `.novelforge/skills/**` 与阶段绑定 `.novelforge/skills.json`。 */
+  /** 写作技能：本工程的 `.novelwarden/skills/**` 与阶段绑定 `.novelwarden/skills.json`。 */
   | 'skill'
   /**
-   * 自定义敏感词表 `.novelforge/sensitive.txt`（内置编辑器的写作体检用）。链外：没有创作阶段、不进装配器、
+   * 自定义敏感词表 `.novelwarden/sensitive.txt`（内置编辑器的写作体检用）。链外：没有创作阶段、不进装配器、
    * 不记指纹；单列一种而不落 `other`，是为了它照样存历史版本（作者手维护的词表，改坏了要找得回来）。
    */
   | 'sensitive'
@@ -238,8 +238,8 @@ export function kindOfPath(project: NovelProject, relPath: string): PathKind {
   // ---- 章节。数字前缀 + 扩展名不在二进制黑名单，**不看是不是 `.md`**。
   const inChapters = under(rel, d.chapters);
   if (inChapters !== undefined && inChapters) {
-    // `.novelforge/` 在 chaptersDir 配成 `.` 时会落进来，但它上面几条已经
-    // 各自拦过；剩下的 `.novelforge/xxx` 不该被当成章节。
+    // `.novelwarden/` 在 chaptersDir 配成 `.` 时会落进来，但它上面几条已经
+    // 各自拦过；剩下的 `.novelwarden/xxx` 不该被当成章节。
     const parsed = inChapters.startsWith('.') ? undefined : parseChapterFileName(path.posix.basename(inChapters));
     return parsed ? { kind: 'chapter', rel, no: parsed.order } : { kind: 'other', rel };
   }

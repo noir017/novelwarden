@@ -34,7 +34,7 @@ const CONFIG = [
 
 describe('parseBookConfig', () => {
   test('frontmatter 各字段', () => {
-    const c = S.parseBookConfig(CONFIG, '.novelforge/config.md');
+    const c = S.parseBookConfig(CONFIG, '.novelwarden/config.md');
     assert.equal(c.genre, '玄幻');
     assert.equal(c.subGenre, '东方玄幻');
     assert.equal(c.audience, '男频');
@@ -45,7 +45,7 @@ describe('parseBookConfig', () => {
   });
 
   test('小节按固定表抽取，缺的是空串', () => {
-    const c = S.parseBookConfig(CONFIG, '.novelforge/config.md');
+    const c = S.parseBookConfig(CONFIG, '.novelwarden/config.md');
     assert.equal(c.sections.一句话, '少年夜渡青河。');
     assert.equal(c.sections.核心梗概, '林昭在青河翻船后得到一枚玉佩。');
     assert.equal(c.sections.金手指, '');

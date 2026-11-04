@@ -36,7 +36,7 @@ public class ServerService extends Service {
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification n = new Notification.Builder(this, CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_menu_edit)
-                .setContentTitle("Novel Forge 本机服务在运行")
+                .setContentTitle("Novelwarden 本机服务在运行")
                 .setContentText("切到别的 app 时，正在写的章节不会断")
                 .setContentIntent(open)
                 .setOngoing(true)

@@ -59,15 +59,15 @@ describe('细纲跟着正文走', () => {
 
     before(async () => {
       t.write('chapters/第一卷/001-楔子.md', '# 楔子\n\n雨下了三天。\n');
-      t.write('.novelforge/summaries/第一卷/001-楔子.md', PLOT(1, '楔子'));
+      t.write('.novelwarden/summaries/第一卷/001-楔子.md', PLOT(1, '楔子'));
       t.write('chapters/第一卷/002-手记.txt', '他翻开笔记。\n');
-      t.write('.novelforge/summaries/第一卷/002-手记.md', PLOT(2, '手记'));
+      t.write('.novelwarden/summaries/第一卷/002-手记.md', PLOT(2, '手记'));
       project.invalidate();
 
       h.expect('入镇');
       renamed = await fileOps.renameEntry(project, 'chapters/第一卷/001-楔子.md');
-      renamedPlot = t.has('.novelforge/summaries/第一卷/001-入镇.md') && t.read('.novelforge/summaries/第一卷/001-入镇.md');
-      oldPlotGone = !t.has('.novelforge/summaries/第一卷/001-楔子.md');
+      renamedPlot = t.has('.novelwarden/summaries/第一卷/001-入镇.md') && t.read('.novelwarden/summaries/第一卷/001-入镇.md');
+      oldPlotGone = !t.has('.novelwarden/summaries/第一卷/001-楔子.md');
 
       fs.mkdirSync(t.rel('chapters/第二卷'), { recursive: true });
       h.expect();
@@ -99,12 +99,12 @@ describe('细纲跟着正文走', () => {
 
     test('正文移进另一个卷目录，细纲跟着进 summaries/ 的同名目录', () => {
       assert.equal(moved, 'chapters/第二卷/001-入镇.md');
-      assert.equal(movedPlot?.relPath, '.novelforge/summaries/第二卷/001-入镇.md');
+      assert.equal(movedPlot?.relPath, '.novelwarden/summaries/第二卷/001-入镇.md');
     });
 
     test('.txt 正文改名，细纲（.md）也跟着改名', () => {
       assert.equal(txtRenamed, 'chapters/第一卷/002-旧手记.txt');
-      assert.equal(txtPlot?.relPath, '.novelforge/summaries/第一卷/002-旧手记.md');
+      assert.equal(txtPlot?.relPath, '.novelwarden/summaries/第一卷/002-旧手记.md');
       assert.equal(txtPlot?.title, '旧手记');
     });
   });
@@ -124,11 +124,11 @@ describe('细纲跟着正文走', () => {
 
     before(async () => {
       t.write('chapters/050-旧名.md', '# 旧名\n\n正文\n');
-      t.write('.novelforge/summaries/050-旧名.md', KEPT);
+      t.write('.novelwarden/summaries/050-旧名.md', KEPT);
       project.invalidate();
       h.expect('新名');
       await fileOps.renameEntry(project, 'chapters/050-旧名.md');
-      kept = t.read('.novelforge/summaries/050-新名.md');
+      kept = t.read('.novelwarden/summaries/050-新名.md');
       keptToasts = [...h.toasts];
 
       // 纯序号名的正文与细纲（新建时名字留空的样子）：第一次起名，细纲的空标题也填上。
@@ -137,25 +137,25 @@ describe('细纲跟着正文走', () => {
       await wsOf(project).writePlot({ no: 51, title: '', upstreamHash: '', done: false, sections: { 梗概: '空着' } });
       h.expect('起名');
       await fileOps.renameEntry(project, 'chapters/051.md');
-      unnamed = t.read('.novelforge/summaries/051-起名.md');
+      unnamed = t.read('.novelwarden/summaries/051-起名.md');
 
       t.write('chapters/052-手写.md', '# 手写\n\n正文\n');
-      t.write('.novelforge/summaries/052-手写.md', NO_FM);
+      t.write('.novelwarden/summaries/052-手写.md', NO_FM);
       project.invalidate();
       h.expect('改过');
       await fileOps.renameEntry(project, 'chapters/052-手写.md');
-      noFm = t.read('.novelforge/summaries/052-改过.md');
+      noFm = t.read('.novelwarden/summaries/052-改过.md');
 
       t.write('chapters/053-回车.txt', '正文\r\n');
-      t.write('.novelforge/summaries/053-回车.md', CRLF);
+      t.write('.novelwarden/summaries/053-回车.md', CRLF);
       project.invalidate();
       h.expect('换行');
       await fileOps.renameEntry(project, 'chapters/053-回车.txt');
-      crlf = t.read('.novelforge/summaries/053-换行.md');
+      crlf = t.read('.novelwarden/summaries/053-换行.md');
 
       // 照细纲写过正文（记着 writtenFrom）：改名之后指纹还对得上，不挂 ⟳。
       t.write('chapters/054-指纹.md', '# 指纹\n\n正文\n');
-      t.write('.novelforge/summaries/054-指纹.md', PLOT(54, '指纹'));
+      t.write('.novelwarden/summaries/054-指纹.md', PLOT(54, '指纹'));
       project.invalidate();
       const before54 = await project.getPlot(54);
       await wsOf(project).recordWrittenFrom(before54.relPath, bundle.plotFile.plotContentHash(before54));
@@ -203,7 +203,7 @@ describe('细纲跟着正文走', () => {
 
     before(async () => {
       t.write('chapters/第三卷/010-雪夜.md', '# 雪夜\n\n雪。\n');
-      t.write('.novelforge/summaries/第三卷/010-雪夜.md', PLOT(10, '雪夜'));
+      t.write('.novelwarden/summaries/第三卷/010-雪夜.md', PLOT(10, '雪夜'));
       fs.mkdirSync(t.rel('chapters/归档'), { recursive: true });
       project.invalidate();
       h.expect();
@@ -216,8 +216,8 @@ describe('细纲跟着正文走', () => {
     });
 
     test('summaries/ 里那个卷目录整棵跟着走', () => {
-      assert.equal(plot?.relPath, '.novelforge/summaries/归档/第三卷/010-雪夜.md');
-      assert.ok(!t.has('.novelforge/summaries/第三卷'));
+      assert.equal(plot?.relPath, '.novelwarden/summaries/归档/第三卷/010-雪夜.md');
+      assert.ok(!t.has('.novelwarden/summaries/第三卷'));
     });
   });
 
@@ -237,14 +237,14 @@ describe('细纲跟着正文走', () => {
 
     before(async () => {
       t.write(CH, BODY);
-      t.write('.novelforge/summaries/020-甲.md', MINE);
-      t.write('.novelforge/summaries/020-乙.md', THEIRS);
+      t.write('.novelwarden/summaries/020-甲.md', MINE);
+      t.write('.novelwarden/summaries/020-乙.md', THEIRS);
       project.invalidate();
       h.expect('乙');
       result = await fileOps.renameEntry(project, CH);
       body = t.has(CH) ? t.read(CH) : undefined;
-      targetBody = t.read('.novelforge/summaries/020-乙.md');
-      oldPlot = t.has('.novelforge/summaries/020-甲.md') ? t.read('.novelforge/summaries/020-甲.md') : undefined;
+      targetBody = t.read('.novelwarden/summaries/020-乙.md');
+      oldPlot = t.has('.novelwarden/summaries/020-甲.md') ? t.read('.novelwarden/summaries/020-甲.md') : undefined;
       renamedTo = t.has('chapters/020-乙.md');
       toasts = [...h.toasts];
     });
@@ -280,13 +280,13 @@ describe('细纲跟着正文走', () => {
 
     before(async () => {
       t.write('chapters/021-甲.txt', '正文\n');
-      t.write('.novelforge/summaries/021-甲.md', PLOT(21, '甲'));
-      t.write('.novelforge/summaries/021-乙.md', PLOT(21, '乙', '（占位）'));
+      t.write('.novelwarden/summaries/021-甲.md', PLOT(21, '甲'));
+      t.write('.novelwarden/summaries/021-乙.md', PLOT(21, '乙', '（占位）'));
       project.invalidate();
       h.expect('乙');
       renamed = await fileOps.renameEntry(project, 'chapters/021-甲.txt');
-      targetBody = t.read('.novelforge/summaries/021-乙.md');
-      oldKept = t.has('.novelforge/summaries/021-甲.md');
+      targetBody = t.read('.novelwarden/summaries/021-乙.md');
+      oldKept = t.has('.novelwarden/summaries/021-甲.md');
       toasts = [...h.toasts];
     });
 
@@ -313,11 +313,11 @@ describe('细纲跟着正文走', () => {
 
     before(async () => {
       t.write('chapters/030-残灯.md', '# 残灯\n\n灯芯烧到了底。\n');
-      t.write('.novelforge/summaries/030-残灯.md', PLOT(30, '残灯'));
+      t.write('.novelwarden/summaries/030-残灯.md', PLOT(30, '残灯'));
       project.invalidate();
       h.expect('删除');
       await fileOps.deleteEntry(project, 'chapters/030-残灯.md');
-      plotKept = t.has('.novelforge/summaries/030-残灯.md');
+      plotKept = t.has('.novelwarden/summaries/030-残灯.md');
       back = await project.getPlot(30);
     });
 
@@ -326,7 +326,7 @@ describe('细纲跟着正文走', () => {
     });
 
     test('它退回这一章的计划（按号认得出）', () => {
-      assert.equal(back?.relPath, '.novelforge/summaries/030-残灯.md');
+      assert.equal(back?.relPath, '.novelwarden/summaries/030-残灯.md');
     });
   });
 
@@ -336,9 +336,9 @@ describe('细纲跟着正文走', () => {
 
     before(async () => {
       // 还没起名时建的纯序号细纲，后来排出了标题。
-      t.write('.novelforge/summaries/第二卷/040.md', PLOT(40, '冰河'));
+      t.write('.novelwarden/summaries/第二卷/040.md', PLOT(40, '冰河'));
       project.invalidate();
-      rel = await wsOf(project).createChapterAt('chapters/第二卷/040-冰河.md', '冰面裂了。', '.novelforge/summaries/第二卷/040.md');
+      rel = await wsOf(project).createChapterAt('chapters/第二卷/040-冰河.md', '冰面裂了。', '.novelwarden/summaries/第二卷/040.md');
       plot = await project.getPlot(40);
     });
 
@@ -348,8 +348,8 @@ describe('细纲跟着正文走', () => {
     });
 
     test('细纲改名到新正文的镜像，按路径认得出', () => {
-      assert.equal(plot?.relPath, '.novelforge/summaries/第二卷/040-冰河.md');
-      assert.ok(!t.has('.novelforge/summaries/第二卷/040.md'));
+      assert.equal(plot?.relPath, '.novelwarden/summaries/第二卷/040-冰河.md');
+      assert.ok(!t.has('.novelwarden/summaries/第二卷/040.md'));
     });
   });
 });

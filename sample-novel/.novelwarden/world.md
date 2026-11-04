@@ -1,5 +1,5 @@
 ---
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 
 # 世界观

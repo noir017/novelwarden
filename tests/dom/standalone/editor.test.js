@@ -98,7 +98,7 @@ describe('内置编辑器：两块编辑区', { skip: JSDOM_SKIP }, () => {
 
   // ---- 非章节文件不显示「草稿」按钮
   test('非章节不显示「草稿」「细纲」按钮', () => {
-    ui.post({ type: 'editorOpen', file: file('.novelforge/style.md', '# 文风指南') });
+    ui.post({ type: 'editorOpen', file: file('.novelwarden/style.md', '# 文风指南') });
     assert.ok(ui.doc.getElementById('edDraftBtn').classList.contains('hidden'));
     assert.ok(ui.doc.getElementById('edPlotBtn').classList.contains('hidden'));
   });

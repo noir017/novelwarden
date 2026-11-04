@@ -29,14 +29,14 @@ const CH = 'chapters/001-楔子.md';
 const NAMES = {
   initialized: true,
   names: [
-    { name: '林昭', aliases: ['阿昭', '小林'], source: 'character', category: '', brief: '青云宗外门弟子。', path: '.novelforge/characters/林昭.md' },
-    { name: '林昭阳', aliases: [], source: 'character', category: '', brief: '', path: '.novelforge/characters/林昭阳.md' },
-    { name: '沈怀山', aliases: ['老沈'], source: 'character', category: '', brief: '', path: '.novelforge/characters/沈怀山.md' },
-    { name: '青云宗', aliases: ['青云门'], source: 'lore', category: '门派', brief: '正道第一大宗', path: '.novelforge/lore/门派/青云宗.md' },
-    { name: '青崖镇', aliases: [], source: 'lore', category: '地点', brief: '', path: '.novelforge/lore/地点/青崖镇.md' },
+    { name: '林昭', aliases: ['阿昭', '小林'], source: 'character', category: '', brief: '青云宗外门弟子。', path: '.novelwarden/characters/林昭.md' },
+    { name: '林昭阳', aliases: [], source: 'character', category: '', brief: '', path: '.novelwarden/characters/林昭阳.md' },
+    { name: '沈怀山', aliases: ['老沈'], source: 'character', category: '', brief: '', path: '.novelwarden/characters/沈怀山.md' },
+    { name: '青云宗', aliases: ['青云门'], source: 'lore', category: '门派', brief: '正道第一大宗', path: '.novelwarden/lore/门派/青云宗.md' },
+    { name: '青崖镇', aliases: [], source: 'lore', category: '地点', brief: '', path: '.novelwarden/lore/地点/青崖镇.md' },
     { name: '黑水河', aliases: [], source: 'unfiled', category: '地点', brief: '河上起了雾' },
-    { name: 'Lin Zhao', aliases: [], source: 'character', category: '', brief: '', path: '.novelforge/characters/lin.md' },
-    { name: 'Lindy', aliases: [], source: 'character', category: '', brief: '', path: '.novelforge/characters/lindy.md' },
+    { name: 'Lin Zhao', aliases: [], source: 'character', category: '', brief: '', path: '.novelwarden/characters/lin.md' },
+    { name: 'Lindy', aliases: [], source: 'character', category: '', brief: '', path: '.novelwarden/characters/lindy.md' },
   ],
 };
 
@@ -290,7 +290,7 @@ describe('名词补全：按键弹出', { skip: JSDOM_SKIP }, () => {
   });
 
   test('配置这类文件（kind: setting）：不弹、不发请求，说一句', () => {
-    h.open('.novelforge/config.md', '林', 'setting');
+    h.open('.novelwarden/config.md', '林', 'setting');
     const before = h.ui.sent.filter((m) => m.type === 'requestNameIndex').length;
     h.trigger();
     assert.equal(h.box(), null);
@@ -299,7 +299,7 @@ describe('名词补全：按键弹出', { skip: JSDOM_SKIP }, () => {
   });
 
   test('敏感词表（kind: sensitive，写作体检读的 sensitive.txt）也不弹', () => {
-    h.open('.novelforge/sensitive.txt', '林', 'sensitive');
+    h.open('.novelwarden/sensitive.txt', '林', 'sensitive');
     h.trigger();
     assert.equal(h.box(), null);
   });
@@ -319,9 +319,9 @@ describe('名词补全：按键弹出', { skip: JSDOM_SKIP }, () => {
 
   test('细纲、角色卡、设定也能补全', () => {
     for (const [path, kind] of [
-      ['.novelforge/summaries/009-x.md', 'plot'],
-      ['.novelforge/characters/林昭.md', 'character'],
-      ['.novelforge/lore/地点/青崖镇.md', 'lore'],
+      ['.novelwarden/summaries/009-x.md', 'plot'],
+      ['.novelwarden/characters/林昭.md', 'character'],
+      ['.novelwarden/lore/地点/青崖镇.md', 'lore'],
     ]) {
       h.open(path, '林', kind);
       h.trigger();
@@ -429,7 +429,7 @@ describe('名词补全：边打边弹', { skip: JSDOM_SKIP }, () => {
   });
 
   test('配置这类文件不弹', () => {
-    h.open('.novelforge/config.md', '', 'setting');
+    h.open('.novelwarden/config.md', '', 'setting');
     h.ime('沈怀');
     assert.equal(h.box(), null);
   });
@@ -502,7 +502,7 @@ describe('「视图 → 补全」', { skip: JSDOM_SKIP }, () => {
   });
 
   test('配置文件上「名词补全」置灰，提示说为什么', () => {
-    h.open('.novelforge/config.md', '', 'setting');
+    h.open('.novelwarden/config.md', '', 'setting');
     const trigger = item('名词补全');
     assert.equal(trigger.disabled, true);
     assert.match(trigger.title, /只在正文/);

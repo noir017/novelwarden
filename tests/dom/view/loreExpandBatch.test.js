@@ -13,7 +13,7 @@ const { describe, test, before } = require('node:test');
 const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, emptySession, pipelineView, workbenchView, sampleTree } = require('../../helpers/dom');
 
-const LORE = '.novelforge/lore';
+const LORE = '.novelwarden/lore';
 const note = (ui) => ui.doc.querySelector('.nf-form .form-note')?.textContent ?? '';
 const field = (ui, key) => ui.doc.querySelector(`.nf-form [data-key="${key}"]`);
 const submitBtn = (ui) => ui.doc.querySelector('.nf-form .modal-foot button.primary');

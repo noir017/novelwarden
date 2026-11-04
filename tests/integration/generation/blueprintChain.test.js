@@ -295,7 +295,7 @@ describe('二期验收：一句话 → 前 5 章细纲', () => {
   test('设定清单落了盘：分类目录（空的也建）、条目建在分类里', async () => {
     assert.deepEqual(await project.listLoreCategories(), ['地域', '地域/青崖', '门派', '信物', '制度']);
     const inn = (await project.listLore()).find((e) => e.title === '停舟客栈');
-    assert.equal(inn.relPath, '.novelforge/lore/地域/青崖/停舟客栈.md');
+    assert.equal(inn.relPath, '.novelwarden/lore/地域/青崖/停舟客栈.md');
     assert.equal(inn.brief, '镇上唯一的客栈，沈氏开的');
     assert.ok(inn.body.includes('## 概要\n停舟客栈在青崖镇。'), inn.body);
   });
@@ -319,11 +319,11 @@ describe('二期验收：一句话 → 前 5 章细纲', () => {
     // 大纲是各章细纲梗概的汇总：第 6–20 章是续写大纲时建的空壳（只有梗概），看排过的那几份。
     const plots = (await project.listPlots()).filter((p) => p.sections.关键事件.trim());
     assert.deepEqual(plots.map((p) => p.relPath), [
-      '.novelforge/summaries/001-停舟.md',
-      '.novelforge/summaries/002-令牌.md',
-      '.novelforge/summaries/003-夜访.md',
-      '.novelforge/summaries/004-井.md',
-      '.novelforge/summaries/005-名册.md',
+      '.novelwarden/summaries/001-停舟.md',
+      '.novelwarden/summaries/002-令牌.md',
+      '.novelwarden/summaries/003-夜访.md',
+      '.novelwarden/summaries/004-井.md',
+      '.novelwarden/summaries/005-名册.md',
     ]);
     assert.ok(plots.every((p) => p.targetWords === 3000 && p.sections.看点.trim()), JSON.stringify(plots.map((p) => p.targetWords)));
     // 关键事件落盘成一条一行，与定稿写出来的样子一致。
@@ -340,7 +340,7 @@ describe('二期验收：一句话 → 前 5 章细纲', () => {
   test('细纲里的新设定建了空条目，卡片上事先列出过；「设定」一节记下计划用到的设定', async () => {
     const well = (await project.listLore()).find((e) => e.title === '古井');
     assert.ok(well, '建了「古井」');
-    assert.equal(well.relPath, '.novelforge/lore/地域/青崖/古井.md');
+    assert.equal(well.relPath, '.novelwarden/lore/地域/青崖/古井.md');
     assert.equal(well.category, '地域/青崖');
     assert.equal(well.brief, '镇北废宅里的枯井');
     assert.equal((await project.listLore()).filter((e) => e.title === '青崖镇').length, 1);

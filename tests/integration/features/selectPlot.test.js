@@ -95,7 +95,7 @@ describe('工程页点章名（给的是主路径）', () => {
   // 目标一律落在**细纲那一侧**：流水线、工作区卡与写入都按细纲路径认这一章（细纲号 = 章号），
   // 让 target 指进 chapters/ 的话，同一章的细纲与正文会各找各的位置。
   test('目标归到细纲路径', () => {
-    assert.equal(r.session.target.plotRelPath, '.novelforge/summaries/008-夜访.md');
+    assert.equal(r.session.target.plotRelPath, '.novelwarden/summaries/008-夜访.md');
   });
 
   test('推来的流水线是第 8 章', () => {
@@ -119,7 +119,7 @@ describe('对话页下拉框选一个只有成品的章', () => {
   // 而不是标题。拼进文件名会得到 `009-第-9-章.md`——一个凭空的假名字，
   // 而作者哪天真去补规划时，writePlot 落的又是另一个文件名。
   test('回落标题不进细纲文件名', () => {
-    assert.equal(dropdownRel, '.novelforge/summaries/009.md');
+    assert.equal(dropdownRel, '.novelwarden/summaries/009.md');
   });
 
   test('不报「这一章不存在」', () => {
@@ -149,7 +149,7 @@ describe('真的不存在的章', () => {
   let r;
 
   before(async () => {
-    r = await select('.novelforge/summaries/777-没这章.md');
+    r = await select('.novelwarden/summaries/777-没这章.md');
   });
 
   // 两边都没有才是「不存在」。这条提示本身没错，错的是从前它太容易被撞上。
@@ -172,7 +172,7 @@ describe('状态机仍然在管落在哪一层', () => {
       sections: { 梗概: '还没想好', 出场人物: '', 时间地点: '', 关键事件: '', 看点: '', 状态变更: '', 连续性事实: '' },
     });
     project.invalidate();
-    planned = await select('.novelforge/summaries/020.md');
+    planned = await select('.novelwarden/summaries/020.md');
   });
 
   test('没排细纲的章落在细纲层', () => {

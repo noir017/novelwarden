@@ -35,7 +35,7 @@ const config = () => ({
 });
 
 const pad3 = (n) => String(n).padStart(3, '0');
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 
 /** 一份还没定稿的细纲（计划）。 */
 function plotText(no, events) {
@@ -68,7 +68,7 @@ function plotText(no, events) {
 }
 
 /** 叙事线：一条线一个文件。 */
-const DIR = '.novelforge/threads';
+const DIR = '.novelwarden/threads';
 const thread = (kind, plan, { intent = '', fore = [], events = [] } = {}) =>
   [
     '---',
@@ -187,7 +187,7 @@ describe('threads 层 · 第 5 章', () => {
 
   test('来源是那条线自己的文件，优先级 P1', () => {
     const [pair] = threadItems(b);
-    assert.equal(pair.source, '.novelforge/threads/林昭与沈青.md');
+    assert.equal(pair.source, '.novelwarden/threads/林昭与沈青.md');
     assert.equal(pair.priority, 1);
   });
 
@@ -400,7 +400,7 @@ describe('threads 层 · 拆细纲（按区间挑）', () => {
     );
     assert.equal(lines[3].text, '- 快收束的线（支线 · 进行中 · 计划在第 7 章收束）意图：镇上的怪事；最近：第 1 章推进：怪事开头');
     assert.equal(lines[5].text, '- 远方的来信（支线 · 计划中 · 计划第 10–12 章）意图：信是谁寄的；本批还不到它开始的那一章，不要提前开');
-    assert.ok(lines.every((i) => i.priority === 1 && i.source.startsWith('.novelforge/threads/')));
+    assert.ok(lines.every((i) => i.priority === 1 && i.source.startsWith('.novelwarden/threads/')));
   });
 
   test('批次第 5–9 章：没收的伏笔一条一个，这一批要收的、逾期的在前，这一批要埋的排在已埋的前面；第 9 章才埋的这一批也带', async () => {
@@ -411,7 +411,7 @@ describe('threads 层 · 拆细纲（按区间挑）', () => {
       '- 断剑（挂在「未归属的伏笔」· 计划 · 本批要埋，计划第 9 章）',
       '- 玉佩的来历（挂在「林昭与沈青」· 已埋 · 第 18 章前收，之前不要揭开）是什么：沈家旧物',
     ]);
-    assert.equal(fores[0].id, 'thread:.novelforge/threads/未归属的伏笔.md#提灯人');
+    assert.equal(fores[0].id, 'thread:.novelwarden/threads/未归属的伏笔.md#提灯人');
   });
 
   test('单章第 5 章：说「本章」，第 9 章才埋的不带，第 7 章收束的线不算落在这一章', async () => {

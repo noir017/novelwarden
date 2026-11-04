@@ -24,7 +24,7 @@ const ENTRY = path.join('src', 'shells', 'standalone', 'main.ts');
 const OUT_DIR = path.join(ROOT, 'src', 'shells', 'desktop', 'binaries');
 
 /** sidecar 的基名。必须与 tauri.conf.json 的 `externalBin` 末段一致。 */
-const BASE = 'novelforge';
+const BASE = 'novelwarden';
 
 /**
  * 目标平台表。加一个平台就在这里加一行，同时记得在 CI 的 matrix 里加一台 runner
@@ -46,7 +46,7 @@ const TARGETS = {
     // 少了它也无妨：Tauri spawn sidecar 时本来就带 CREATE_NO_WINDOW，这只是
     // 第二道保险（顺带让手动双击时不至于莫名弹窗）。CI 的 windows runner 是
     // 原生构建，所以正式产物里这两个开关是生效的。
-    nativeOnlyArgs: ['--windows-hide-console', '--windows-title=Novel Forge 服务'],
+    nativeOnlyArgs: ['--windows-hide-console', '--windows-title=Novelwarden 服务'],
   },
 };
 

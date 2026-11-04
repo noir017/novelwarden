@@ -11,7 +11,7 @@ describe('model/fs.ts · 磁盘与字符串工具', () => {
 
   before(() => {
     utils = loadModule('src/core/model/fs.ts');
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-fs-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-fs-'));
   });
 
   after(() => {

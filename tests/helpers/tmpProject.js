@@ -14,10 +14,10 @@ const SAMPLE = path.join(ROOT, 'sample-novel');
 
 /**
  * 开一个空的临时目录，并返回一组绑定了该目录的路径助手。
- * @param {string} prefix 形如 `fileops`，最终目录名是 `novelforge-fileops-XXXX`
+ * @param {string} prefix 形如 `fileops`，最终目录名是 `novelwarden-fileops-XXXX`
  */
 function makeTempDir(prefix) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `novelforge-${prefix}-`));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `novelwarden-${prefix}-`));
   return { dir, ...pathHelpers(dir) };
 }
 
@@ -58,8 +58,8 @@ async function makeTempProject(projectMod, opts = {}) {
   const { Workspace } = loadModule('src/core/workspace/index.ts');
   await new Workspace(project).initializeProject({ title, author: '测试' });
   if (!keepExamples) {
-    fs.rmSync(t.rel('.novelforge/characters/example-protagonist.md'), { force: true });
-    fs.rmSync(t.rel('.novelforge/lore/example-setting.md'), { force: true });
+    fs.rmSync(t.rel('.novelwarden/characters/example-protagonist.md'), { force: true });
+    fs.rmSync(t.rel('.novelwarden/lore/example-setting.md'), { force: true });
   }
   return { ...t, project };
 }

@@ -44,32 +44,32 @@ before(async () => {
 
   // 第 1 章：根下，有正文有细纲。
   t.write('chapters/001-楔子.md', '# 楔子\n\n雨下了三天。');
-  t.write('.novelforge/summaries/001-楔子.md', plot(1, '楔子'));
+  t.write('.novelwarden/summaries/001-楔子.md', plot(1, '楔子'));
   // 第 2 章：第一卷里，细纲的标题与正文的不一样——细纲优先。
   t.write('chapters/第一卷/002-入镇.md', '# 入镇\n\n他走进镇子。');
-  t.write('.novelforge/summaries/第一卷/002-入镇.md', plot(2, '入镇（改）'));
+  t.write('.novelwarden/summaries/第一卷/002-入镇.md', plot(2, '入镇（改）'));
   // 第 3 章：.txt 正文，没有细纲。
   t.write('chapters/第一卷/003-夜访.txt', '夜里有人敲门。');
   // 第 4 章：只有细纲，在第二卷。
-  t.write('.novelforge/summaries/第二卷/004-北行.md', plot(4, '北行'));
+  t.write('.novelwarden/summaries/第二卷/004-北行.md', plot(4, '北行'));
   // 第 5 章：纯序号的正文，没有标题。
   t.write('chapters/第二卷/005.md', '正文');
   // 第 6 章：正文在外面改了名，旧细纲成了孤儿——不冒认。
   t.write('chapters/第二卷/006-新名.md', '# 新名\n\n正文');
-  t.write('.novelforge/summaries/第二卷/006-旧名.md', plot(6, '旧名'));
+  t.write('.novelwarden/summaries/第二卷/006-旧名.md', plot(6, '旧名'));
 
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭, 小林]\n---\n\n# 林昭\n');
-  t.write('.novelforge/characters/配角/李叔.md', '# 李叔\n');
-  t.write('.novelforge/lore/门派/青云宗.md', '---\ntitle: 青云宗\nkeywords: [门派]\n---\n\n# 青云宗\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭, 小林]\n---\n\n# 林昭\n');
+  t.write('.novelwarden/characters/配角/李叔.md', '# 李叔\n');
+  t.write('.novelwarden/lore/门派/青云宗.md', '---\ntitle: 青云宗\nkeywords: [门派]\n---\n\n# 青云宗\n');
   t.write('drafts/第一卷/002-入镇.md', '草稿');
   t.write('drafts/随手记.md', '随手记');
-  t.write('.novelforge/threads/林昭与沈青.md', '---\nkind: 感情线\n---\n\n# 林昭与沈青\n');
-  t.write('.novelforge/threads/未归属的伏笔.md', '# 未归属的伏笔\n');
-  t.write('.novelforge/threads/主线.md', '---\nkind: 主线\n---\n\n# 主线\n');
+  t.write('.novelwarden/threads/林昭与沈青.md', '---\nkind: 感情线\n---\n\n# 林昭与沈青\n');
+  t.write('.novelwarden/threads/未归属的伏笔.md', '# 未归属的伏笔\n');
+  t.write('.novelwarden/threads/主线.md', '---\nkind: 主线\n---\n\n# 主线\n');
   // 七期的单文件不认：不列。
-  t.write('.novelforge/threads.md', '# 叙事线\n');
+  t.write('.novelwarden/threads.md', '# 叙事线\n');
   // 世界观删掉：没有文件的不列。
-  fs.rmSync(t.rel('.novelforge/world.md'));
+  fs.rmSync(t.rel('.novelwarden/world.md'));
   project.invalidate();
 });
 
@@ -97,7 +97,7 @@ describe('views/quickOpen › 索引', () => {
       title: '楔子',
       volume: '',
       chapterPath: 'chapters/001-楔子.md',
-      plotPath: '.novelforge/summaries/001-楔子.md',
+      plotPath: '.novelwarden/summaries/001-楔子.md',
       words: 5,
     });
   });
@@ -107,7 +107,7 @@ describe('views/quickOpen › 索引', () => {
     assert.equal(c.volume, '第一卷');
     assert.equal(c.title, '入镇（改）');
     assert.equal(c.chapterPath, 'chapters/第一卷/002-入镇.md');
-    assert.equal(c.plotPath, '.novelforge/summaries/第一卷/002-入镇.md');
+    assert.equal(c.plotPath, '.novelwarden/summaries/第一卷/002-入镇.md');
   });
 
   test('.txt 正文也是一章；没有细纲时 plotPath 缺席，标题取文件名', () => {
@@ -121,7 +121,7 @@ describe('views/quickOpen › 索引', () => {
   test('只有细纲的章：chapterPath 缺席、字数 0、卷目录取细纲所在的', () => {
     const c = index.chapters[3];
     assert.equal('chapterPath' in c, false);
-    assert.equal(c.plotPath, '.novelforge/summaries/第二卷/004-北行.md');
+    assert.equal(c.plotPath, '.novelwarden/summaries/第二卷/004-北行.md');
     assert.equal(c.volume, '第二卷');
     assert.equal(c.words, 0);
     assert.equal(c.title, '北行');
@@ -141,26 +141,26 @@ describe('views/quickOpen › 索引', () => {
   test('角色卡：名字、别名、路径（子目录里的也在）', () => {
     const byName = (name) => index.characters.find((c) => c.name === name);
     assert.equal(index.characters.length, 2);
-    assert.deepEqual(byName('林昭'), { name: '林昭', aliases: ['阿昭', '小林'], path: '.novelforge/characters/林昭.md' });
-    assert.deepEqual(byName('李叔'), { name: '李叔', aliases: [], path: '.novelforge/characters/配角/李叔.md' });
+    assert.deepEqual(byName('林昭'), { name: '林昭', aliases: ['阿昭', '小林'], path: '.novelwarden/characters/林昭.md' });
+    assert.deepEqual(byName('李叔'), { name: '李叔', aliases: [], path: '.novelwarden/characters/配角/李叔.md' });
   });
 
   test('设定条目：标题与路径', () => {
-    assert.deepEqual(index.lore, [{ title: '青云宗', path: '.novelforge/lore/门派/青云宗.md' }]);
+    assert.deepEqual(index.lore, [{ title: '青云宗', path: '.novelwarden/lore/门派/青云宗.md' }]);
   });
 
   test('文档：有文件的才列（世界观删了不在），按架构 → 大纲 → 文风 → 叙事线 → 全文大纲；叙事线一条线一项（按文件名）、未归属的伏笔排最后', () => {
     assert.deepEqual(
       index.docs.map((d) => [d.key, d.label, d.path]),
       [
-        ['config', '小说配置', '.novelforge/config.md'],
-        ['premise', '故事前提', '.novelforge/premise.md'],
-        ['outline', '情节大纲', '.novelforge/outline.md'],
-        ['style', '文风指南', '.novelforge/style.md'],
-        ['threads', '林昭与沈青', '.novelforge/threads/林昭与沈青.md'],
-        ['threads', '主线', '.novelforge/threads/主线.md'],
-        ['threads', '未归属的伏笔', '.novelforge/threads/未归属的伏笔.md'],
-        ['globalSummary', '全文大纲', '.novelforge/summaries/global.md'],
+        ['config', '小说配置', '.novelwarden/config.md'],
+        ['premise', '故事前提', '.novelwarden/premise.md'],
+        ['outline', '情节大纲', '.novelwarden/outline.md'],
+        ['style', '文风指南', '.novelwarden/style.md'],
+        ['threads', '林昭与沈青', '.novelwarden/threads/林昭与沈青.md'],
+        ['threads', '主线', '.novelwarden/threads/主线.md'],
+        ['threads', '未归属的伏笔', '.novelwarden/threads/未归属的伏笔.md'],
+        ['globalSummary', '全文大纲', '.novelwarden/summaries/global.md'],
       ]
     );
   });
@@ -179,13 +179,13 @@ describe('views/quickOpen › 索引', () => {
   });
 
   test('全文大纲不当成一章（summaries/global.md 没有数字前缀）', () => {
-    assert.ok(!index.chapters.some((c) => c.plotPath === '.novelforge/summaries/global.md'));
+    assert.ok(!index.chapters.some((c) => c.plotPath === '.novelwarden/summaries/global.md'));
   });
 });
 
 describe('views/quickOpen › 还不是小说工程', () => {
   test('initialized: false，列表全空', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelforge-quick-open-bare-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novelwarden-quick-open-bare-'));
     try {
       fs.mkdirSync(path.join(dir, 'chapters'));
       fs.writeFileSync(path.join(dir, 'chapters', '001-楔子.md'), '正文');
@@ -233,7 +233,7 @@ describe('views/quickOpen › 读盘', () => {
     project.invalidate();
     await Promise.all([project.listChapters(), project.listPlots()]);
     const reads = await measure();
-    const touched = [...reads.keys()].filter((f) => f.startsWith('chapters/') || f.startsWith('.novelforge/summaries/'));
+    const touched = [...reads.keys()].filter((f) => f.startsWith('chapters/') || f.startsWith('.novelwarden/summaries/'));
     assert.deepEqual(touched, []);
   });
 
@@ -242,8 +242,8 @@ describe('views/quickOpen › 读盘', () => {
     const touched = [...reads.keys()].filter(
       (f) =>
         f.startsWith('drafts/') ||
-        ['.novelforge/outline.md', '.novelforge/config.md', '.novelforge/project.json'].includes(f) ||
-        f.startsWith('.novelforge/threads')
+        ['.novelwarden/outline.md', '.novelwarden/config.md', '.novelwarden/project.json'].includes(f) ||
+        f.startsWith('.novelwarden/threads')
     );
     assert.deepEqual(touched, []);
   });

@@ -448,7 +448,7 @@ describe('loreList.ts · 设定清单两段式', () => {
   /** 已有条目的最小形状（listLore 读出来的样子）。 */
   const entry = (title, category = '', keywords = []) => ({
     slug: `${category ? `${category}/` : ''}${title}`,
-    relPath: `.novelforge/lore/${category ? `${category}/` : ''}${title}.md`,
+    relPath: `.novelwarden/lore/${category ? `${category}/` : ''}${title}.md`,
     title,
     keywords,
     brief: '',
@@ -646,7 +646,7 @@ describe('novelConfig.ts · 小说配置', () => {
   test('保留作者原文：长文本原文在前、生成的追加在后；作者选过的类型不改', () => {
     const existing = S.parseBookConfig(
       ['---', 'genre: 仙侠', 'totalChapters: 60', '---', '# 小说配置', '## 一句话', '少年入宗', '## 金手指', '残令能看见死者最后一眼'].join('\n'),
-      '.novelforge/config.md'
+      '.novelwarden/config.md'
     );
     const { value } = C.decodeNovelConfig(JSON.stringify(generated));
     const merged = C.mergeWithAuthor(existing, value, {
@@ -708,7 +708,7 @@ describe('artifact.ts · 细纲批次与单章', () => {
 
   test('给了区间就是一批：只留区间内的章，按章号升序', () => {
     const raw = JSON.stringify({ blueprints: [item(3), item(1), item(9), item(2)] });
-    const art = A.parseArtifact(act, raw, { kind: 'plot', plotRelPath: '.novelforge/summaries/001.md' }, { from: 1, to: 3 });
+    const art = A.parseArtifact(act, raw, { kind: 'plot', plotRelPath: '.novelwarden/summaries/001.md' }, { from: 1, to: 3 });
     assert.equal(art.kind, 'plotBatch');
     assert.deepEqual(art.items.map((b) => b.no), [1, 2, 3]);
     assert.match(A.describeArtifact(art), /第 1–3 章（3 章）/);

@@ -17,7 +17,7 @@ const { loadBundle } = require('../../helpers/load');
 
 const { views, tf } = loadBundle({ views: './src/core/views/threads.ts', tf: './src/core/model/threadFile.ts' });
 
-const DIR = '.novelforge/threads';
+const DIR = '.novelwarden/threads';
 
 /** 一条线：frontmatter + 伏笔 + 进展，经真解析器读出来（与 `readThreads` 同一条路）。 */
 function line(name, { kind = '支线', plan, intent = '', progress = '', fores = [], events = [] } = {}, index = 0) {
@@ -187,7 +187,7 @@ describe('叙事线页签 · 未归属的伏笔', () => {
 // 故事时间（2026-10-24；同日重做：从叙事线组里的一行改成单独一组）。
 describe('叙事线页签 · 时间线一组', () => {
   const tl = loadBundle({ tl: './src/core/model/timelineFile.ts' }).tl;
-  const REL = '.novelforge/threads/时间线.md';
+  const REL = '.novelwarden/threads/时间线.md';
   const timeline = (lines, start = '三月初七') =>
     tl.parseTimelineFile(['---', 'calendar: 简单历', `start: ${start}`, '---', '', '# 时间线', '', ...lines, ''].join('\n'), REL);
   const chapters = (n) => Array.from({ length: n }, (_, i) => ({ no: i + 1, title: `第${i + 1}章`, chapterPath: `chapters/00${i + 1}.md`, volume: '' }));

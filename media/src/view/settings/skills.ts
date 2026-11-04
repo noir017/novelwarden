@@ -2,7 +2,7 @@
  * 设置页「技能」那一页：本工程的阶段绑定、从 GitHub 检查与安装、技能库。
  *
  * 与其余两页不同，这一页**改了当场生效**，不进 `draft`、不等「保存设置」：绑定写的是工程里的
- * `.novelforge/skills.json`，装卸写的是我的技能库，都与 `config.json` 无关。每一次改动后端都会
+ * `.novelwarden/skills.json`，装卸写的是我的技能库，都与 `config.json` 无关。每一次改动后端都会
  * 重推一份 `skills`，这里只负责照着画。
  *
  * 检查结果是这一页唯一的前端状态：它是「作者正在看的那一份」，后端不记得给谁看过。
@@ -143,9 +143,9 @@ function renderBindings(v: SkillsView): void {
   const bindings = v.bindings;
   if (hint) {
     hint.textContent = !bindings
-      ? '先打开一个工程：绑定跟着工程走（记在工程里的 .novelforge/skills.json）。'
+      ? '先打开一个工程：绑定跟着工程走（记在工程里的 skills.json）。'
       : v.problems.length > 0
-        ? `.novelforge/skills.json 有读不懂的地方：${v.problems.join('；')}。先手动修好或删掉它，才能在这里改绑定。`
+        ? `工程的 skills.json 有读不懂的地方：${v.problems.join('；')}。先手动修好或删掉它，才能在这里改绑定。`
         : '每个阶段最多绑一份；同一份可以绑在几个阶段上。只列出兼容的技能；内置技能只在它所属的阶段列出。';
   }
   const usable = v.rows.filter((r) => r.compatible);
@@ -225,7 +225,7 @@ function renderLibrary(v: SkillsView): void {
   const hint = maybeById('skillLibraryHint');
   if (hint) {
     hint.textContent =
-      `我的技能库在 ${v.userDir}，所有工程共用；本工程的技能放在 .novelforge/skills/<名字>/SKILL.md，跟着工程走。` +
+      `我的技能库在 ${v.userDir}，所有工程共用；本工程的技能放在工程元数据目录下的 skills/<名字>/SKILL.md，跟着工程走。` +
       '手放进去的，切回这一页就会出现。';
   }
   if (v.rows.length === 0) {

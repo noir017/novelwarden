@@ -150,7 +150,7 @@ export type LayerId =
   /** 目标章自己的正文全文（审稿，五期）。 */
   | 'chapterFull'
   | 'revision'
-  /** 这一阶段绑的写作技能（`.novelforge/skills.json`），整份带或整份不带。 */
+  /** 这一阶段绑的写作技能（`.novelwarden/skills.json`），整份带或整份不带。 */
   | 'skill'
   /** 已写正文（拆书 A，`BuildRequest.derive`）：不是从正文整理时什么都不带。 */
   | 'written'

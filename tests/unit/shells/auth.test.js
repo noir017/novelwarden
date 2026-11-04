@@ -11,6 +11,25 @@ const auth = loadModule('src/shells/standalone/auth.ts');
 const TOKEN = 'a-long-enough-token-0123';
 const req = (headers = {}, url = 'http://127.0.0.1:3680/') => new Request(url, { headers });
 
+describe('tokenFromEnv', () => {
+  test('主变量是 NOVELWARDEN_TOKEN', () => {
+    assert.equal(auth.TOKEN_ENV, 'NOVELWARDEN_TOKEN');
+  });
+
+  test('只给旧变量 NOVELFORGE_TOKEN 也认（0.2.x 部署升级不断档）', () => {
+    assert.equal(auth.tokenFromEnv({ NOVELFORGE_TOKEN: TOKEN }), TOKEN);
+  });
+
+  test('两个都给时新变量优先', () => {
+    assert.equal(auth.tokenFromEnv({ NOVELWARDEN_TOKEN: TOKEN, NOVELFORGE_TOKEN: 'old-token-0123456789' }), TOKEN);
+  });
+
+  test('空白的当没给', () => {
+    assert.equal(auth.tokenFromEnv({ NOVELWARDEN_TOKEN: '  ', NOVELFORGE_TOKEN: '  ' }), undefined);
+    assert.equal(auth.tokenFromEnv({}), undefined);
+  });
+});
+
 describe('exposureError', () => {
   test('只绑本机时不要令牌', () => {
     assert.equal(auth.exposureError('127.0.0.1', undefined), undefined);

@@ -8,24 +8,24 @@
  * ## 布局
  *
  * ```
- * .novelforge/history/
+ * .novelwarden/history/
  * ├── .gitignore                            第一次存快照时放进来，内容 `*`（Git 默认不收；想收就删掉它，之后不再补）
  * ├── chapters/第一卷/003-深处.txt/          每份文件一个目录：原文件的相对路径（连扩展名）原样当目录名
  * │   ├── 2026-10-18_14-32-05+0800.txt      每个快照一个文件：被覆盖那一刻的本地时间与时区
  * │   └── 2026-10-18_14-32-05+0800-2.txt    同一秒里的第二个
- * └── .novelforge/summaries/第一卷/003-深处.md/
- *     └── …                                  `.novelforge/` 里的文件（细纲、角色卡、大纲……）同样镜像
+ * └── .novelwarden/summaries/第一卷/003-深处.md/
+ *     └── …                                  `.novelwarden/` 里的文件（细纲、角色卡、大纲……）同样镜像
  * ```
  *
  * - **一一对应、不撞车**：目录名就是原文件的相对路径（含扩展名），`003.md` 与 `003.txt` 各是各的目录。
  * - **快照一律 `.txt`，字节原样拷贝**（不转码，GBK 的旧稿存下来还是 GBK）：不是 `.md`，插件壳的
- *   `.novelforge/**\/*.md` 监听就不会每存一版多跑一轮全量重扫；内置编辑器与「文件」页照样打得开。
+ *   `.novelwarden/**\/*.md` 监听就不会每存一版多跑一轮全量重扫；内置编辑器与「文件」页照样打得开。
  * - **时间从文件名读**（带时区，换了时区也排得对），不看 mtime——拷来拷去 mtime 会变。
  *
  * ## 存不存（{@link decideSnapshot}）
  *
  * - 只管创作产物：`kindOfPath` 不是 `other` 的（章节、草稿、细纲、角色卡、设定、架构、大纲、文风、叙事线、
- *   全文大纲、技能）；还不是小说工程（没有 `.novelforge/`）的目录里不存——不替作者凭空建出一个工程目录。
+ *   全文大纲、技能）；还不是小说工程（没有 `.novelwarden/`）的目录里不存——不替作者凭空建出一个工程目录。
  * - 新内容与旧内容一样（什么都没覆盖）、旧内容与最新一个快照一样：不存。
  * - **节流**：最新一个快照不到 {@link HISTORY_QUIET_MS}（10 分钟），而且「旧内容 ↔ 最新快照」「旧内容 ↔ 新内容」
  *   两处改动都在 {@link HISTORY_SMALL_CHANGE}（300 字）以内——不存。自动保存每两秒存一次时攒不出几百个快照；
@@ -47,7 +47,7 @@
  *
  * ## 绝不挡住保存
  *
- * 存快照的任何一步失败（磁盘满、`.novelforge/history` 被占成了文件、权限……）都只记一条 warn，照常写盘
+ * 存快照的任何一步失败（磁盘满、`.novelwarden/history` 被占成了文件、权限……）都只记一条 warn，照常写盘
  * （第 1 条：容错优先）。{@link snapshotBeforeWrite} 不抛。
  *
  * ## 不进上下文、不触发重扫
@@ -74,13 +74,13 @@ export const HISTORY_KEEP = 50;
 export const HISTORY_QUIET_MS = 10 * 60 * 1000;
 /** 「小改动」的上限（字符数，按公共前后缀粗算）。 */
 export const HISTORY_SMALL_CHANGE = 300;
-/** 第一次存快照时放进 `.novelforge/history/` 的 `.gitignore`。 */
+/** 第一次存快照时放进 `.novelwarden/history/` 的 `.gitignore`。 */
 export const HISTORY_GITIGNORE = '*\n';
 
 // ---------------------------------------------------------------- 纯函数
 
 /**
- * 这份文件的快照放在哪个目录（工程内相对路径）：`.novelforge/history/<原文件的相对路径>`，扩展名原样
+ * 这份文件的快照放在哪个目录（工程内相对路径）：`.novelwarden/history/<原文件的相对路径>`，扩展名原样
  * 留在目录名里。越界给 undefined。纯函数，零 I/O。
  */
 export function historyDirOf(project: NovelProject, rel: string): string | undefined {
@@ -225,7 +225,7 @@ export async function historyUnavailable(project: NovelProject, rel: string): Pr
     return '情节大纲没有文件，是各章细纲「梗概」的汇总：它自己不存历史版本。存回去时改了哪一章，那一章的细纲各自存了一版（打开那一章的细纲看「历史」）。';
   }
   if (!(await isDir(project.novelDir))) {
-    return '这个目录还不是小说工程（没有 .novelforge/），不存历史版本。';
+    return '这个目录还不是小说工程（没有 .novelwarden/），不存历史版本。';
   }
   return undefined;
 }
@@ -391,7 +391,7 @@ async function carryHistory(project: NovelProject, from: string, to: string): Pr
   if (fromRel === undefined || toRel === undefined || fromRel === toRel) {
     return [];
   }
-  // 历史目录里的东西本身不存历史（`kindOfPath` 判 `other`）；搬进、搬出它都不该再套一层 `history/.novelforge/history/…`。
+  // 历史目录里的东西本身不存历史（`kindOfPath` 判 `other`）；搬进、搬出它都不该再套一层 `history/.novelwarden/history/…`。
   const root = project.relPath(project.historyDir);
   if ([fromRel, toRel].some((r) => r === root || r.startsWith(`${root}/`))) {
     return [];

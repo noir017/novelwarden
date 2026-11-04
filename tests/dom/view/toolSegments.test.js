@@ -61,7 +61,7 @@ describe('交替（实时）', { skip: JSDOM_SKIP }, () => {
   before(() => {
     ui = running();
     // 它真实的一轮：先连着读几份，说一句，生成，再说一句。
-    ui.post(call('c1', 'list', 'list .novelforge'));
+    ui.post(call('c1', 'list', 'list .novelwarden'));
     ui.post(done('c1', 'list', '2 项'));
     ui.post(call('c2', 'read', 'read outline.md'));
     ui.post(done('c2', 'read', '19 行'));
@@ -108,7 +108,7 @@ describe('交替（实时）', { skip: JSDOM_SKIP }, () => {
 
   // 落盘答完之后后端会把结论拼在 summary 后面重推一次，那时同样不能抹掉正文。
   test('落盘的结论补上来，正文照旧不丢', () => {
-    ui.post(done('c3', 'generate', '全书大纲 · 6104 字 · 已写入 .novelforge/outline.md', 23600));
+    ui.post(done('c3', 'generate', '全书大纲 · 6104 字 · 已写入 .novelwarden/outline.md', 23600));
     const c = card(ui, 'a1', 'c3');
     assert.ok(c.querySelector('.gen-state-text').textContent.includes('已写入'));
     assert.ok(c.querySelector('.gen-body').textContent.includes('全书结构一览'));
@@ -140,7 +140,7 @@ describe('交替（实时）', { skip: JSDOM_SKIP }, () => {
       callId: 'c9',
       name: 'generate',
       title: 'generate 正文·生成',
-      argsText: '{ "target": ".novelforge/summaries/012.md" }',
+      argsText: '{ "target": ".novelwarden/summaries/012.md" }',
     });
     const det = card(fresh, 'a1', 'c9').querySelector('details.gen-args');
     assert.ok(det, card(fresh, 'a1', 'c9').innerHTML);
@@ -175,7 +175,7 @@ describe('交替（重开面板时回放）', { skip: JSDOM_SKIP }, () => {
                 name: 'generate',
                 title: 'generate 大纲·生成',
                 ok: true,
-                summary: '全书大纲 · 6104 字 · 已写入 .novelforge/outline.md',
+                summary: '全书大纲 · 6104 字 · 已写入 .novelwarden/outline.md',
                 elapsedMs: 23600,
                 output: '### 全书结构一览\n**第一卷 活着**',
               }),

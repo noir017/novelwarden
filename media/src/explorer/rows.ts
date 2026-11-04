@@ -83,7 +83,7 @@ function dirRow(entry: FsEntry, depth: number): HTMLElement {
   row.appendChild(el('span', 'fx-icon', open ? '📂' : '📁'));
   row.appendChild(el('span', 'fx-name', entry.name));
 
-  // 点开头的目录（.novelforge / .vscode）压暗一点，与 VS Code 一致：
+  // 点开头的目录（.novelwarden / .vscode）压暗一点，与 VS Code 一致：
   // 它们看得见、打得开，但不该跟正文抢注意力。
   if (entry.name.startsWith('.')) {
     row.classList.add('fx-dotted');

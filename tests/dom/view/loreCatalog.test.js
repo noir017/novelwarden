@@ -13,7 +13,7 @@ const { describe, test, before } = require('node:test');
 const assert = require('node:assert/strict');
 const { mount, JSDOM_SKIP, sampleTree } = require('../../helpers/dom');
 
-const LORE = '.novelforge/lore';
+const LORE = '.novelwarden/lore';
 
 /** 33 个只出现过一次的杂项，凑出一条超过 30 个的长尾。 */
 const filler = Array.from({ length: 33 }, (_, i) => ({

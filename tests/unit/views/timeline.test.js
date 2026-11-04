@@ -23,7 +23,7 @@ const { views, tf, tl } = loadBundle({
   tl: './src/core/model/timelineFile.ts',
 });
 
-const DIR = '.novelforge/threads';
+const DIR = '.novelwarden/threads';
 const REL = `${DIR}/时间线.md`;
 
 const timeline = (lines, start = '三月初七') =>
@@ -50,7 +50,7 @@ function chapters(n = 6) {
       no,
       title: `章${no}`,
       chapterPath: `chapters/00${no}.txt`,
-      plotPath: `.novelforge/summaries/00${no}.md`,
+      plotPath: `.novelwarden/summaries/00${no}.md`,
       synopsis: no === 3 ? '林昭夜探青崖镇，撞见黑衣人。' : '',
       timePlace: no === 3 ? '次日夜里，青崖镇' : '',
       finalized: true,
@@ -97,7 +97,7 @@ describe('时间线总览 · 轴', () => {
     assert.ok(cards.get(3).detail.includes('故事第 6 天，历时 3 天，到三月十四；比上一章：+5 天'), cards.get(3).detail.join('\n'));
     assert.ok(cards.get(3).detail.includes('细纲写的时间地点：次日夜里，青崖镇'), cards.get(3).detail.join('\n'));
     assert.equal(cards.get(1).chapterPath, 'chapters/001.txt');
-    assert.equal(cards.get(1).plotPath, '.novelforge/summaries/001.md');
+    assert.equal(cards.get(1).plotPath, '.novelwarden/summaries/001.md');
     assert.equal(cards.get(1).machine, true);
   });
 

@@ -54,7 +54,7 @@ describe('新建第 1 章：建完就打开', () => {
     await controller.handle({ type: 'projectAction', action: 'newChapter', open: true });
     assert.equal(fakeHost.inputs.length, 1);
     assert.ok(fs.existsSync(t.rel('chapters/001-楔子.txt')));
-    assert.ok(fs.existsSync(t.rel('.novelforge/summaries/001-楔子.md')));
+    assert.ok(fs.existsSync(t.rel('.novelwarden/summaries/001-楔子.md')));
     assert.deepEqual(fakeHost.opened, ['chapters/001-楔子.txt']);
   });
 

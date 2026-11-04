@@ -393,7 +393,7 @@ describe('artifact.ts · 空产物与描述', () => {
  * 磁盘那份。作者手定的「全书 100 章」不该因为重写一次梗概就被抹掉。
  */
 describe('采纳 · 小说配置（覆盖要审阅，frontmatter 合并）', () => {
-  const rel = '.novelforge/config.md';
+  const rel = '.novelwarden/config.md';
   const artifact = () =>
     A.parseArtifact({ stage: 'setting', capability: 'generate' }, JSON.stringify({
       genre: '武侠',
@@ -478,21 +478,21 @@ describe('采纳 · 故事前提 / 世界观', () => {
       kind: 'settingDoc', doc: 'premise', sections: { 核心冲突链: '另一条冲突链' },
     });
     assert.equal(kept.skipped, true, kept.message);
-    assert.ok(t.read('.novelforge/premise.md').includes('回镇 → 被认出'), t.read('.novelforge/premise.md'));
+    assert.ok(t.read('.novelwarden/premise.md').includes('回镇 → 被认出'), t.read('.novelwarden/premise.md'));
   });
 
   test('前提写进 premise.md', () => {
-    assert.equal(premise.relPath, '.novelforge/premise.md', premise.message);
-    assert.ok(t.read('.novelforge/premise.md').includes('回镇 → 被认出'), t.read('.novelforge/premise.md'));
+    assert.equal(premise.relPath, '.novelwarden/premise.md', premise.message);
+    assert.ok(t.read('.novelwarden/premise.md').includes('回镇 → 被认出'), t.read('.novelwarden/premise.md'));
   });
 
   test('世界观写进 world.md', () => {
-    assert.equal(world.relPath, '.novelforge/world.md', world.message);
+    assert.equal(world.relPath, '.novelwarden/world.md', world.message);
   });
 
   // 空小节保留占位：作者手改时知道该往哪填。
   test('没给的小节留着标题', () => {
-    assert.ok(t.read('.novelforge/premise.md').includes('## 悬念骨架'), t.read('.novelforge/premise.md'));
+    assert.ok(t.read('.novelwarden/premise.md').includes('## 悬念骨架'), t.read('.novelwarden/premise.md'));
   });
 
   test('两件都算填过了', () => {
@@ -510,7 +510,7 @@ describe('采纳 · 故事前提 / 世界观', () => {
  *   从前是一律跳过——那样作者想重做角色图谱时，已有的卡永远换不掉。
  */
 describe('采纳 · 角色图谱（新卡直接建，同名的先审阅）', () => {
-  const MINE = '.novelforge/characters/林昭.md';
+  const MINE = '.novelwarden/characters/林昭.md';
   const handWritten = '---\nname: 林昭\naliases: [阿昭]\n---\n\n# 林昭\n\n## 身份\n\n作者改得很细的一段。\n\n## 性格\n\n作者写的性格。\n';
   const roster = {
     kind: 'characterRoster',
@@ -562,7 +562,7 @@ describe('采纳 · 角色图谱（新卡直接建，同名的先审阅）', () 
   });
 
   test('撞上别名的不另建一张', () => {
-    assert.ok(!t.has('.novelforge/characters/阿昭.md'));
+    assert.ok(!t.has('.novelwarden/characters/阿昭.md'));
   });
 
   test('新卡带上定位、别名与身份', async () => {
@@ -596,8 +596,8 @@ describe('采纳 · 角色图谱（新卡直接建，同名的先审阅）', () 
  * 出来才定得下来。采纳时按章号与产物带的标题新建。
  */
 describe('采纳 · 细纲（新建：落点是占位路径）', () => {
-  const placeholder = { kind: 'plot', plotRelPath: '.novelforge/summaries/012.md' };
-  const REL = '.novelforge/summaries/012-夜入青云.md';
+  const placeholder = { kind: 'plot', plotRelPath: '.novelwarden/summaries/012.md' };
+  const REL = '.novelwarden/summaries/012-夜入青云.md';
   let result;
   let confirms;
   let plot;
@@ -666,22 +666,22 @@ describe('采纳 · 细纲（新建：落点是占位路径）', () => {
   test(
     '同号已有细纲时，按占位路径再采纳一次也要先问覆盖',
     async () => {
-      await accept({ kind: 'plot', plotRelPath: '.novelforge/summaries/013.md' }, {
+      await accept({ kind: 'plot', plotRelPath: '.novelwarden/summaries/013.md' }, {
         kind: 'plot', title: '藏书阁', sections: { ...SECTIONS, 关键事件: '第一版。' },
       });
       h.expect(); // 不排答案：真弹了审阅就当取消
-      const second = await accept({ kind: 'plot', plotRelPath: '.novelforge/summaries/013.md' }, {
+      const second = await accept({ kind: 'plot', plotRelPath: '.novelwarden/summaries/013.md' }, {
         kind: 'plot', title: '藏书阁', sections: { ...SECTIONS, 关键事件: '第二版。' },
       });
       assert.equal(h.confirms.length, 1, `弹了 ${h.confirms.length} 次审阅：${second.message}`);
-      assert.ok(t.read('.novelforge/summaries/013-藏书阁.md').includes('第一版'), '第一版被静默覆盖了');
+      assert.ok(t.read('.novelwarden/summaries/013-藏书阁.md').includes('第一版'), '第一版被静默覆盖了');
     }
   );
 });
 
 describe('采纳 · 细纲（覆盖要审阅）', () => {
-  const target = { kind: 'plot', plotRelPath: '.novelforge/summaries/012-夜入青云.md' };
-  const FINALIZED = '.novelforge/summaries/014-定稿过.md';
+  const target = { kind: 'plot', plotRelPath: '.novelwarden/summaries/012-夜入青云.md' };
+  const FINALIZED = '.novelwarden/summaries/014-定稿过.md';
   const next = {
     ...SECTIONS,
     关键事件: '改成三拍：踩点、被狗惊动、翻墙；收在藏书阁门口。',
@@ -737,7 +737,7 @@ describe('采纳 · 细纲（覆盖要审阅）', () => {
 
   test('标题沿用磁盘那份（文件名不变）', () => {
     assert.equal(plot.title, '夜入青云');
-    assert.ok(!t.has('.novelforge/summaries/012-别的名字.md'));
+    assert.ok(!t.has('.novelwarden/summaries/012-别的名字.md'));
   });
 
   test('目标字数沿用磁盘那份', () => {
@@ -777,7 +777,7 @@ describe('采纳 · 细纲（覆盖要审阅）', () => {
  * 这一章会永远显示（或永远不显示）「正文与细纲对不上」。
  */
 describe('采纳 · 正文（落到同号章节）', () => {
-  const plotRelPath = '.novelforge/summaries/012-夜入青云.md';
+  const plotRelPath = '.novelwarden/summaries/012-夜入青云.md';
   const CHAPTER = 'chapters/012-夜入青云.txt';
   const target = { kind: 'manuscript', plotRelPath };
   let result;
@@ -1009,12 +1009,12 @@ describe('采纳 · 认不出是哪一章时报错而不是乱写', () => {
 
   before(async () => {
     try {
-      await accept({ kind: 'plot', plotRelPath: '.novelforge/summaries/没有章号.md' }, { kind: 'plot', sections: SECTIONS });
+      await accept({ kind: 'plot', plotRelPath: '.novelwarden/summaries/没有章号.md' }, { kind: 'plot', sections: SECTIONS });
     } catch (err) {
       plotMessage = String(err.message ?? err);
     }
     try {
-      await accept({ kind: 'manuscript', plotRelPath: '.novelforge/summaries/没有章号.md' }, { kind: 'manuscript', text: 'x' });
+      await accept({ kind: 'manuscript', plotRelPath: '.novelwarden/summaries/没有章号.md' }, { kind: 'manuscript', text: 'x' });
     } catch (err) {
       manuscriptMessage = String(err.message ?? err);
     }
@@ -1029,7 +1029,7 @@ describe('采纳 · 认不出是哪一章时报错而不是乱写', () => {
   });
 
   test('没有凭空造出细纲或章节', () => {
-    assert.ok(!t.has('.novelforge/summaries/没有章号.md'));
+    assert.ok(!t.has('.novelwarden/summaries/没有章号.md'));
     assert.ok(!t.has('chapters/没有章号.md'));
   });
 
@@ -1037,9 +1037,9 @@ describe('采纳 · 认不出是哪一章时报错而不是乱写', () => {
   // 正文，那就按号新建一个没有标题的章节——不拿路径里的词干当标题（那不是作者起的），
   // 也不凭空造一份细纲；没有细纲，writtenFrom 就无处可记，这一章永不标脏（第 18a 条）。
   test('细纲与同号章节都不存在时，按号新建章节、不造细纲', async () => {
-    await accept({ kind: 'manuscript', plotRelPath: '.novelforge/summaries/999-不存在.md' }, { kind: 'manuscript', text: '雨停了。' });
+    await accept({ kind: 'manuscript', plotRelPath: '.novelwarden/summaries/999-不存在.md' }, { kind: 'manuscript', text: '雨停了。' });
     assert.ok(t.has('chapters/999.txt'), '没有按号新建章节');
     assert.ok(t.read('chapters/999.txt').includes('雨停了。'));
-    assert.ok(!t.has('.novelforge/summaries/999-不存在.md') && !t.has('.novelforge/summaries/999.md'), '凭空造了细纲');
+    assert.ok(!t.has('.novelwarden/summaries/999-不存在.md') && !t.has('.novelwarden/summaries/999.md'), '凭空造了细纲');
   });
 });

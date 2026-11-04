@@ -559,7 +559,7 @@ export interface SearchResult {
 
 ## 给接手 agent 的提示词
 
-> 你在 novel-forge 仓库里执行「一期：workspace 读写网关」。前置是零期（事件流 provider），确认它已经合入。
+> 你在 novelwarden 仓库里执行「一期：workspace 读写网关」。前置是零期（事件流 provider），确认它已经合入。
 >
 > 先读 `AGENTS.md`（尤其第 3、6、7、8、9、10、18 条）、`src/core/README.md` 的「已知约定」全段、以及 `docs/design/specs/2026-08-15-agent-architecture-design.md` 的 L1 一节。然后读这六个文件，它们是你要收敛的对象：
 > `src/core/model/project.ts`、`src/core/features/creation.ts`、`src/core/files/{fileOps,fileEditing,projectFiles}.ts`、`src/core/features/splitChapter.ts`。

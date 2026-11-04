@@ -1,4 +1,4 @@
-//! sidecar（`novelforge` 单文件可执行）的生命周期。
+//! sidecar（`novelwarden` 单文件可执行）的生命周期。
 //!
 //! ## 就绪信号为什么是 stdout 里那行 URL
 //!
@@ -27,7 +27,7 @@ use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
 /// tauri.conf.json 里 `externalBin` 的末段，也是 scripts/build-sidecar.js 的 BASE。
-const BIN: &str = "novelforge";
+const BIN: &str = "novelwarden";
 const URL_PREFIX: &str = "http://127.0.0.1:";
 
 /// 轮询间隔与两个阈值。
@@ -44,7 +44,7 @@ pub struct Sidecar {
 }
 
 /// 收掉当前 sidecar。**退出时必须调**：Windows 上留下孤儿进程会占着端口，
-/// 还会占着 `.novelforge/novelforge.db`（`src/core/runtime/db.ts` 里记过这个 EBUSY 坑）。
+/// 还会占着 `.novelwarden/novelwarden.db`（`src/core/runtime/db.ts` 里记过这个 EBUSY 坑）。
 ///
 /// 幂等——没有在跑的子进程时什么都不做。
 pub fn kill(app: &AppHandle) {

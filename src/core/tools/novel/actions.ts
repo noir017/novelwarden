@@ -205,7 +205,7 @@ export function countedBy(calls: number, what: string, idle = '没有待处理�
  */
 export function handed(what: string): ActionResult {
   return {
-    text: `${what}已交给 Novel Forge 执行（确认框、结果与调用次数都在作者那边的界面和日志里）。要知道改了什么，用 read 看对应文件。`,
+    text: `${what}已交给 Novelwarden 执行（确认框、结果与调用次数都在作者那边的界面和日志里）。要知道改了什么，用 read 看对应文件。`,
     calls: 0,
   };
 }

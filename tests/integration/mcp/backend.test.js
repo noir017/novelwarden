@@ -33,8 +33,8 @@ const PLOT_JSON = JSON.stringify({
   看点: '第三块令牌',
 });
 
-const P1 = '.novelforge/summaries/001-夜入青云.md';
-const P2 = '.novelforge/summaries/002-藏书阁.md';
+const P1 = '.novelwarden/summaries/001-夜入青云.md';
+const P2 = '.novelwarden/summaries/002-藏书阁.md';
 
 let bundle;
 let home;
@@ -346,7 +346,7 @@ describe('skills：按动作分闸门', () => {
     assert.equal(gates.length, 1);
     assert.ok(gates[0].title.includes('绑到「写正文」阶段'), gates[0].title);
     assert.equal(r.isError, false, r.text);
-    assert.equal(t.has('.novelforge/skills.json'), false);
+    assert.equal(t.has('.novelwarden/skills.json'), false);
   });
 });
 

@@ -75,7 +75,7 @@ describe('新建章节文件：先问名字、配上细纲', () => {
       toasts = [...h.toasts];
       body = t.read(rel);
       project.invalidate();
-      plot = await project.readPlot('.novelforge/summaries/002-夜入-青云.md');
+      plot = await project.readPlot('.novelwarden/summaries/002-夜入-青云.md');
       paired = (await project.getPlot(2))?.relPath;
     });
 
@@ -91,7 +91,7 @@ describe('新建章节文件：先问名字、配上细纲', () => {
     });
 
     test('细纲建在正文的镜像位置，按路径配得上', () => {
-      assert.equal(paired, '.novelforge/summaries/002-夜入-青云.md');
+      assert.equal(paired, '.novelwarden/summaries/002-夜入-青云.md');
     });
 
     test('细纲的标题与文件名同一份清洗过的名字', () => {
@@ -104,7 +104,7 @@ describe('新建章节文件：先问名字、配上细纲', () => {
     });
 
     test('提示里报了细纲的路径', () => {
-      assert.ok(toasts.some((x) => x.includes('.novelforge/summaries/002-夜入-青云.md')), toasts.join(' | '));
+      assert.ok(toasts.some((x) => x.includes('.novelwarden/summaries/002-夜入-青云.md')), toasts.join(' | '));
     });
   });
 
@@ -124,7 +124,7 @@ describe('新建章节文件：先问名字、配上细纲', () => {
     });
 
     test('细纲也建了', () => {
-      assert.equal(plotRel, '.novelforge/summaries/003.md');
+      assert.equal(plotRel, '.novelwarden/summaries/003.md');
     });
   });
 
@@ -142,22 +142,22 @@ describe('新建章节文件：先问名字、配上细纲', () => {
 
     before(async () => {
       // 正文写到第 3 章，细纲已经排到了第二卷的第 4、5 章。
-      t.write('.novelforge/summaries/第二卷/004-雪夜.md', PLAN(4, '雪夜'));
-      t.write('.novelforge/summaries/第二卷/005-风起.md', PLAN(5, '风起'));
+      t.write('.novelwarden/summaries/第二卷/004-雪夜.md', PLAN(4, '雪夜'));
+      t.write('.novelwarden/summaries/第二卷/005-风起.md', PLAN(5, '风起'));
       project.invalidate();
 
       h.expect('雪夜');
       same = await actions.newChapterFlow(project);
       sameAsk = h.inputs[0];
-      sameBytes = t.read('.novelforge/summaries/第二卷/004-雪夜.md');
+      sameBytes = t.read('.novelwarden/summaries/第二卷/004-雪夜.md');
       project.invalidate();
       sameCount = (await project.listPlots()).filter((p) => p.no === 4).length;
 
       h.expect('夜行');
       renamed = await actions.newChapterFlow(project);
       renamedAsk = h.inputs[0];
-      renamedPlot = t.has('.novelforge/summaries/第二卷/005-夜行.md') ? t.read('.novelforge/summaries/第二卷/005-夜行.md') : undefined;
-      oldGone = !t.has('.novelforge/summaries/第二卷/005-风起.md');
+      renamedPlot = t.has('.novelwarden/summaries/第二卷/005-夜行.md') ? t.read('.novelwarden/summaries/第二卷/005-夜行.md') : undefined;
+      oldGone = !t.has('.novelwarden/summaries/第二卷/005-风起.md');
     });
 
     test('名字先填了细纲的标题', () => {

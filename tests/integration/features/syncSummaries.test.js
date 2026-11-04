@@ -25,9 +25,9 @@ let t;
 let project;
 
 const CH = (no) => `chapters/00${no}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/00${no}-第${no}章.md`;
-const CARD = '.novelforge/characters/林昭.md';
-const THREADS = '.novelforge/threads/玉佩的来历.md';
+const PLOT = (no) => `.novelwarden/summaries/00${no}-第${no}章.md`;
+const CARD = '.novelwarden/characters/林昭.md';
+const THREADS = '.novelwarden/threads/玉佩的来历.md';
 const textOf = (no) => `林昭在第${no}章摸了摸怀里的玉佩。\n\n沈氏在第${no}章翻开名册。`;
 
 /** 给了章号就让那一章的定稿答坏（第一步失败那一节）。 */

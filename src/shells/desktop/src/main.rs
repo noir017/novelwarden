@@ -1,7 +1,7 @@
 // Windows 的 release 构建不要挂控制台窗口。
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-//! Novel Forge 桌面壳。
+//! Novelwarden 桌面壳。
 //!
 //! 它做三件事，没有第四件：
 //!
@@ -9,8 +9,8 @@
 //! 2. 等它就绪，把窗口从本地 splash 页导航到 `http://127.0.0.1:PORT/`
 //! 3. 退出时把 sidecar 收掉
 //!
-//! 上次打开的工程由 sidecar 读 `~/.novelforge/window.json` 恢复，与浏览器里
-//! 跑 `novelforge` 同一条路。打开/关闭文件夹不重启 sidecar。
+//! 上次打开的工程由 sidecar 读 `~/.novelwarden/window.json`（旧 `~/.novelforge/` 兜底）恢复，与浏览器里
+//! 跑 `novelwarden` 同一条路。打开/关闭文件夹不重启 sidecar。
 
 mod project;
 mod sidecar;

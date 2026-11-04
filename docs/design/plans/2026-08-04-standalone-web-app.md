@@ -1,8 +1,8 @@
-# Novel Forge 双形态改造实施计划
+# Novelwarden 双形态改造实施计划
 
 
 
-**Goal:** 把 Novel Forge 从纯 VS Code 插件改造为「共享核心 + VS Code 壳 + Bun 独立 Web 服务壳」的双形态架构，独立版 `novelforge [dir]` 启动本机 Web 服务，浏览器即可续写/管理小说工程。
+**Goal:** 把 Novelwarden 从纯 VS Code 插件改造为「共享核心 + VS Code 壳 + Bun 独立 Web 服务壳」的双形态架构，独立版 `novelforge [dir]` 启动本机 Web 服务，浏览器即可续写/管理小说工程。
 
 **Architecture:** `src/core/` 零 vscode 依赖（数据层、上下文装配、LLM、controller、协议），通过窄接口 `Host` 获取宿主能力（配置、密钥、弹窗、进度、文件监听）；`src/vscode/` 是插件壳；`src/standalone/` 是 Bun HTTP+WebSocket 服务壳，复用现有 `InMessage/OutMessage` 协议与 `media/view.js` 前端（经 `bridge.js` 把 WebSocket 伪装成 webview API）。设计文档见 `docs/design/specs/2026-08-04-standalone-web-app-design.md`。
 
@@ -1131,7 +1131,7 @@ export class VsCodeHost implements Host {
 
   async confirm(message: string, actions: string[], opts?: { modal?: boolean; detail?: string }) {
     return vscode.window.showInformationMessage(
-      `Novel Forge：${message}`, { modal: opts?.modal ?? false, detail: opts?.detail }, ...actions);
+      `Novelwarden：${message}`, { modal: opts?.modal ?? false, detail: opts?.detail }, ...actions);
   }
 
   async pick<T>(choices: PickChoice<T>[], title: string): Promise<T | undefined> {
@@ -1147,7 +1147,7 @@ export class VsCodeHost implements Host {
     source.token.onCancellationRequested(() => abort.abort());
     try {
       return await vscode.window.withProgress(
-        { location: vscode.ProgressLocation.Notification, title: `Novel Forge：${title}`, cancellable: true },
+        { location: vscode.ProgressLocation.Notification, title: `Novelwarden：${title}`, cancellable: true },
         async (progress, token) => {
           token.onCancellationRequested(() => abort.abort());
           return fn(abort.signal, (message) => progress.report({ message }));
@@ -1176,8 +1176,8 @@ export class VsCodeHost implements Host {
   }
 
   toast(message: string, level: 'info' | 'error' = 'info'): void {
-    if (level === 'error') void vscode.window.showErrorMessage(`Novel Forge：${message}`);
-    else void vscode.window.showInformationMessage(`Novel Forge：${message}`);
+    if (level === 'error') void vscode.window.showErrorMessage(`Novelwarden：${message}`);
+    else void vscode.window.showInformationMessage(`Novelwarden：${message}`);
   }
 
   selectionAttachment(project: NovelProject): Promise<Attachment | undefined> {
@@ -1197,7 +1197,7 @@ export class VsCodeHost implements Host {
     await vscode.commands.executeCommand('vscode.diff',
       undefined /* 由 controller 传当前文件 uri */, undefined, `角色卡：${name}（审阅）`);
     const pick = await vscode.window.showInformationMessage(
-      `Novel Forge：采纳对「${name}」的更新？`, { modal: true }, '采纳', '放弃');
+      `Novelwarden：采纳对「${name}」的更新？`, { modal: true }, '采纳', '放弃');
     return pick === '采纳' ? 'apply' : pick === '放弃' ? 'discard' : undefined;
   }
 
@@ -1679,7 +1679,7 @@ export function standalonePage(): string {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="/media/view.css" rel="stylesheet">
-<title>Novel Forge</title>
+<title>Novelwarden</title>
 </head>
 <body>
 ……（照抄 webviewHtml.ts 的 tabbar / 四个 pane / providerModal / toast）……
@@ -1775,7 +1775,7 @@ export function startServer(opts: ServeOptions): void {
     },
   });
 
-  console.log(`Novel Forge 已启动：http://127.0.0.1:${server.port}/（工程：${opts.root}）`);
+  console.log(`Novelwarden 已启动：http://127.0.0.1:${server.port}/（工程：${opts.root}）`);
 }
 ```
 
@@ -1984,7 +1984,7 @@ export async function migrateVscodeSettings(secrets: vscode.SecretStorage): Prom
   void cfgProviders; void secrets; void secretStore;
 
   void vscode.window.showInformationMessage(
-    'Novel Forge：配置与密钥已迁移到 ~/.novelforge/，VS Code 内的旧配置可手动清理。');
+    'Novelwarden：配置与密钥已迁移到 ~/.novelforge/，VS Code 内的旧配置可手动清理。');
   return true;
 }
 ```

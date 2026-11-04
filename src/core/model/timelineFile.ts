@@ -6,7 +6,7 @@
  * ---
  * calendar: 简单历          # 简单历（每月 30 天、一年 12 个月）/ 公历；缺席是简单历
  * start: 大衍三年三月初七     # 第 1 天是哪天；不填只显示「第几天」
- * generatedBy: novel-forge
+ * generatedBy: novelwarden
  * ---
  *
  * # 时间线
@@ -1331,7 +1331,7 @@ export const TIMELINE_TEMPLATE = [
   '---',
   'calendar: 简单历',
   'start: ',
-  'generatedBy: novel-forge',
+  'generatedBy: novelwarden',
   '---',
   '',
   `# ${TIMELINE_NAME}`,

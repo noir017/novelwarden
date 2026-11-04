@@ -35,7 +35,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // 晚注册的话那几条只进缓冲、不进面板。缓冲里的先补一遍即可。
   registerOutputChannel(context);
 
-  // 老用户的 settings.json / SecretStorage 一次性搬到 ~/.novelforge/，之后双壳共用文件后端。
+  // 老用户的 settings.json / SecretStorage 一次性搬到 ~/.novelwarden/，之后双壳共用文件后端。
   await migrateVscodeSettings(context.secrets);
   initHost(new VsCodeHost(new FileConfigStore()));
   setLegacyConfigReader(legacySettingsReader);
@@ -355,7 +355,7 @@ export function deactivate(): void {
 
 // ---------------------------------------------------------------- 日志
 
-/** 「Novel Forge」输出面板。整个插件生命周期内只有一个。 */
+/** 「Novelwarden」输出面板。整个插件生命周期内只有一个。 */
 let outputChannel: vscode.OutputChannel | undefined;
 
 /**
@@ -365,7 +365,7 @@ let outputChannel: vscode.OutputChannel | undefined;
  * 配置读取等模块在 import 期就可能打过日志了。
  */
 function registerOutputChannel(context: vscode.ExtensionContext): void {
-  const channel = vscode.window.createOutputChannel('Novel Forge');
+  const channel = vscode.window.createOutputChannel('Novelwarden');
   outputChannel = channel;
   for (const entry of recentLogs()) {
     channel.appendLine(formatLogEntry(entry));
@@ -401,19 +401,19 @@ const NO_WORKSPACE_HTML = `<!DOCTYPE html>
 body { font-family: var(--vscode-font-family); font-size: var(--vscode-font-size);
        color: var(--vscode-descriptionForeground); padding: 16px; line-height: 1.7; }
 </style></head>
-<body><p>请先打开一个文件夹作为工作区，Novel Forge 的所有数据都存在工作区里。</p></body></html>`;
+<body><p>请先打开一个文件夹作为工作区，Novelwarden 的所有数据都存在工作区里。</p></body></html>`;
 
 /**
- * 0.1.x 把元数据放在 `.novel/`。检测到旧目录就问一次是否改名，
- * 不静默动用户的文件——那目录可能已经进了 Git。
+ * 0.1.x 把元数据放在 `.novel/`，0.2.x 起放在 `.novelforge/`。检测到任一旧目录就问一次
+ * 是否改名到 `.novelwarden/`，不静默动用户的文件——那目录可能已经进了 Git。
  */
 async function offerMigration(project: NovelProject): Promise<void> {
   if (!(await project.needsMigration())) {
     return;
   }
-  log.warn('检测到 0.1.x 的 .novel/ 目录', `工程根 ${project.root}`);
+  log.warn('检测到旧版数据目录（.novelforge/ 或 .novel/）', `工程根 ${project.root}`);
   const pick = await getHost().confirm(
-    '检测到旧版数据目录 .novel/，新版已改名为 .novelforge/。要现在重命名吗？',
+    '检测到旧版数据目录（.novelforge/ 或 .novel/），新版已改名为 .novelwarden/。要现在重命名吗？',
     ['重命名', '暂不']
   );
   if (pick !== '重命名') {
@@ -422,11 +422,11 @@ async function offerMigration(project: NovelProject): Promise<void> {
   }
   try {
     await project.migrateLegacyDir();
-    log.info('.novel/ 已重命名为 .novelforge/');
-    getHost().toast('已重命名为 .novelforge/。若用 Git 管理，记得提交这次改名。');
+    log.info('旧数据目录已重命名为 .novelwarden/');
+    getHost().toast('已重命名为 .novelwarden/。若用 Git 管理，记得提交这次改名。');
   } catch (err) {
     log.error(`目录重命名失败：${describeError(err)}`, err);
-    getHost().toast(`重命名失败（${describeError(err)}）。可手动把 .novel 改名为 .novelforge。`, 'error');
+    getHost().toast(`重命名失败（${describeError(err)}）。可手动把旧目录改名为 .novelwarden。`, 'error');
   }
 }
 

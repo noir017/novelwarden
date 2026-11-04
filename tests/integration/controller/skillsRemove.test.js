@@ -3,7 +3,7 @@
  *
  * | 断言 | 为什么 |
  * |---|---|
- * | 作者点了「删除」：整个技能目录进 `.novelforge/.trash/`，绑了它的阶段解绑 | 不真删；留着绑定会让每次生成都报「找不到」 |
+ * | 作者点了「删除」：整个技能目录进 `.novelwarden/.trash/`，绑了它的阶段解绑 | 不真删；留着绑定会让每次生成都报「找不到」 |
  * | 作者取消：目录与绑定都不动 | 删除要先问 |
  * | 内置技能拦下 | 内置的删不掉 |
  */
@@ -46,7 +46,7 @@ after(() => {
 async function fresh(prefix) {
   const t = await makeTempProject(bundle.project, { prefix, title: '删技能' });
   projects.push(t);
-  t.write('.novelforge/skills/玄天录-写法/SKILL.md', SKILL);
+  t.write('.novelwarden/skills/玄天录-写法/SKILL.md', SKILL);
   t.project.invalidate();
   const workspace = new bundle.ws.Workspace(t.project);
   await bundle.skills.saveSkillBinding(t.project, workspace, 'planning', 'project:玄天录-写法');
@@ -61,8 +61,8 @@ describe('删本工程的技能', () => {
     const { t, scope, sink, posts, toasts } = await fresh('skill-rm');
     h.expect('删除');
     await bundle.ctl.uninstallSkillFrom(sink, scope, 'project:玄天录-写法');
-    assert.ok(!t.has('.novelforge/skills/玄天录-写法'));
-    assert.match(t.read('.novelforge/.trash/.novelforge/skills/玄天录-写法/SKILL.md'), /每章两到三个场景/);
+    assert.ok(!t.has('.novelwarden/skills/玄天录-写法'));
+    assert.match(t.read('.novelwarden/.trash/.novelwarden/skills/玄天录-写法/SKILL.md'), /每章两到三个场景/);
     const { bindings } = await bundle.skills.readSkillBindings(t.project);
     assert.equal(bindings.planning, undefined);
     assert.match(h.confirms.at(-1).message, /删掉本工程的技能「《玄天录》的写法」/);
@@ -75,7 +75,7 @@ describe('删本工程的技能', () => {
     const { t, scope, sink } = await fresh('skill-keep');
     h.expect(undefined);
     await bundle.ctl.uninstallSkillFrom(sink, scope, 'project:玄天录-写法');
-    assert.ok(t.has('.novelforge/skills/玄天录-写法/SKILL.md'));
+    assert.ok(t.has('.novelwarden/skills/玄天录-写法/SKILL.md'));
     const { bindings } = await bundle.skills.readSkillBindings(t.project);
     assert.equal(bindings.planning, 'project:玄天录-写法');
   });

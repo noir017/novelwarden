@@ -25,7 +25,7 @@
  * - **用户与工程技能的身份是目录名**（上游取 frontmatter 的 `name`、目录名只是回落）。
  *   一份手放进来的技能 frontmatter 写的名字与目录不一样时，上游按 frontmatter 认、按它去删，
  *   结果删了个空；这里只有一个名字，`display_name` 与 `name` 只用来显示。
- * - **没有中英双语**：novelForge 只写中文，`language` 字段不读。
+ * - **没有中英双语**：Novelwarden 只写中文，`language` 字段不读。
  * - **认常规技能格式**（2026-10-21）：上游一行一个键地读 frontmatter、引用旁边的文件就判不兼容、
  *   声明了 `allowed-tools` 就判依赖工具。这里 frontmatter 按 YAML 读顶层键，附带文件一起带，
  *   `allowed-tools` 不算——上游原样的技能目录放进来就能用。见
@@ -38,7 +38,7 @@ import type { CreationAction, WriteMode } from './pipeline';
 /**
  * 四个阶段，照搬上游。一个工程每个阶段最多绑一份。
  *
- * 与 novelForge 的创作阶段对得上（{@link skillStageOf}）：规划 = 架构 / 大纲 / 细纲三层的
+ * 与 Novelwarden 的创作阶段对得上（{@link skillStageOf}）：规划 = 架构 / 大纲 / 细纲三层的
  * 生成与沉淀，写正文 = 写、接着写、重写与它们的续写，审稿与修稿各是正文层的一张配方。
  */
 export const SKILL_STAGES = ['planning', 'drafting', 'review', 'refinement'] as const;
@@ -55,7 +55,7 @@ export function isSkillStage(value: unknown): value is SkillStage {
   return typeof value === 'string' && (SKILL_STAGES as readonly string[]).includes(value);
 }
 
-/** 内置的随应用发布；我的技能库在 `~/.novelforge/skills/`；本工程的在 `.novelforge/skills/`。 */
+/** 内置的随应用发布；我的技能库在 `~/.novelwarden/skills/`；本工程的在 `.novelwarden/skills/`。 */
 export type SkillSource = 'builtin' | 'user' | 'project';
 
 export const SKILL_SOURCES: readonly SkillSource[] = ['builtin', 'user', 'project'];
@@ -499,7 +499,7 @@ export function parseSkillId(id: unknown): { source: SkillSource; name: string }
 export type SkillBindings = Partial<Record<SkillStage, string>>;
 
 /**
- * `.novelforge/skills.json` 的内容。形状照搬上游的 `.vela/writing-skills.json`：
+ * `.novelwarden/skills.json` 的内容。形状照搬上游的 `.vela/writing-skills.json`：
  * `{ "version": 1, "bindings": { "drafting": "builtin:plain-prose" } }`。
  *
  * **容错**（第 1 条）：读不懂的整份当成没绑、认不出的那一项跳过，但都写进 `problems`——

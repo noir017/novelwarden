@@ -28,10 +28,10 @@ let fake;
 let t;
 let project;
 
-const THREADS = '.novelforge/threads';
+const THREADS = '.novelwarden/threads';
 const pad3 = (n) => String(n).padStart(3, '0');
 const CH = (no) => `chapters/${pad3(no)}-第${no}章.md`;
-const PLOT = (no) => `.novelforge/summaries/${pad3(no)}-第${no}章.md`;
+const PLOT = (no) => `.novelwarden/summaries/${pad3(no)}-第${no}章.md`;
 const text = (no) => `# 第${no}章\n\n林昭在第${no}章走进青崖镇。\n\n沈氏在第${no}章翻开名册。\n`;
 
 /** 第几章认事件那一次答坏（解析不出）。 */
@@ -140,10 +140,10 @@ describe('要判哪几章（零调用）', () => {
   });
 
   test('没有情节大纲（没有一章细纲写了梗概）：不排线；中间没定稿的章列出来', async () => {
-    const dir = t.rel('.novelforge/summaries');
+    const dir = t.rel('.novelwarden/summaries');
     const saved = new Map();
     for (const name of fs.readdirSync(dir).filter((f) => /^\d/.test(f))) {
-      const rel = `.novelforge/summaries/${name}`;
+      const rel = `.novelwarden/summaries/${name}`;
       saved.set(rel, t.read(rel));
       t.write(rel, saved.get(rel).replace(/## 梗概\n[\s\S]*?(?=\n## |$)/, '## 梗概\n'));
     }

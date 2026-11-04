@@ -77,7 +77,7 @@ origin: 计划            # 计划 / 正文：排线排出来的，还是定稿�
 plan: 3-40              # 计划第几章开、第几章收；可以只写开头（3-）或不写
 progressThrough: 12     # 「当前进度」写到第几章
 progressHash: …         # 机器最后一次写「当前进度」时的指纹；对不上就是作者改过
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 
 # 林昭与沈青

@@ -9,9 +9,11 @@
  *   `resolvePlot` 不冒认别的正文的细纲。新一章落点 `subdirForNewChapter` / `plotPathOfNo`：跟上一章同一个子目录，
  *   接在最后、又有一卷还空着时落进那一卷；分卷 `listVolumes` 是章节根下的一级目录。
  * - 定稿的查询：`finalizedPlotOf`（`sourceHash` 对得上正文才算），`staleChapters` / `finalizedFacts` 都从它取。
- * - 草稿按章节路径镜像、`nextPlotNo` / `nextChapterNo`、`.novel` → `.novelforge` 迁移检测、各区目录的递归扫描，
- *   以及回收站落点 `trashPathFor`（保留原相对路径、同名加序号，第 6 条；放在这一层是因为 `model/` 不能依赖网关）。
+ * - 草稿按章节路径镜像、`nextPlotNo` / `nextChapterNo`、`.novelforge` / `.novel` → `.novelwarden` 的迁移检测、
+ *   各区目录的递归扫描，以及回收站落点 `trashPathFor`（保留原相对路径、同名加序号，第 6 条；放在这一层是因为
+ *   `model/` 不能依赖网关）。
  */
+import * as fsSync from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { readConfig } from '../config';
@@ -68,9 +70,15 @@ import { FinalizedFacts, parseContinuityFacts } from './continuity';
 import { normalizeGender } from './gender';
 import { SENSITIVE_FILE_NAME } from './sensitiveWords';
 
-const NOVEL_DIR = '.novelforge';
-/** 0.1.x 用的目录名。检测到就提示迁移，不静默改动用户文件。 */
-const LEGACY_NOVEL_DIR = '.novel';
+/**
+ * 元数据目录名。新工程只建这一个。
+ *
+ * 改名（2026-11）之前的工程还在 `.novelforge/`（0.2.x）或 `.novel/`（0.1.x）里：
+ * 读写仍落在旧目录，迁移要作者确认，**绝不在旁边新建第二个元数据目录**。
+ */
+export const NOVEL_DIR = '.novelwarden';
+/** 旧工程的元数据目录名，从新到旧。 */
+export const LEGACY_NOVEL_DIRS = ['.novelforge', '.novel'] as const;
 const MANIFEST_FILE = 'project.json';
 /** 导出全文的目录名（工程根下）。 */
 const EXPORT_DIR = '导出';
@@ -131,6 +139,9 @@ export class NovelProject {
    */
   private generation = 0;
 
+  /** 解析出来的元数据目录名（见 {@link resolveNovelDirName}）。目录不在了就重新解析。 */
+  private novelDirCache: string | undefined;
+
   private constructor(public readonly root: string) {}
 
   /** 以某目录为工程根打开实例（不做初始化检查）。 */
@@ -164,8 +175,42 @@ export class NovelProject {
     return path.join(this.root, EXPORT_DIR);
   }
 
+  /**
+   * 元数据目录（`.novelwarden/`，旧工程是 `.novelforge/` 或 `.novel/`）。
+   *
+   * 解析规则见 {@link resolveNovelDirName}：已存在的目录优先，新名字只给还没初始化的工程用。
+   * 所有读写路径（细纲、角色卡、设定、会话、回收站……）都从这里派生，旧工程因此原地可读写。
+   */
   get novelDir(): string {
-    return path.join(this.root, NOVEL_DIR);
+    return path.join(this.root, this.resolveNovelDirName());
+  }
+
+  /** 这个工程的元数据目录用的是哪个名字（`.novelwarden` / `.novelforge` / `.novel`）。 */
+  get novelDirName(): string {
+    return this.resolveNovelDirName();
+  }
+
+  /**
+   * 元数据目录名的解析：**已经存在的那个优先**，从新到旧。
+   *
+   * - 旧工程没迁移：`.novelforge/`（0.2.x）或 `.novel/`（0.1.x）还在，读写就落在那儿，
+   *   绝不在旁边新建一个空的 `.novelwarden/`（第 3 条：不静默覆盖）。
+   * - 一个都没有：给新名字，初始化（`scaffold` / `createManifest`）才把它建出来。
+   *
+   * 解析结果缓存在实例上，`invalidate()` 清掉（磁盘变过了）；没有目录时不缓存，
+   * 初始化建出目录之后下一次就能认到。
+   */
+  private resolveNovelDirName(): string {
+    if (this.novelDirCache !== undefined) {
+      return this.novelDirCache;
+    }
+    for (const name of [NOVEL_DIR, ...LEGACY_NOVEL_DIRS]) {
+      if (fsSync.existsSync(path.join(this.root, name))) {
+        this.novelDirCache = name;
+        return name;
+      }
+    }
+    return NOVEL_DIR;
   }
 
   get manifestPath(): string {
@@ -204,20 +249,20 @@ export class NovelProject {
   }
 
   /**
-   * 本工程的写作技能（`.novelforge/skills/<名字>/SKILL.md`）。可选：作者手放进来的，
-   * 初始化时不建。我的技能库在工程外（`~/.novelforge/skills/`），见 core/skills/。
+   * 本工程的写作技能（`.novelwarden/skills/<名字>/SKILL.md`）。可选：作者手放进来的，
+   * 初始化时不建。我的技能库在工程外（`~/.novelwarden/skills/`），见 core/skills/。
    */
   get skillsDir(): string {
     return path.join(this.novelDir, 'skills');
   }
 
-  /** 这个工程每个阶段绑了哪份技能（`.novelforge/skills.json`）。没绑过就没有这份文件。 */
+  /** 这个工程每个阶段绑了哪份技能（`.novelwarden/skills.json`）。没绑过就没有这份文件。 */
   get skillBindingsPath(): string {
     return path.join(this.novelDir, 'skills.json');
   }
 
   /**
-   * 自定义敏感词表（`.novelforge/sensitive.txt`，格式见 `model/sensitiveWords.ts`）。可选：作者在内置编辑器里点
+   * 自定义敏感词表（`.novelwarden/sensitive.txt`，格式见 `model/sensitiveWords.ts`）。可选：作者在内置编辑器里点
    * 「编辑敏感词表…」时才建。只给编辑器的写作体检用，不进生成链。
    */
   get sensitivePath(): string {
@@ -238,7 +283,7 @@ export class NovelProject {
   }
 
   /**
-   * 细纲（`.novelforge/summaries/`）。一章一份，**镜像正文的相对路径**：`chapters/第一卷/012-夜入青云.md`
+   * 细纲（`.novelwarden/summaries/`）。一章一份，**镜像正文的相对路径**：`chapters/第一卷/012-夜入青云.md`
    * 的细纲是 `summaries/第一卷/012-夜入青云.md`。各级子目录里数字开头的 `.md` 都是细纲，根下的
    * `global.md` 是全文大纲。老工程的 `plots/` 不再扫描——那些文件一个字节都不动。
    */
@@ -246,17 +291,17 @@ export class NovelProject {
     return this.summariesDir;
   }
 
-  /** 小说配置（`.novelforge/config.md`）：类型、卖点、规模参数。 */
+  /** 小说配置（`.novelwarden/config.md`）：类型、卖点、规模参数。 */
   get configPath(): string {
     return path.join(this.novelDir, 'config.md');
   }
 
-  /** 故事前提（`.novelforge/premise.md`）。 */
+  /** 故事前提（`.novelwarden/premise.md`）。 */
   get premisePath(): string {
     return path.join(this.novelDir, 'premise.md');
   }
 
-  /** 世界观（`.novelforge/world.md`）。 */
+  /** 世界观（`.novelwarden/world.md`）。 */
   get worldPath(): string {
     return path.join(this.novelDir, 'world.md');
   }
@@ -287,7 +332,7 @@ export class NovelProject {
   }
 
   /**
-   * 历史版本（`.novelforge/history/`）：网关覆盖一份创作产物之前存下的旧内容，镜像原文件的相对路径
+   * 历史版本（`.novelwarden/history/`）：网关覆盖一份创作产物之前存下的旧内容，镜像原文件的相对路径
    * （布局与节流见 workspace/history.ts）。是网关自己存的副本，不是作者的文件。
    */
   get historyDir(): string {
@@ -295,16 +340,16 @@ export class NovelProject {
   }
 
   /**
-   * 存档点（`.novelforge/checkpoints/`）：整本书在某一刻的样子，按内容寻址去重（布局与保留见
-   * workspace/checkpoints.ts）。Novel Forge 自己的内部文件，界面上只经「存档点」面板看。
+   * 存档点（`.novelwarden/checkpoints/`）：整本书在某一刻的样子，按内容寻址去重（布局与保留见
+   * workspace/checkpoints.ts）。Novelwarden 自己的内部文件，界面上只经「存档点」面板看。
    */
   get checkpointsDir(): string {
     return path.join(this.novelDir, 'checkpoints');
   }
 
-  /** 0.1.x 的 `.novel/` 目录，仅用于迁移检测。 */
-  get legacyNovelDir(): string {
-    return path.join(this.root, LEGACY_NOVEL_DIR);
+  /** 旧工程的元数据目录（绝对路径），从新到旧。只用于迁移检测，读写都经 {@link novelDir}。 */
+  get legacyNovelDirs(): string[] {
+    return LEGACY_NOVEL_DIRS.map((name) => path.join(this.root, name));
   }
 
   get globalSummaryPath(): string {
@@ -350,8 +395,8 @@ export class NovelProject {
    * 正文 → 它的细纲落在哪（工作区相对路径，正斜杠）。纯计算，文件可能并不存在。
    *
    * **镜像正文在章节根下的相对路径**，扩展名换成 `.md`（与草稿 {@link draftRelPathFor} 同一套）：
-   *   `chapters/第一卷/003-深处.txt` → `.novelforge/summaries/第一卷/003-深处.md`
-   *   `chapters/001 序.txt`          → `.novelforge/summaries/001 序.md`
+   *   `chapters/第一卷/003-深处.txt` → `.novelwarden/summaries/第一卷/003-深处.md`
+   *   `chapters/001 序.txt`          → `.novelwarden/summaries/001 序.md`
    * 同号的两个文件（`001 序.txt` 与 `001 正文.txt`）于是各有各的细纲，互不覆盖。
    * 正文不在章节根下（配置被改坏）时退回 `summaries/NNN.md`，绝不抛。
    */
@@ -366,7 +411,7 @@ export class NovelProject {
 
   /**
    * 细纲 → 照它写出来的正文该叫什么（{@link plotPathForChapter} 的逆运算，扩展名 `.txt`：正文一律出纯文本，2026-10-24 作者定的）：
-   *   `.novelforge/summaries/第二卷/010-雪夜.md` → `chapters/第二卷/010-雪夜.txt`
+   *   `.novelwarden/summaries/第二卷/010-雪夜.md` → `chapters/第二卷/010-雪夜.txt`
    * 不在 `summaries/` 下的路径给 undefined。纯计算，不碰磁盘。
    */
   chapterPathForPlot(plotRelPath: string): string | undefined {
@@ -468,30 +513,52 @@ export class NovelProject {
     return path.join(this.root, relPath);
   }
 
+  /** 这个工程初始化过没有：`novelDir` 下有没有 `project.json`。旧目录里的工程同样算初始化过。 */
   async isInitialized(): Promise<boolean> {
     return exists(this.manifestPath);
   }
 
-  /** 只有旧目录、没有新目录时为真——需要迁移。 */
+  /** 只有旧目录、没有新目录时为真——需要迁移。`.novelforge/`（0.2.x）与 `.novel/`（0.1.x）都算。 */
   async needsMigration(): Promise<boolean> {
-    if (await exists(this.novelDir)) {
+    if (await exists(path.join(this.root, NOVEL_DIR))) {
       return false;
     }
-    return exists(path.join(this.legacyNovelDir, MANIFEST_FILE));
+    return (await this.legacyDirToMigrate()) !== undefined;
+  }
+
+  /** 该搬到 `.novelwarden/` 的那个旧目录（从新到旧；只认有 manifest 的）。 */
+  private async legacyDirToMigrate(): Promise<string | undefined> {
+    for (const dir of this.legacyNovelDirs) {
+      if (await exists(path.join(dir, MANIFEST_FILE))) {
+        return dir;
+      }
+    }
+    return undefined;
   }
 
   /**
-   * 把 `.novel/` 整体搬到 `.novelforge/`。
-   * 用 rename 而非复制，避免留下两份会各自漂移的元数据。
+   * 把旧目录整体搬到 `.novelwarden/`（`.novelforge/` 优先，其次 `.novel/`）。
+   * 用 rename 而非复制，避免留下两份会各自漂移的元数据。没有可迁移的目录、或新目录
+   * 已经存在（不能往已有的目录上 rename）时什么也不做——**绝不删除、绝不合并**。
    */
   async migrateLegacyDir(): Promise<void> {
-    await fs.rename(this.legacyNovelDir, this.novelDir);
+    if (fsSync.existsSync(path.join(this.root, NOVEL_DIR))) {
+      return;
+    }
+    const from = await this.legacyDirToMigrate();
+    if (!from) {
+      return;
+    }
+    await fs.rename(from, path.join(this.root, NOVEL_DIR));
+    this.novelDirCache = undefined;
     this.invalidate();
   }
 
   invalidate(): void {
     this.chapterCache = undefined;
     this.plotCache = undefined;
+    // 元数据目录可能刚被初始化 / 迁移 / 改名（磁盘变过了）：下一次访问重新解析。
+    this.novelDirCache = undefined;
     // 在途的那一轮扫的是**变更之前**的磁盘状态：不能再让新调用方搭它的车，
     // 世代号 +1 也让它扫完后不要回填缓存（见 generation）。
     this.chapterScan = undefined;
@@ -637,7 +704,7 @@ export class NovelProject {
 
   /**
    * 工程里能拿来拆的整本 txt（导入原稿、从参考书学写法）：`.txt`，**章节文件、草稿与导出的全文除外**，按路径排序。
-   * 隐藏目录照例不扫（`.novelforge/` 里没有作者要导入的东西）。只列路径与大小，不读内容。
+   * 隐藏目录照例不扫（`.novelwarden/` 里没有作者要导入的东西）。只列路径与大小，不读内容。
    */
   async listImportableTexts(): Promise<{ relPath: string; bytes: number }[]> {
     const chaptersRoot = path.resolve(this.chaptersDir);
@@ -1230,7 +1297,7 @@ export class NovelProject {
  * （`003-深处-2.md`），不覆盖之前删掉的东西（AGENTS 第 6 条）。只算落点、只读（看一眼哪个名字没被占），不搬任何东西。
  *
  * 规则只有这一份：网关的 `remove` / `deletePlot` / 定稿前复制旧版（`core/workspace/` 重新导出它），与会话删除
- * （`session.ts`，会话是 Novel Forge 自己的内部文件，网关拒写 `sessions/`，所以会话不走网关、只共用这条落点规则）。
+ * （`session.ts`，会话是 Novelwarden 自己的内部文件，网关拒写 `sessions/`，所以会话不走网关、只共用这条落点规则）。
  * 放在数据层而不是网关里：`model/` 不能反过来依赖 `workspace/`。
  */
 export async function trashPathFor(project: Pick<NovelProject, 'trashDir'>, rel: string): Promise<string> {
@@ -1418,7 +1485,7 @@ const STYLE_TEMPLATE = `# 文风指南
  */
 const GLOBAL_SUMMARY_TEMPLATE = `---
 through: 0
-generatedBy: novel-forge
+generatedBy: novelwarden
 ---
 
 # 全文大纲

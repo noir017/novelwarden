@@ -77,15 +77,15 @@ describe('工程页 · 叙事线页签', { skip: JSDOM_SKIP }, () => {
 
   test('悬停名字看意图与当前进度', () => {
     const title = rowOf('青崖旧案').querySelector('.row-label').title;
-    assert.ok(title.includes('意图：查清七年前那场火') && title.includes('.novelforge/threads/青崖旧案.md'), title);
+    assert.ok(title.includes('意图：查清七年前那场火') && title.includes('.novelwarden/threads/青崖旧案.md'), title);
   });
 
   test('点一行打开那条线的文件', () => {
     ui.sent.length = 0;
     ui.clickEl(rowOf('林昭与沈氏').querySelector('.row-label'));
-    assert.equal(ui.last('openFile')?.path, '.novelforge/threads/林昭与沈氏.md', JSON.stringify(ui.sent));
+    assert.equal(ui.last('openFile')?.path, '.novelwarden/threads/林昭与沈氏.md', JSON.stringify(ui.sent));
     ui.clickEl(rowOf('未归属的伏笔').querySelector('.row-label'));
-    assert.equal(ui.last('openFile')?.path, '.novelforge/threads/未归属的伏笔.md', JSON.stringify(ui.sent));
+    assert.equal(ui.last('openFile')?.path, '.novelwarden/threads/未归属的伏笔.md', JSON.stringify(ui.sent));
   });
 
   test('右键「打开」，没有删除 / 改名 / 移动', () => {
@@ -95,7 +95,7 @@ describe('工程页 · 叙事线页签', { skip: JSDOM_SKIP }, () => {
     ui.closeMenu();
     ui.sent.length = 0;
     ui.pick(ui.rightClick(rowOf('青崖旧案')), '打开');
-    assert.equal(ui.last('openFile')?.path, '.novelforge/threads/青崖旧案.md', JSON.stringify(ui.sent));
+    assert.equal(ui.last('openFile')?.path, '.novelwarden/threads/青崖旧案.md', JSON.stringify(ui.sent));
   });
 
   test('右键「标为收束…」「标为放弃…」：进行中两样都有，计划中只有放弃，收束了的都没有', () => {
@@ -112,7 +112,7 @@ describe('工程页 · 叙事线页签', { skip: JSDOM_SKIP }, () => {
     ui.pick(ui.rightClick(rowOf('青崖旧案')), '标为收束…');
     assert.deepEqual(
       { action: ui.last('projectAction')?.action, relPath: ui.last('projectAction')?.relPath },
-      { action: 'closeThread', relPath: '.novelforge/threads/青崖旧案.md' }
+      { action: 'closeThread', relPath: '.novelwarden/threads/青崖旧案.md' }
     );
     ui.pick(ui.rightClick(rowOf('李叔的旧账')), '标为放弃…');
     assert.equal(ui.last('projectAction')?.action, 'abandonThread');
@@ -142,17 +142,17 @@ describe('工程页 · 叙事线页签', { skip: JSDOM_SKIP }, () => {
   test('当前进度作者改过的黄 ❗ 挂在那一行；排线失败的红 ❗ 挂在标题旁', () => {
     const tree = sampleTree();
     tree.failures = {
-      '.novelforge/threads/林昭与沈氏.md': [
+      '.novelwarden/threads/林昭与沈氏.md': [
         { at: '2026-10-20T00:00:00Z', severity: 'warn', op: 'threadProgress', message: '第 3 章给出了新的「当前进度」，这一节你改过，没有覆盖' },
       ],
-      '.novelforge/threads': [{ at: '2026-10-20T00:00:00Z', severity: 'error', op: 'threads', message: '排叙事线失败：超时' }],
+      '.novelwarden/threads': [{ at: '2026-10-20T00:00:00Z', severity: 'error', op: 'threads', message: '排叙事线失败：超时' }],
     };
     ui.post({ type: 'project', tree });
     assert.ok(rowOf('林昭与沈氏').querySelector('.row-failure.is-warn'));
     assert.equal(rowOf('青崖旧案').querySelector('.row-failure'), null);
     const mark = group().querySelector('.group-head .threads-head .row-failure.is-error');
     assert.ok(mark, group().querySelector('.group-head').outerHTML);
-    assert.equal(mark.dataset.failureKey, '.novelforge/threads');
+    assert.equal(mark.dataset.failureKey, '.novelwarden/threads');
   });
 
   test('一条线都没有：「从大纲排出」，空行说清点哪里；没有「未归属的伏笔」就不画', () => {
@@ -237,7 +237,7 @@ describe('工程页 · 叙事线页签', { skip: JSDOM_SKIP }, () => {
   // 故事时间（2026-10-24；同日重做成叙事线页签里单独一组，设计稿 2026-10-24-story-timeline-rework.md「五」；同日时间线总览，
   // docs/design/plans/2026-10-24-timeline-page.md「二」）。这里是插件形态（只有 view.js，没有时间线总览）。
   describe('时间线一组', () => {
-    const TL = '.novelforge/threads/时间线.md';
+    const TL = '.novelwarden/threads/时间线.md';
     const chapter = (no, patch = {}) => ({
       no,
       title: `第${no}章`,

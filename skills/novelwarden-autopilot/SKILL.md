@@ -1,11 +1,11 @@
 ---
-name: novelforge-autopilot
-description: 操作一个已经跑起来的 Novel Forge 独立版服务（Bun，127.0.0.1 上的 /ws），从一句话把一本小说从头生成到全部同步：小说配置 → 补齐架构 → 情节大纲 → 批量拆细纲 → 批量写章（写完即同步）。用户说「通过本项目创建一本 xx 小说」「从头生成一本书」「把这个工程写完」「接着把剩下的章写完」时用它。只操作、不审内容。
+name: novelwarden-autopilot
+description: 操作一个已经跑起来的 Novelwarden 独立版服务（Bun，127.0.0.1 上的 /ws），从一句话把一本小说从头生成到全部同步：小说配置 → 补齐架构 → 情节大纲 → 批量拆细纲 → 批量写章（写完即同步）。用户说「通过本项目创建一本 xx 小说」「从头生成一本书」「把这个工程写完」「接着把剩下的章写完」时用它。只操作、不审内容。
 ---
 
-# Novel Forge 自动驾驶
+# Novelwarden 自动驾驶
 
-用户让你**通过 Novel Forge 本身**生成一本书时，不要去调模型 API、也不要自己写 Markdown 到工程里。要做的是：像网页前端那样，经 WebSocket 给服务发消息，让它自己装配上下文、调模型、落盘。
+用户让你**通过 Novelwarden 本身**生成一本书时，不要去调模型 API、也不要自己写 Markdown 到工程里。要做的是：像网页前端那样，经 WebSocket 给服务发消息，让它自己装配上下文、调模型、落盘。
 
 脚本在本 skill 的 `scripts/` 目录：
 
@@ -60,7 +60,7 @@ $NF write                                           # 批量写章（写完即�
 | 情节大纲 | `send`，payload 为 `stage:'outline'`、`target:{kind:'outline'}`、`range:{from,to}` | `gate` |
 | 拆细纲 | `projectAction generatePlots`，带 `range`、`call:{}` | 无（带 `call` 表示弹窗已经问过：调用次数已经报过，`{}` 是模型按分档、详细度照设置） |
 | 批量写章 | `projectAction writeManuscripts`，带 `range`、`call:{}`、`mode:'finalize'`、`review:false` | 可能有一致性预检的 `confirm`；要补建角色卡时还有一个带 `call` 的 `confirm` |
-| 接着写 | `chapterAction`，带 `plotRelPath:'.novelforge/summaries/<与正文相同的相对路径>.md'`、`action:'continue'` | `gate` |
+| 接着写 | `chapterAction`，带 `plotRelPath:'.novelwarden/summaries/<与正文相同的相对路径>.md'`、`action:'continue'` | `gate` |
 | 同步 | `projectAction finalizeChapter`，带 `relPath:'chapters/NNN-….md'` | 无 |
 
 协议的权威定义在仓库的 `src/core/protocol/in.ts` / `out.ts`。主按钮的下一步在 `last-pipeline.json` 的 `next` 里；`nf.py next` 就是「按一下主按钮」。
@@ -80,7 +80,7 @@ $NF write                                           # 批量写章（写完即�
   - 未答的弹窗在断线时按取消处理。
   - 重启 `write` 是安全的：它从磁盘推断进度，已写、已同步的都跳过。
   - 但服务重启那一刻正在跑的「接着写」可能丢了，那一章会按短稿被同步。事后用 `status` 加字数检查找出来：手动 `chapterAction continue`，答 `gate`，再 `finalizeChapter` 一次。
-- **字数口径**：脚本按去掉空白、frontmatter 之后的字符数估算。服务自己的字数在 `.novelforge/project.json` 的 `wordCount`，比脚本算的略低。以服务为准的判定在 `taskDone` 消息里。
+- **字数口径**：脚本按去掉空白、frontmatter 之后的字符数估算。服务自己的字数在 `.novelwarden/project.json` 的 `wordCount`，比脚本算的略低。以服务为准的判定在 `taskDone` 消息里。
 - **不要 `git add` 用户的测试工程**。状态目录放在工程之外，比如 `D:/tmp/nfdrv`。
 
 ## 4. 收尾与报告

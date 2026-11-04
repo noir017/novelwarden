@@ -42,7 +42,7 @@ export function renderHtml(opts: WebviewHtmlOptions): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource}; script-src 'nonce-${nonce}'; font-src ${cspSource}; img-src ${cspSource};">
 <link href="${asset('view.css')}" rel="stylesheet">
-<title>Novel Forge</title>
+<title>Novelwarden</title>
 </head>
 <body data-vscode-context='{"preventDefaultContextMenuItems": true}'>
 ${tabbar([

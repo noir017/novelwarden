@@ -75,7 +75,7 @@ export interface ConfigStore {
 
 /**
  * 0.1.x 遗留配置读取器。VS Code 壳注入（读 settings.json 的 novel.*），
- * 用于尚未迁移到 ~/.novelforge/config.json 的老用户；独立版不注入。
+ * 用于尚未迁移到 ~/.novelwarden/config.json 的老用户；独立版不注入。
  */
 export interface LegacyConfigReader { read(): PersistedSettings; }
 

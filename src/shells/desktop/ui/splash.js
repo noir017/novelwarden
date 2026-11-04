@@ -44,7 +44,7 @@ function render(state) {
   if (phase === 'failed') {
     ui.title.textContent = '内置服务没起来';
   } else {
-    ui.title.textContent = '正在启动 Novel Forge…';
+    ui.title.textContent = '正在启动 Novelwarden…';
   }
 }
 

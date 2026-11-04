@@ -29,13 +29,13 @@ const SHOW_ALL = JSON.stringify({ stats: { goal: true, session: true, today: tru
 /** 章节索引里的第 3 章（目标 10 字）与第 4 章（没写目标）。 */
 const CH3 = 'chapters/003-夜访.md';
 const CH4 = 'chapters/004-北行.md';
-const PLOT3 = '.novelforge/summaries/003-夜访.md';
+const PLOT3 = '.novelwarden/summaries/003-夜访.md';
 const entry = (no, title, extra) => ({
   no,
   label: `第 ${no} 章《${title}》`,
   title,
   relPath: `chapters/00${no}-${title}.md`,
-  plotPath: `.novelforge/summaries/00${no}-${title}.md`,
+  plotPath: `.novelwarden/summaries/00${no}-${title}.md`,
   plotExists: true,
   chapterPath: `chapters/00${no}-${title}.md`,
   wordCount: 0,

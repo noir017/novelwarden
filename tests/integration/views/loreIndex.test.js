@@ -51,28 +51,28 @@ before(async () => {
   });
   t = await makeTempProject(bundle.project, { prefix: 'loreindex' });
   t.write(
-    '.novelforge/lore/地域/青崖/青崖镇.md',
+    '.novelwarden/lore/地域/青崖/青崖镇.md',
     '---\ntitle: 青崖镇\nkeywords: [青崖]\nbrief: 偏僻小镇\nupdatedThrough: 2\n---\n\n# 青崖镇\n\n镇口设卡。\n'
   );
-  t.write('.novelforge/lore/信物/崖字令牌.md', '---\ntitle: 崖字令牌\nkeywords: [令牌]\n---\n\n# 崖字令牌\n\n木牌。\n');
-  t.write('.novelforge/lore/过所.md', '---\ntitle: 过所\nkeywords: []\n---\n\n# 过所\n\n出入凭证。\n');
-  t.write('.novelforge/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\n---\n\n# 林昭\n');
+  t.write('.novelwarden/lore/信物/崖字令牌.md', '---\ntitle: 崖字令牌\nkeywords: [令牌]\n---\n\n# 崖字令牌\n\n木牌。\n');
+  t.write('.novelwarden/lore/过所.md', '---\ntitle: 过所\nkeywords: []\n---\n\n# 过所\n\n出入凭证。\n');
+  t.write('.novelwarden/characters/林昭.md', '---\nname: 林昭\naliases: [阿昭]\n---\n\n# 林昭\n');
 
-  t.write('.novelforge/summaries/001-雨夜.md', plot(1, '雨夜', { lore: '- 青崖镇〔地域〕：镇口查过所\n- 后山〔地域〕' }));
+  t.write('.novelwarden/summaries/001-雨夜.md', plot(1, '雨夜', { lore: '- 青崖镇〔地域〕：镇口查过所\n- 后山〔地域〕' }));
   t.write(
-    '.novelforge/summaries/002-客栈.md',
+    '.novelwarden/summaries/002-客栈.md',
     plot(2, '客栈', { lore: '- 青崖〔地域〕\n- 停舟客栈〔地域/青崖〕：唯一的客栈\n- 林昭〔人物〕' })
   );
   t.write(
-    '.novelforge/summaries/003-夜访.md',
+    '.novelwarden/summaries/003-夜访.md',
     plot(3, '夜访', {
       lore: '- 青崖镇：七年前大火\n- 令牌〔信物〕\n- 停舟客栈〔地域〕\n- 后山',
       facts: '- 林昭的令牌被年轻守卫看见 〔证据：「牌子」〕\n- 青崖镇的城门被烧毁',
     })
   );
   // 第 4 章定稿过、但还没有「设定」一节；第 5 章是计划，「设定」一节不算。
-  t.write('.novelforge/summaries/004-空匣.md', plot(4, '空匣'));
-  t.write('.novelforge/summaries/005-计划.md', plot(5, '计划', { finalized: false, lore: '- 后山〔地域〕\n- 黑市〔地域〕' }));
+  t.write('.novelwarden/summaries/004-空匣.md', plot(4, '空匣'));
+  t.write('.novelwarden/summaries/005-计划.md', plot(5, '计划', { finalized: false, lore: '- 后山〔地域〕\n- 黑市〔地域〕' }));
 
   index = await bundle.lore.buildLoreIndex(t.project);
 });
@@ -117,13 +117,13 @@ describe('待整合 · 最长匹配', () => {
   let p;
   before(async () => {
     p = await makeTempProject(bundle.project, { prefix: 'loreindexLongest' });
-    p.write('.novelforge/lore/概念/秘境.md', '---\ntitle: 秘境\nkeywords: []\n---\n\n# 秘境\n\n各处秘境。\n');
-    p.write('.novelforge/lore/秘境/心枝.md', '---\ntitle: 心枝\nkeywords: [心枝秘境]\nupdatedThrough: 1\n---\n\n# 心枝\n\n时间流速不同。\n');
+    p.write('.novelwarden/lore/概念/秘境.md', '---\ntitle: 秘境\nkeywords: []\n---\n\n# 秘境\n\n各处秘境。\n');
+    p.write('.novelwarden/lore/秘境/心枝.md', '---\ntitle: 心枝\nkeywords: [心枝秘境]\nupdatedThrough: 1\n---\n\n# 心枝\n\n时间流速不同。\n');
     p.write(
-      '.novelforge/summaries/001-入池.md',
+      '.novelwarden/summaries/001-入池.md',
       plot(1, '入池', { lore: '- 幻池秘境〔秘境〕：水下不能开口', facts: '- 幻池秘境里水下不能开口\n- 心枝秘境与外界时间流速 22:90' })
     );
-    p.write('.novelforge/summaries/002-湖底.md', plot(2, '湖底', { lore: '- 秘境', facts: '- 秘境的入口都在湖底\n- 心枝秘境的时间又变快了' }));
+    p.write('.novelwarden/summaries/002-湖底.md', plot(2, '湖底', { lore: '- 秘境', facts: '- 秘境的入口都在湖底\n- 心枝秘境的时间又变快了' }));
   });
   after(() => {
     if (p) cleanup(p.dir);

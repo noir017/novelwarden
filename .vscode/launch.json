@@ -72,12 +72,12 @@
       // ——单文件里没有外部资源可读，漏了产物只有这里看得出来。
       // Windows 上 Bun 给产物加 .exe，所以命令分平台写；两边都用 `./` + 正斜杠，
       // PowerShell 与 Git Bash 都吃得下（cmd.exe 不行，见 .vscode/README.md）。
-      "name": "跑单文件可执行（dist/novelforge）",
+      "name": "跑单文件可执行（dist/novelwarden）",
       "type": "node-terminal",
       "request": "launch",
-      "command": "./dist/novelforge sample-novel --verbose",
+      "command": "./dist/novelwarden sample-novel --verbose",
       "windows": {
-        "command": "./dist/novelforge.exe sample-novel --verbose"
+        "command": "./dist/novelwarden.exe sample-novel --verbose"
       },
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "独立版：编译单文件"
