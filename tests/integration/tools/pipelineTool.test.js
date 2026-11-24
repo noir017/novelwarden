@@ -453,7 +453,7 @@ describe('工具定义本身', () => {
   // 只给起点时，框里写「从第 N 章起」——实际收在哪一章由 feature 按磁盘算，写在下一个确认框里。
   test('只给 from 时那一问写「从第 N 章起」；什么都不给就不写区间', () => {
     assert.ok(tool().intent({ action: 'batchManuscripts', from: 3 }).detail.startsWith('从第 3 章起'));
-    assert.ok(tool().intent({ action: 'batchManuscripts' }).detail.startsWith('随后还会告诉你'));
+    assert.ok(tool().intent({ action: 'batchManuscripts' }).detail.startsWith('会调模型'));
     assert.equal(tool().intent({ action: 'batchManuscripts' }).title, '批量写章');
   });
 
@@ -462,7 +462,9 @@ describe('工具定义本身', () => {
     assert.ok(tool().description.includes('连续多章'), tool().description);
   });
 
-  test('描述里说清了会先弹确认框告诉作者调几次', () => {
-    assert.ok(tool().description.includes('确认框'), tool().description);
+  // 外部 agent 这条路不等人点：描述里说清不等确认、次数随结果回来、作者撤销得了。
+  test('描述里说清了不等确认、次数随结果回来', () => {
+    assert.ok(tool().description.includes('不等作者确认'), tool().description);
+    assert.ok(tool().description.includes('预计调用几次随结果回给你'), tool().description);
   });
 });

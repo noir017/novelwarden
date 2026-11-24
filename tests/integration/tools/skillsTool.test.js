@@ -72,10 +72,11 @@ describe('闸门按动作分', () => {
     assert.deepEqual([gateOf({ action: 'list' }), gateOf({ action: 'inspect', url: URL })], ['auto', 'auto']);
   });
 
-  test('安装与绑定三种策略都问', () => {
+  // 外部 agent 这条路不等人点：安装与绑定照样动手、记账，撤销得了。
+  test('安装与绑定是动手的那一档', () => {
     assert.deepEqual(
       [gateOf({ action: 'install', url: URL }), gateOf({ action: 'bind', id: 'builtin:x', stage: 'review' })],
-      ['always', 'always']
+      ['mutating', 'mutating']
     );
   });
 
@@ -84,12 +85,12 @@ describe('闸门按动作分', () => {
     assert.equal(gateOf({ action: 'uninstall' }), 'mutating');
   });
 
-  test('没检查过就要装：确认框先说会被拒绝', () => {
+  test('没检查过就要装：工具条上先说会被拒绝', () => {
     assert.ok(tool().intent({ action: 'install', url: 'https://github.com/x/y' }).detail.includes('还没检查过'));
   });
 
-  // 不然 agent 用 write 新建一份 skills.json，就绕过了 bind 那一问。
-  test('write 新建 / 追加技能文件也是三种策略都问；别的文件照旧', () => {
+  // 写技能文件与别的文件一样：动手、记账（改动账存下改之前那一版），没有哪一种另开一档。
+  test('write 写技能文件与别的文件同一档', () => {
     const write = bundle.tools.NOVEL_TOOLS.find((x) => x.name === 'write');
     const gate = (path, mode) => write.intent({ path, mode }, t.project).gate;
     assert.deepEqual(
@@ -99,7 +100,7 @@ describe('闸门按动作分', () => {
         gate('.novelwarden/skills.json', 'overwrite'),
         gate('.novelwarden/style.md'),
       ],
-      ['always', 'always', 'reviewed', 'mutating']
+      ['mutating', 'mutating', 'mutating', 'mutating']
     );
   });
 

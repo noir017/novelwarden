@@ -17,6 +17,7 @@
 | [structuredJson.ts](structuredJson.ts) | 结构化输出的 JSON 小工具，含转写用的 `jsonValueOf` / `withoutNone` / `unfaithfulStrings`。 |
 | [parse.ts](parse.ts) | 模型输出解析小工具：剥代码围栏、提取 JSON、字符串与数字去重、字符串数组归一。 |
 | [pipelineBatch.ts](pipelineBatch.ts) | ★ 工程页的三条批量动作（补齐架构、批量拆细纲、批量写章），都严格串行、一件失败就停、只补空白。 |
+| [agentUndo.ts](agentUndo.ts) | 撤销外部 agent 的一步：照改动账逐份放回改之前那一版，之后又改过的、编辑器里没保存的跳过。 |
 | [askCall.ts](askCall.ts) | ★ 调模型之前的那一问：确认框上模型与上下文详细度两个下拉框只在这里拼（第 4 条）。 |
 | [transcribe.ts](transcribe.ts) | ★ 转写的整条走法 `transcribeJson`：照抄 → 「无」换空 → 逐段核对出自原文 → 原来的解码，不合格重转一次。 |
 | [poolIO.ts](poolIO.ts) | 工程页任务那条路的 `ChainIO`（走分档池、用干活那个模型的窗口、不带思考深度），以及转写的 `lazyTranscriber` / `transcribeWith`。 |

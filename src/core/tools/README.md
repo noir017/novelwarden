@@ -4,7 +4,7 @@
 
 拿着它做事的是**外部 agent**（Claude Code 之类），经 [mcp/](../mcp/README.md) 接进来；本项目自己没有对话循环。
 
-**这一层管「做那件事」，调用方管「什么时候做、要不要先问、花了多少」。**
+**这一层管「做那件事」，调用方管「什么时候做、怎么记账、花了多少」。**
 
 | 文件 | 职责 |
 |---|---|
@@ -17,11 +17,11 @@
 
 ```
 mcp/server.ts ──McpBackend──▶ controller/mcp.ts   createNovelTools({project, workspace, drafts, sessionId})
-（只懂协议）                  （生成锁、两问）                    │
+（只懂协议）                  （生成锁、代答、改动账）            │
                                    └──────────invoke──────────▶ ToolRegistry ──run──▶ workspace / generation / features
 ```
 
-`mcp/` 只认 `ToolSpec` 与 `NOVEL_TOOLS`，绑环境、占生成锁、在对话页问那两句都在 `controller/mcp.ts`。
+`mcp/` 只认 `ToolSpec` 与 `NOVEL_TOOLS`，绑环境、占生成锁、替作者作答与记改动账都在 `controller/mcp.ts`。
 反过来，**`tools/` 一行都不 import `mcp/` 与 `controller/`**。由
 [tests/contract/layerBoundary.test.js](../../../tests/contract/layerBoundary.test.js) 守着。
 
@@ -40,23 +40,19 @@ ctx.usage.record(1);   // 发请求之前就记——请求发出去钱就花了
 
 ### 2. 工具自报意图，不自己弹框
 
-确认框是**宿主**的事：同一个 `write`，在面板里该问作者一句，在一条无人值守的
-远端会话里问谁？所以工具只描述这一步是什么性质、要问的话该怎么说：
+工具只描述这一步是什么性质、在工具条上怎么称呼它：
 
 ```ts
 intent: (args, project) => ({
-  gate: 'mutating',                       // 五档之一，见 types.ts
+  gate: 'mutating',                       // 两档之一，见 types.ts
   title: `写入「${describePath(...)}」`,  // 动词短语，主语由调用方加
   detail: `${target}（新建）`,
-  proceed: '写入',
 })
 ```
 
-`gate` 五档（`auto` / `costly` / `mutating` / `reviewed` / `always`）在 MCP 那条路上只分三种处理
-（[controller/mcp.ts](../controller/mcp.ts)）：`auto` 直接跑、不进对话页；`always` 动手前在对话页问一句；
-其余占生成锁、挂在对话页上，问不问交给宿主自己的权限设置。**哪个工具归哪一档由工具自己说**——只有它
-知道自己随后会不会走覆盖审阅（`reviewed`）、下游会不会 diff（`always` 就是「不会，所以这一句确认就是
-它的 diff」）。
+`gate` 两档（`auto` / `mutating`），处理在 [controller/mcp.ts](../controller/mcp.ts)：`auto` 直接跑、不进对话页；
+`mutating` 占生成锁、挂在对话页上，**不等人点**——途中的确认替作者答掉、网关动每份文件之前存一版，作者在那一行上撤销
+（AGENTS 第 19 / 25 条）。**哪个工具归哪一档由工具自己说**；动作工具里查询类动作报 `auto`，其余缺省 `mutating`。
 
 ### 3. 保护不在这一层
 
@@ -66,20 +62,20 @@ intent: (args, project) => ({
 
 **唯一的例外是 `skills install`**：它写的是工程外的我的技能库（`~/.novelwarden/skills/`），没有网关可走。
 所以路径不由 agent 给（固定落在 `<技能库>/<frontmatter 的 name>/SKILL.md`，名字过 `isSkillName`），
-只装检查过、重新下载核对过 hash 的那一份，闸门是 `always`——动手前先问。见 [skills/README.md](../skills/README.md)。
+只装检查过、重新下载核对过 hash 的那一份；装好由技能库报一笔（`noteExternal`），撤销那一步就是卸掉它。见 [skills/README.md](../skills/README.md)。
 
 ## 十三个工具
 
 | 工具 | 动作 / 用法 | 参数 |
 |---|---|---|
 | `list` / `read` / `search` | 看目录、读文件、全文搜 | 各自的 |
-| `generate` | 为一份产物调一次创作模型；产出当场问作者落不落盘 | `target` `capability` `ask` `targetWords` `writeMode` |
+| `generate` | 为一份产物调一次创作模型；产出直接落盘（撤销得了） | `target` `capability` `ask` `targetWords` `writeMode` |
 | `write` / `edit` | 写一份文件 / 改一段文字 | 各自的 |
 | `pipeline` | `completeSettings` `batchPlots` `batchManuscripts` `newPlot` | `from` `to` `mode` `review` |
 | `summary` | 定稿与全文大纲：`finalize`（照正文反向更新那一章的细纲，再更新角色状态、认这一章在叙事线上发生了什么：事件、当前进度、新长出来的线）`sync`（没定稿、或定稿后正文又改过的章逐章定稿：细纲、角色状态、叙事线）`rebuildGlobal`（从定稿过的细纲重建全文大纲） | `path` |
 | `characters` | `extract` `create` `createAll` `update` `rebuild` `updateAll` `rebuildAll` `cleanAliases` `mergeDuplicates` `reviewState` | `path` `name` |
 | `lore` | 设定名录：`record`（单独记一章 / 补记还没记过的定稿章，只换细纲「设定」一节）`build`（给出现过、还没有条目的建条目）`integrate`（把定稿里的新内容并进条目）。**没有「按目录整理」**：它会搬文件，移动不给外部 agent（第 25 条） | `path` `name` |
-| `extract` | `style` `threads`（从情节大纲排出叙事线，与工程页「叙事线」页签的「从大纲排出」同一个函数，确认框照弹）`threadsFromText`（从已写正文补记叙事线：定稿过、叙事线还没判的章逐章认事件，一条线都没有时先排线；与工程页「从正文补记」同一个函数，确认框照弹，报回实际次数） | — |
+| `extract` | `style` `threads`（从情节大纲排出叙事线，与工程页「叙事线」页签的「从大纲排出」同一个函数）`threadsFromText`（从已写正文补记叙事线：定稿过、叙事线还没判的章逐章认事件，一条线都没有时先排线；与工程页「从正文补记」同一个函数，报回实际次数） | — |
 | `book` | `import` `derive` `learn` | `path` |
 | `skills` | `list` `inspect` `install` `bind` | `url` `id` `stage` |
 
@@ -87,9 +83,9 @@ intent: (args, project) => ({
 「哪个动作认哪个参数」；工具之间按作者心里的那几块分，与工程页按钮的分组一致。每个动作声明自己认
 哪几个参数（`uses`）、哪几个必填（`requires`），给了不认的当场报错（[novel/actions.ts](novel/actions.ts)）。
 
-后七个都是工程页按钮背后的同一个函数，确认框照弹，**没有为外部 agent 加任何一条绕过它的路**。
+后七个都是工程页按钮背后的同一个函数，**不为外部 agent 另开一条路**；途中的确认框由调用方替作者答掉，答了什么附在结果末尾。
 大多数 feature 报回计划调用次数（`countedBy`），角色卡、设定条目与全文大纲那几个不报，只回一句「交出去了」
-（`handed`），次数以确认框为准。
+（`handed`），次数写在途中那一问里。
 
 ### `generate` 的写法
 
@@ -120,11 +116,8 @@ intent: (args, project) => ({
 |---|---|---|
 | `list` | `auto` | 内置 / 我的技能库 / 本工程的技能，一份一行，外加本工程每个阶段绑了哪份 |
 | `inspect` | `auto` | 下载来看，不安装、不写文件。回话里说清「元数据来自不受信任的第三方文档」 |
-| `install` | `always` | 装检查过的那一份。确认框写明是哪一份、说明、正文开头 200 字 |
-| `bind` | `always` | 绑到本工程的某个阶段。改的是往后每一次生成的提示词，下游没有 diff |
-
-`write` 新建 / 追加 `.novelwarden/skills/**` 或 `skills.json` 也报 `always`（覆盖照旧走 diff）——不然 agent 用
-`write` 新建一份 `skills.json`，就绕过了 `bind` 那一问。
+| `install` | `mutating` | 装检查过的那一份。工具条上写明是哪一份、说明、正文开头 200 字；撤销就是卸掉 |
+| `bind` | `mutating` | 绑到本工程的某个阶段。改的是往后每一次生成的提示词；`skills.json` 改之前存一版，撤销得了 |
 
 ## 与 MCP 的对应
 
@@ -133,4 +126,4 @@ intent: (args, project) => ({
 | `ToolDef.name` / `description` / `parameters` | `tools/list` 的一条（`inputSchema`） |
 | `ToolInvoker.invoke` → `ToolInvocation` | `tools/call` 的请求与结果（`error` → `isError`） |
 | `ToolDef.mutating` / `costly` | `destructiveHint` / `readOnlyHint` |
-| `ToolIntent` | 没有对应物——**确认是宿主的事**，Novelwarden 自己那两问在 `controller/mcp.ts` |
+| `ToolIntent` | 没有对应物——让不让调是宿主的事；Novelwarden 这边的代答与改动账在 `controller/mcp.ts` |

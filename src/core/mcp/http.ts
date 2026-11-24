@@ -10,7 +10,7 @@
  * - `GET`（服务端主动推的那条 SSE 流）回 405——我们从不主动推东西。
  *
  * 带 `tools/call` 的请求、客户端又收 `text/event-stream` 时回 SSE：一次调用可能跑几分钟（写一章、
- * 等作者点确认），而客户端等响应头有上限（Claude Code 缺省 60 秒，到点报「The operation timed out.」），
+ * 批量写几章），而客户端等响应头有上限（Claude Code 缺省 60 秒，到点报「The operation timed out.」），
  * 等结果还有空闲上限（HTTP 缺省 5 分钟，收到 progress 通知才重新计时）。所以先回响应头，跑的期间
  * 每隔 `HEARTBEAT_MS` 发一条 `notifications/progress`（请求没带 progressToken 就发一行 SSE 注释），
  * 跑完把回复当事件发出去、关流。其余请求照旧回整份 JSON。

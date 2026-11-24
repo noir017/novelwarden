@@ -75,6 +75,7 @@ import {
   setThinking,
 } from './session';
 import { persist } from './persist';
+import { undoAgentStepFor } from './mcp';
 import { bindSkillFrom, inspectSkillFrom, installSkillFrom, pushSkillsTo, uninstallSkillFrom } from './skills';
 import {
   describeProvider,
@@ -573,6 +574,9 @@ export class ChatController {
         return;
       case 'restoreCheckpoint':
         await restoreCheckpointFor(this, msg.request);
+        return;
+      case 'undoAgentStep':
+        await undoAgentStepFor(this, msg);
         return;
 
       // 全书查找替换（controller/bookFind.ts）：查找与预览只读；替换经网关逐份写，完了 pushState。

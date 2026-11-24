@@ -1,17 +1,9 @@
 /**
- * 每个工具自报的**意图**：这一步是什么性质、问的时候怎么说。
+ * 每个工具自报的**意图**：这一步是什么性质、在工具条上怎么称呼。
  *
- * 从前这些话写在内置 agent 的 `policy.ts` 里（一个按工具名分支的 switch）。
- * 现在按 `gate` 档位决定问不问的是 MCP 执行端（`controller/mcp.ts`），
- * 而**说辞与它描述的那件事在同一个文件里**——改了 `write` 的行为，眼皮底下
- * 就是它要对作者说的话。
- *
- * 两条不可配置的归档是产品承诺（AGENTS 第 25(a) 条），钉在这里：
- *
- * 1. **`write` 覆盖 = `reviewed`**——下游 `ws.write` 带 diff 请人过目，
- *    不该在它之前再问一句「确定吗」。
- * 2. **`edit` = `always`**——`ws.edit` 不走 diff，那一句确认就是它的 diff，
- *    任何调用方都不能免。
+ * 按 `gate` 档位决定怎么跑的是 MCP 执行端（`controller/mcp.ts`）：`auto` 直接跑，`mutating` 占生成位、记账、
+ * 撤销得了——外部 agent 这条路不等人点（AGENTS 第 19 / 25 条），所以只剩这两档。**说辞与它描述的那件事在同一个
+ * 文件里**——改了 `write` 的行为，眼皮底下就是工具条上要对作者说的话。
  *
  * 这里不给 project（纯单测），名字退回路径本身。
  */
@@ -38,16 +30,16 @@ describe('读三件套：不问', () => {
   }
 });
 
-describe('generate：花钱但不写盘', () => {
+describe('generate：花钱，产出直接落盘', () => {
   const g = () => intentOf('generate', { target: PLOT, ask: '接住第 9 章那处伏笔' });
 
-  test('归 costly', () => {
-    assert.equal(g().gate, 'costly');
+  test('归 mutating', () => {
+    assert.equal(g().gate, 'mutating');
   });
 
-  test('标了 costly，没标 mutating（它一个字都不落盘）', () => {
+  test('标了 costly 与 mutating（产出直接落盘，宿主要看得出它会写东西）', () => {
     assert.equal(byName('generate').costly, true);
-    assert.equal(!!byName('generate').mutating, false);
+    assert.equal(byName('generate').mutating, true);
   });
 
   // 「Agent 想调用 generate，允许吗」作者答不上来——他不知道会写到哪、花多少。
@@ -55,8 +47,8 @@ describe('generate：花钱但不写盘', () => {
     assert.ok(g().detail.includes('花钱'), g().detail);
   });
 
-  // 这一问是「要不要花钱生成」，落盘是另一问——产出之后当场还有一张卡。
-  test('说清了产出之后还会再问一次落盘', () => {
+  // 产出不再等作者点写入：工具条上说清它会直接落盘、撤销得了。
+  test('说清了产出直接落盘', () => {
     assert.ok(g().detail.includes('落盘'), g().detail);
   });
 
@@ -75,7 +67,7 @@ describe('generate：花钱但不写盘', () => {
   });
 });
 
-describe('write 新建 / 追加：常规的动手前问一句', () => {
+describe('write 新建 / 追加：动手的那一档', () => {
   test('新建归 mutating', () => {
     assert.equal(intentOf('write', { path: PLOT }).gate, 'mutating');
   });
@@ -97,23 +89,21 @@ describe('write 新建 / 追加：常规的动手前问一句', () => {
   });
 });
 
-// ★ 产品承诺，不是偏好设置。
-describe('write 覆盖：交给下游的覆盖审阅', () => {
-  test('归 reviewed（三种模式都不预先确认）', () => {
-    assert.equal(intentOf('write', { path: PLOT, mode: 'overwrite' }).gate, 'reviewed');
+describe('write 覆盖：与新建同一档', () => {
+  test('归 mutating', () => {
+    assert.equal(intentOf('write', { path: PLOT, mode: 'overwrite' }).gate, 'mutating');
   });
 });
 
-// ★ 同上：edit 改的也是已有内容，而 ws.edit 不走 diff。
-describe('edit：任何模式都要问', () => {
+describe('edit：动手的那一档', () => {
   const args = { path: PLOT, old: '林昭', new: '林昀' };
 
-  test('归 always', () => {
-    assert.equal(intentOf('edit', args).gate, 'always');
+  test('归 mutating', () => {
+    assert.equal(intentOf('edit', args).gate, 'mutating');
   });
 
-  // 不写出 old → new，作者只能凭工具名点确定，那不叫过目。
-  test('框里写出了原文与改成什么', () => {
+  // 不写出 old → new，作者回头看工具条只知道它改过，不知道改了什么。
+  test('工具条上写出了原文与改成什么', () => {
     const i = intentOf('edit', args);
     assert.ok(i.detail.includes('林昭'), i.detail);
     assert.ok(i.detail.includes('林昀'), i.detail);
@@ -158,14 +148,14 @@ describe('带 action 的工程动作：缺省归 mutating', () => {
     assert.ok(intentOf('characters', { action: 'create', name: '林昭' }).detail.includes('林昭'));
   });
 
-  // 认不出的动作执行时会被拒，但问的那一步不能因此放行。
+  // 认不出的动作执行时会被拒，但记账的那一步不能因此跳过。
   test('认不出的动作也归 mutating，标题写着工具与动作名', () => {
     const x = intentOf('summary', { action: 'delete' });
     assert.equal(x.gate, 'mutating');
     assert.equal(x.title, '执行 summary delete');
   });
 
-  test('技能的查与检查不问，装与绑每次都问', () => {
+  test('技能的查与检查是查询，装与绑是动手', () => {
     assert.deepEqual(
       [
         intentOf('skills', { action: 'list' }).gate,
@@ -173,7 +163,7 @@ describe('带 action 的工程动作：缺省归 mutating', () => {
         intentOf('skills', { action: 'install', url: 'https://github.com/o/r' }).gate,
         intentOf('skills', { action: 'bind', id: 'builtin:x', stage: 'review' }).gate,
       ],
-      ['auto', 'auto', 'always', 'always']
+      ['auto', 'auto', 'mutating', 'mutating']
     );
   });
 });

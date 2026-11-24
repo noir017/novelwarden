@@ -77,25 +77,24 @@ const TIER_TASK: Partial<Record<CreationStage, LlmTask>> = {
 export const generateTool: ToolDef = {
   name: 'generate',
   costly: true,
+  // 产出直接落盘（外部 agent 这条路不等人点）：落成 MCP 的 destructiveHint，宿主看得出它会写东西。
+  mutating: true,
 
   /**
-   * 花钱但不写盘 → `costly`。调用方据此决定问不问（谨慎模式问，平时不问）。
-   *
-   * 卡片上必须写清**会花钱**与**产出还会再问一次**：「Agent 想调用 generate，
-   * 允许吗」作者答不上来，他不知道会写到哪、花多少。**这一问是「要不要花钱
-   * 生成」，落盘是另一问**——产出之后当场还有一张卡（第 19 条）。
+   * 花钱、产出直接落盘 → `mutating`（外部 agent 这条路不等人点，第 19 条；落盘前存下的那一版让作者撤销得了）。
+   * 工具条上写清**会花钱、写到哪**：作者回头看这一行，要知道它动的是哪一份。
    */
   intent(args, project): ToolIntent {
     const target = text(args.target);
     const dir = project ? settingDirPath(project, target) : undefined;
     return {
-      gate: 'costly',
+      gate: 'mutating',
       title: `为「${dir ? describeForReview(dir, target) : describePath(target, project)}」调一次创作模型`,
       detail: [
         target,
         text(args.writeMode) === 'continue' ? '接着已有的正文往下写' : text(args.writeMode) === 'rewrite' ? '整章重写' : '',
         text(args.ask) && `要求：${clip(text(args.ask))}`,
-        '这一步会花钱。产出之后还会再问你一次要不要落盘。',
+        '这一步会花钱，产出直接落盘（可以在对话页撤销）。',
       ]
         .filter(Boolean)
         .join('\n'),
@@ -120,7 +119,7 @@ export const generateTool: ToolDef = {
     '（审稿只能由作者在对话页发起，这个工具不做）。' +
     '**返回的只有形状与 draftId，没有正文**——正文会直接流给作者看；' +
     '你要看内容就等它落盘之后再 read。' +
-    '产出之后会当场请作者点头，同意才落盘，结果写在返回里；不必也不要再用 write 写同一份。' +
+    '产出直接落盘（改之前那一版会存下，作者可以撤销），落到哪写在返回里；不必也不要再用 write 写同一份。' +
     '这个工具会真的调模型花钱，每次调用都会记账，不要重复生成同一份东西。',
 
   parameters: objectSchema(

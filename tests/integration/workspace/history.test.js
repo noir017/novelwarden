@@ -621,3 +621,63 @@ describe('搬快照失败绝不挡住搬家', () => {
     assert.ok(warn.message.includes(from) && warn.message.includes('照常'), warn.message);
   });
 });
+
+/**
+ * 快照的备注（`NOTES_FILE`）：外部 agent 动一份文件之前存的那一版带「Agent：<动作> 之前」，「版本」侧栏照着标。
+ * 跟着快照走：搬家合并时撞名加了序号的，备注跟着新名字；修剪掉的那几版，备注一起去掉。
+ */
+describe('快照的备注', () => {
+  const A = 'chapters/001-甲.md';
+  const B = 'chapters/002-乙.md';
+  const T0 = Date.UTC(2026, 10, 24, 6, 0, 0);
+
+  test('存的时候带备注；与最新一个一字不差时记在那一个上（已有备注不改）', async () => {
+    const { t } = await fresh('historyNote');
+    t.write(A, '甲一\n');
+    t.project.invalidate();
+    const first = await bundle.history.snapshotBeforeWrite(t.project, A, undefined, { force: true, note: 'Agent：一 之前', now: T0 });
+    assert.ok(first.saved);
+    const same = await bundle.history.snapshotNow(t.project, A, { note: 'Agent：二 之前' });
+    assert.deepEqual([same.skipped, same.latest], ['same', first.saved]);
+    const listed = await bundle.history.listSnapshots(t.project, A);
+    assert.deepEqual(listed.map((v) => v.note), ['Agent：一 之前']);
+  });
+
+  test('不是创作产物：缺省不存，anyKind 才存', async () => {
+    const { t } = await fresh('historyAnyKind');
+    t.write('笔记.md', '随手记\n');
+    t.project.invalidate();
+    assert.equal((await bundle.history.snapshotNow(t.project, '笔记.md')).skipped, 'notTracked');
+    assert.ok((await bundle.history.snapshotNow(t.project, '笔记.md', { anyKind: true })).saved);
+  });
+
+  test('搬家合并：撞名加了序号的，备注跟着新名字', async () => {
+    const { t } = await fresh('historyNoteMerge');
+    t.write(A, '甲\n');
+    t.write(B, '乙\n');
+    t.project.invalidate();
+    // 两份在同一秒各存一版：文件名撞上，合并时 A 那一版要加序号。
+    await bundle.history.snapshotBeforeWrite(t.project, A, undefined, { force: true, note: '甲的备注', now: T0 });
+    await bundle.history.snapshotBeforeWrite(t.project, B, undefined, { force: true, note: '乙的备注', now: T0 });
+    t.remove(B);
+    await bundle.history.moveHistory(t.project, A, B);
+    const listed = await bundle.history.listSnapshots(t.project, B);
+    assert.equal(listed.length, 2);
+    assert.deepEqual(listed.map((v) => v.note).sort(), ['乙的备注', '甲的备注']);
+    const renamed = listed.find((v) => v.note === '甲的备注');
+    assert.ok(/-2\.txt$/.test(renamed.id), renamed.id);
+    assert.equal(fs.existsSync(t.rel('.novelwarden/history', A)), false);
+  });
+
+  test('修剪时被裁的那几版，备注一起去掉', async () => {
+    const { t } = await fresh('historyNotePrune');
+    for (let i = 0; i <= bundle.history.HISTORY_KEEP; i++) {
+      t.write(A, `第 ${i} 版\n`);
+      t.project.invalidate();
+      await bundle.history.snapshotBeforeWrite(t.project, A, undefined, { force: true, note: `备注 ${i}`, now: T0 + i * 1000 });
+    }
+    const notes = JSON.parse(fs.readFileSync(t.rel('.novelwarden/history', A, bundle.history.NOTES_FILE), 'utf8'));
+    assert.equal(Object.keys(notes).length, bundle.history.HISTORY_KEEP);
+    assert.ok(!Object.values(notes).includes('备注 0'));
+  });
+});

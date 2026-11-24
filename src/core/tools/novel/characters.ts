@@ -1,8 +1,8 @@
 /**
  * `characters` —— 角色卡：提取、建卡、增量更新 / 重写、清理别名、合并重复、对比「当前状态」。
  *
- * 每个动作都是工程页角色卡那几颗按钮背后的同一个函数，确认框、提示条都在 feature 自己那里。
- * 这几个 feature 不报调用次数，回给模型的只有一句「交出去了」（`handed`），次数以确认框为准。
+ * 每个动作都是工程页角色卡那几颗按钮背后的同一个函数，确认框、提示条都在 feature 自己那里（外部 agent 这条路上替作者答掉）。
+ * 这几个 feature 不报调用次数，回给模型的只有一句「交出去了」（`handed`），次数写在途中那一问里（随结果末尾的代答回去）。
  *
  * 出场人物的唯一真相是定稿过的细纲（第 14 条）：建卡认的是定稿里出场、还没有卡的人，`name` 要与
  * 细纲里的写法一致。
@@ -103,7 +103,7 @@ export const charactersTool = defineActionTool({
       },
     },
     mergeDuplicates: {
-      label: '找出指向同一个人的重复角色卡并合并（合并哪几组由作者确认）',
+      label: '找出指向同一个人的重复角色卡并合并（每组留出场最多的那张，其余并进去）',
       costly: false,
       async run(ctx) {
         await mergeDuplicateCharacterCards(ctx.project);

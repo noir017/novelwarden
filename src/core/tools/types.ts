@@ -106,7 +106,7 @@ export interface ToolResult {
 }
 
 /**
- * 动手之前的意图：**这一步是什么性质、要问的话该怎么说**。
+ * 动手之前的意图：**这一步是什么性质、在工具条上怎么称呼它**。
  *
  * 工具自己报，而不是让调用方按名字猜——猜的那一版长这样：
  *
@@ -114,7 +114,7 @@ export interface ToolResult {
  * switch (tool.name) { case 'write': …; case 'edit': … }
  * ```
  *
- * 加一个工具就要回来改一次，而且忘了改不会红，只会在某一天静默地少问一句。
+ * 加一个工具就要回来改一次，而且忘了改不会红，只会在某一天静默地少记一笔账。
  */
 export interface ToolIntent {
   gate: GateKind;
@@ -130,21 +130,17 @@ export interface ToolIntent {
 }
 
 /**
- * 这一步的性质。**五个值，怎么处理在调用方**（[controller/mcp.ts](../controller/mcp.ts)：
- * `auto` 直接跑；`always` 动手前在对话页问；其余问不问交给宿主的权限设置）。
+ * 这一步的性质。**两个值，怎么处理在调用方**（[controller/mcp.ts](../controller/mcp.ts)）：
  *
- * | 值 | 什么样的动作 | 为什么单独一档 |
+ * | 值 | 什么样的动作 | 调用方做什么 |
  * |---|---|---|
- * | `auto` | 查询 | 不花钱不改东西，问一句只是让人麻木 |
- * | `costly` | 花钱但不写盘 | 谨慎模式下值得问，平时不必 |
- * | `mutating` | 写盘 | 常规的「动手前问一句」 |
- * | `reviewed` | 写盘，但**下游自己会请人过目** | 再问一句是纯噪声：diff 本身就是答案 |
- * | `always` | 写盘，且**下游不过目** | 那一句确认就是它的 diff，任何模式都不能免 |
+ * | `auto` | 查询：不花钱不改东西 | 直接跑，只进日志 |
+ * | `mutating` | 花钱或写盘 | 占生成位、挂上对话页；**不等人点**——途中的问题替作者答掉、动每份文件之前存一版，作者可以撤销这一步（AGENTS 第 19 / 25 条） |
  *
- * `reviewed` 与 `always` 是**产品承诺**（AGENTS 第 3 / 19 / 25 条）落在类型上的
- * 形状：覆盖已有内容一律过一遍人，区别只在过的是 diff 还是确认框。
+ * 从前还分「花钱不写盘」「下游会审阅」「下游不审阅、动手前必问」几档，区别都在问不问；外部 agent 不再等人点之后，
+ * 剩下的区别只有「要不要记账、能不能撤」。
  */
-export type GateKind = 'auto' | 'costly' | 'mutating' | 'reviewed' | 'always';
+export type GateKind = 'auto' | 'mutating';
 
 export interface ToolDef {
   name: string;

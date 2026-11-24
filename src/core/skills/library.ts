@@ -41,6 +41,7 @@ import {
   skillReferences,
 } from '../model/writingSkill';
 import { scoped } from '../runtime/logger';
+import { noteExternal } from '../runtime/agentCall';
 import { BUILTIN_SKILL_DIRS } from './builtin/embedded';
 
 const log = scoped('技能');
@@ -292,6 +293,8 @@ export async function installUserSkill(name: string, files: SkillFiles): Promise
     throw new Error(`「${name}」写进去之后读不回来。`);
   }
   log.info(`已装进我的技能库：${name}`, path.join(dir, SKILL_FILE));
+  // 外部 agent 装的：工程外的东西网关记不到，在这里报一笔，「撤销这一步」才知道要卸掉它。
+  noteExternal({ kind: 'userSkill', name });
   return skill;
 }
 

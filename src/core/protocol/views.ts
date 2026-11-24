@@ -11,6 +11,7 @@ import type {
   ThreadWatch,
 } from '../model/pipeline';
 import type { ThinkingDepth } from '../model/thinking';
+import type { AgentAnswer, AgentStepChanges, AgentStepUndo } from '../model/agentStep';
 import type { ContextDetail } from '../model/contextDetail';
 import type { ReviewReport } from '../model/review';
 import type { ParagraphStyle } from '../model/paragraphFormat';
@@ -619,6 +620,12 @@ export interface SerializedToolCall {
    * ——那是作者要读的产物，不是一行流水账。
    */
   output?: string;
+  /** 外部 agent 这一步动了哪几份文件（`model/agentStep.ts`）。有它那一行就有「撤销这一步」。 */
+  changes?: AgentStepChanges;
+  /** 替作者答掉的那几问。 */
+  answers?: AgentAnswer[];
+  /** 撤销过了。 */
+  undone?: AgentStepUndo;
 }
 
 /**

@@ -21,14 +21,10 @@
  *                      └───── gateResult ◀─────┘
  * ```
  *
- * **两种问法共用这一条路**：
+ * **谁在问**：单步创作的产物落盘（第 19 条，一产出就问，确认 / 不采纳）、预检放行这类要作者当场拿主意的事。
+ * 外部 agent 的调用里（`runtime/agentCall.ts`）不推卡片，当场答「确认」并记一笔（见 {@link askGate}）。
  *
- * | 谁在问 | 什么时候 | 按钮 |
- * |---|---|---|
- * | 外部 agent 的 `always` 动作（`controller/mcp.ts`） | 动手前 | 确认 / 跳过 |
- * | 产物落盘（第 19 条） | `generate` 一产出就问 | 确认 / 不采纳 |
- *
- * 两种都只有两颗：**叫停整轮不在这张卡上**——那是输入框旁边那颗「停止」，
+ * 卡片只有两颗按钮：**叫停整轮不在这张卡上**——那是输入框旁边那颗「停止」，
  * 与「这一个文件要不要动」是两件事，混进闸门只会被误当成「跳过」。
  *
  * ## 三件必须做对的事
@@ -43,6 +39,7 @@
  */
 import type { OutMessage } from '../protocol';
 import type { ChatController } from './index';
+import { currentAgentCall, noteAnswer } from '../runtime/agentCall';
 
 /**
  * 一次询问的结论。作者只点得到前两个：**停止**是没人回答（取消）时替他记下的那一笔，
@@ -114,6 +111,9 @@ export interface GateAsk {
  * 关掉页面不算回答——那种情况下这条询问会随重连再推一遍。真正的「没人回答」
  * 只有取消一种，按**停止**处理（他被问「要不要动你的磁盘」而没有回答，不该
  * 替他答「继续」）。
+ *
+ * **外部 agent 的调用里不问**（`runtime/agentCall.ts`）：当场答「确认」、记一笔，卡片不推。兜底的是改之前存下的那一版
+ * 与对话页上的「撤销这一步」（第 19 / 25 条）。
  */
 export async function askGate(c: ChatController, ask: GateAsk, signal?: AbortSignal): Promise<GateVerdict> {
   return (await askGateNoted(c, ask, signal)).verdict;
@@ -125,6 +125,15 @@ export function askGateNoted(
   ask: GateAsk,
   signal?: AbortSignal
 ): Promise<{ verdict: GateVerdict; remember?: string }> {
+  if (currentAgentCall()) {
+    noteAnswer({
+      kind: 'gate',
+      question: ask.title,
+      ...(ask.danger ?? ask.detail ? { detail: ask.danger ?? ask.detail } : {}),
+      answer: ask.proceed ?? PROCEED_ACTION,
+    });
+    return Promise.resolve({ verdict: signal?.aborted ? 'stop' : 'proceed' });
+  }
   const requestId = nextRequestId();
   const msg: GateMessage = {
     type: 'gate',

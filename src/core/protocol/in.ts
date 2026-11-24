@@ -196,6 +196,11 @@ export type InMessage =
   /** 退回（单份或整本，面板上点了两下）。先存一个「退回之前」，逐份写回，之后重推 `checkpoints` 与 `checkpointDiff`。 */
   | { type: 'restoreCheckpoint'; request: RestoreCheckpointRequest }
   /**
+   * 撤销外部 agent 的一步（对话页 MCP 气泡里那一行工具调用上的按钮）：照那一行记的改动账逐份放回改之前那一版
+   * （`features/agentUndo.ts`）。`dirty` 是编辑器里开着、有未保存修改的文件，跳过。之后重推那一行（`toolResult`）与状态。
+   */
+  | { type: 'undoAgentStep'; turnId: string; callId: string; dirty?: string[] }
+  /**
    * 全书查找替换（独立版「编辑 → 全书查找替换…」，`protocol/bookFind.ts`）：按范围逐份读盘找，回 `bookFindResult`
    * （同一个 `requestId`）。带 `query.replacement` 就是「预览替换」：每一处多带换成什么、每份文件带读到时的 hash。
    * 前端在输入停顿之后才发，新的一次发出之前先 `cancelBookFind` 上一次（后端在两份文件之间看一眼，叫停了就不回话）。

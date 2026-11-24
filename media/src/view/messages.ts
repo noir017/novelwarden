@@ -45,6 +45,7 @@ import { toast } from './toast';
 import type { SendPayload } from '../protocol';
 import { CONTEXT_DETAIL_LABEL, describeWriteLength, isContextDetail } from '../protocol';
 import { buildReviewCard } from './review';
+import { buildStepDetail, stepChip } from './agentStep';
 
 /** 由 composer.ts 注入：「重新生成」要带上输入框里当下的那套参数。 */
 let currentPayload: () => SendPayload = () => {
@@ -557,16 +558,26 @@ export function buildGenCard(call: SerializedToolCall & { open?: boolean }): HTM
   line.appendChild(mk('span', 'gen-icon', '✨'));
   line.appendChild(mk('span', 'gen-title', call.title));
   line.appendChild(spacer());
+  const chip = stepChip(call);
+  if (chip) {
+    line.appendChild(chip);
+  }
   line.appendChild(mk('span', 'gen-elapsed', formatElapsed(call.elapsedMs)));
   head.appendChild(line);
   head.appendChild(buildGenState(call));
   card.appendChild(head);
 
   card.appendChild(mk('pre', 'gen-body', call.output ?? ''));
+  // 外部 agent 这一步改了哪几份、替作者答了什么（落盘那一问也在里面）：卡展开就看得见，不再藏一层。
+  const step = buildStepDetail(call);
+  if (step) {
+    step.classList.add('gen-step');
+    card.appendChild(step);
+  }
 
   // 参数与返回收在再一层折叠里。**花钱那一下更要查得出它动的是哪一章**：卡上
   // 那两行说的是「产出了什么」，而「它是按哪个落点、哪句要求生成的」只在参数里。
-  const detail = buildToolDetail(call);
+  const detail = buildToolDetail(call, false);
   if (detail) {
     const det = mk('details', 'gen-args');
     det.appendChild(mk('summary', undefined, '参数与返回'));
@@ -603,22 +614,21 @@ export function buildToolStrip(): HTMLElement {
   return mk('div', 'tools');
 }
 
-export function buildToolRow(call: {
-  callId: string;
-  name: string;
-  title: string;
-  ok: boolean;
-  summary: string;
-  elapsedMs: number;
-  argsText?: string;
-  resultText?: string;
-  open?: boolean;
-}): HTMLElement {
+export function buildToolRow(
+  call: Pick<SerializedToolCall, 'callId' | 'name' | 'title' | 'ok' | 'summary' | 'elapsedMs' | 'argsText' | 'resultText' | 'changes' | 'answers' | 'undone'> & {
+    open?: boolean;
+  }
+): HTMLElement {
   const line = mk('summary', 'tool-line');
   // 花钱的那个用另一个图标：作者一眼要能看出这一串里哪几下是收费的。
   line.appendChild(mk('span', 'tool-icon', call.name === 'generate' ? '✨' : '🔧'));
   line.appendChild(mk('span', 'tool-title', call.title));
   line.appendChild(mk('span', 'tool-summary', call.summary));
+  // 外部 agent 这一步改了东西：「改 3 份 · 撤销」贴在摘要后面，不展开也看得见、点得着。
+  const chip = stepChip(call);
+  if (chip) {
+    line.appendChild(chip);
+  }
   line.appendChild(mk('span', 'tool-elapsed', formatElapsed(call.elapsedMs)));
 
   const detail = buildToolDetail(call);
@@ -648,7 +658,12 @@ export function buildToolRow(call: {
  * 要核对「它读的是哪一章、看到的是什么」时，这里是唯一的去处。两样都没有就回
  * undefined——调用方据此不给折叠三角（点开之后空空如也比不给更让人火大）。
  */
-function buildToolDetail(call: SerializedToolCall): HTMLElement | undefined {
+function buildToolDetail(
+  call: Pick<SerializedToolCall, 'argsText' | 'resultText' | 'changes' | 'answers' | 'undone' | 'callId' | 'title'>,
+  withStep = true
+): HTMLElement | undefined {
+  // 改动与代答排在参数前面：作者点开一行，先要知道它动了什么。generate 卡自己另画一块（`gen-step`），这里不重复。
+  const step = withStep ? buildStepDetail(call) : undefined;
   const parts: [string, string][] = [];
   if (call.argsText) {
     parts.push(['参数', call.argsText]);
@@ -656,10 +671,13 @@ function buildToolDetail(call: SerializedToolCall): HTMLElement | undefined {
   if (call.resultText) {
     parts.push(['返回', call.resultText]);
   }
-  if (parts.length === 0) {
+  if (parts.length === 0 && !step) {
     return undefined;
   }
   const body = mk('div', 'tool-detail');
+  if (step) {
+    body.appendChild(step);
+  }
   for (const [label, text] of parts) {
     body.appendChild(mk('div', 'tool-detail-label', label));
     body.appendChild(mk('pre', 'tool-detail-text', text));

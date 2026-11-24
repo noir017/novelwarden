@@ -18,6 +18,7 @@ import {
   stageOfTarget,
 } from './pipeline';
 import { ThinkingDepth, isThinkingDepth } from './thinking';
+import type { AgentAnswer, AgentStepChanges, AgentStepUndo } from './agentStep';
 import { ReviewReport, normalizeReport } from './review';
 
 /**
@@ -235,6 +236,15 @@ export interface TurnToolCall {
    * 截了会自报（第 2 条）。
    */
   output?: string;
+  /**
+   * 外部 agent 这一步动了什么（按文件记的改动账，`model/agentStep.ts`）。「撤销这一步」照它退；没动任何东西就没有。
+   * 读回来经 `normalizeAgentStep` 容错——会话文件作者改得动。
+   */
+  changes?: AgentStepChanges;
+  /** 这一步里替作者答掉的那几问（确认框、调模型之前那一问、覆盖审阅……），已截短。 */
+  answers?: AgentAnswer[];
+  /** 撤销过了：什么时候、结果那一句。撤销过的不能再撤。 */
+  undone?: AgentStepUndo;
 }
 
 /**

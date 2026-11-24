@@ -29,7 +29,7 @@
  */
 import { maybeById, el, setHidden } from '../dom';
 import { onContextMenu, showVersionsTab } from '../globals';
-import type { CheckpointFileDiffCommand, MenuItem } from '../globals';
+import type { CheckpointFileDiffCommand, MenuItem, SnapshotFileDiffCommand } from '../globals';
 import type { CheckpointDiffEntry, CheckpointDiffView, CheckpointView, InMessage, OutMessage, VersionView } from '../protocol';
 import { onMessage } from '../vscodeApi';
 import { activeEditor, onEditorChange } from './api';
@@ -135,7 +135,7 @@ export function unavailableReason(file: Pick<OpenFile, 'kind'> | undefined): str
 export function versionLabel(entry: VersionView, now = Date.now()): string {
   const when = describeWhen(entry.time, now);
   if (!entry.checkpoint) {
-    return `${when} 的快照`;
+    return entry.note ? `${entry.note}（${when}）` : `${when} 的快照`;
   }
   const kind = entry.checkpoint.auto ? '自动存档点' : '存档点';
   return entry.checkpoint.note ? `${kind}「${entry.checkpoint.note}」（${when}）` : `${kind}（${when}）`;
@@ -407,6 +407,17 @@ function openCheckpointFile(cmd: CheckpointFileDiffCommand): void {
   revealEditor();
 }
 
+/** 对话页里外部 agent 那一步改过的一份：改之前那一版 ↔ 现在（新建的左边空、删掉的右边空）。 */
+function openSnapshotFile(cmd: SnapshotFileDiffCommand): void {
+  openFileDiff({
+    path: cmd.path,
+    name: baseName(cmd.path),
+    left: cmd.status === 'added' || !cmd.snapshot ? 'empty' : cmd.snapshot,
+    right: cmd.status === 'deleted' ? 'empty' : 'now',
+  });
+  revealEditor();
+}
+
 // ---------------------------------------------------------------- 当前文件
 
 function fileSection(file: OpenFile | undefined): HTMLElement {
@@ -478,6 +489,8 @@ function row(file: OpenFile, entry: VersionView, index: number, current: number,
   item.appendChild(el('span', 'vs-meta', `${entry.words} 字 · ${describeDelta(entry.words, current)}`));
   if (entry.checkpoint) {
     item.appendChild(el('span', 'vs-note', entry.checkpoint.note || (entry.checkpoint.auto ? '自动存档点' : '存档点')));
+  } else if (entry.note) {
+    item.appendChild(el('span', 'vs-note', entry.note));
   }
   item.title = entry.checkpoint
     ? `${versionLabel(entry, now)}里的这一份`
@@ -682,7 +695,7 @@ export function installVersions(postMessage: (msg: InMessage) => void): void {
   window.addEventListener('nf-version-diff-query', (e) => {
     e.detail.available = true;
   });
-  window.addEventListener('nf-version-diff-command', (e) => openCheckpointFile(e.detail));
+  window.addEventListener('nf-version-diff-command', (e) => (e.detail.kind === 'snapshot' ? openSnapshotFile(e.detail) : openCheckpointFile(e.detail)));
 
   window.addEventListener('nf-workspace-reset', () => {
     target = null;

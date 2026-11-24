@@ -19,12 +19,12 @@ export const extractTool = defineActionTool({
 
   actions: {
     style: {
-      label: '从已写的正文里提取文风指南（写进 style.md，覆盖前会先问作者）',
+      label: '从已写的正文里提取文风指南（写进 style.md，覆盖已有的那份；旧版存进历史版本）',
       costly: true,
       async run(ctx) {
         await extractStyle(ctx.project);
         return {
-          text: '文风指南已交给 Novelwarden 执行（覆盖前会先问作者）。要看结果用 read 读 .novelwarden/style.md。',
+          text: '文风指南已交给 Novelwarden 执行。要看结果用 read 读 .novelwarden/style.md。',
           calls: 0,
         };
       },

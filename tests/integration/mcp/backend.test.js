@@ -2,19 +2,19 @@
  * MCP 执行端（`controller/mcp.ts`）：**外部 agent 的一次调用落到一个真的工程上。**
  *
  * 协议那一层在 `tests/unit/mcp/server.test.js`；这里绕过协议直接调 `createMcpBackend`，
- * 守的是第 19 / 25 条在 MCP 这条路上还成立：
+ * 守的是第 19 / 25 条在 MCP 这条路上还成立（不等人点，每一步记账、撤销得了）：
  *
  * | 用例 | 钉的是什么 |
  * |---|---|
  * | 查询（read / list） | 不占生成位、不进对话页 |
- * | 查技能（skills list） | 带 action 的工具按动作报闸门：查询类同样不进对话页；绑技能（`always`）先问 |
- * | generate | 气泡标 MCP、正文流进工具条、**当场问写不写**；同意才落盘，结论接在返回后面；**返回里没有正文** |
- * | generate 不采纳 | 磁盘没动，返回说「不要重复生成」 |
+ * | 查技能（skills list） | 带 action 的工具按动作报闸门：查询类同样不进对话页；绑技能不问、撤销得了 |
+ * | generate | 气泡标 MCP、正文流进工具条、**不推卡片直接落盘**（落盘那一问替作者答了、记下来）；改之前那一版存进历史；**返回里没有正文** |
+ * | 撤销这一步 | 按改动账放回改之前那一版；记在那一行上；再点只说撤销过了；有任务在跑不撤 |
  * | 连着两次调用 | 接在同一个气泡里；作者说过话就另起一个 |
  * | 生成位被占 | 当场回 isError，不排队 |
- * | edit（`always`） | 动手前先问；跳过就一字不改，返回说「不要重试」 |
+ * | edit | 不问；之后又被改过的，撤销跳过不盖 |
  * | 参数不对 | 当场回 isError：不问、不占生成位、不进对话页 |
- * | 正文 writeMode=continue | 卡片写追加，落盘接在已有正文后面 |
+ * | 正文 writeMode=continue | 落盘那一问写追加，落盘接在已有正文后面 |
  * | 简报 | 与状态机同一句「下一步」 |
  */
 const { describe, test, before, after } = require('node:test');
@@ -63,6 +63,7 @@ before(async () => {
     plotFile: './src/core/model/plotFile.ts',
     skills: './src/core/skills/index.ts',
     db: './src/core/runtime/db.ts',
+    history: './src/core/workspace/history.ts',
   });
   const settings = {
     providers: [{ id: 'p', kind: 'vscode-lm', models: [{ name: 'm', contextWindow: 100000 }] }],
@@ -123,6 +124,7 @@ function reset() {
 }
 
 const mcpTurns = () => controller.current.turns.filter((x) => x.mcp);
+const toasts = () => posted.filter((m) => m.type === 'toast');
 
 describe('查询', () => {
   let r;
@@ -142,15 +144,13 @@ describe('查询', () => {
   });
 });
 
-describe('generate → 当场问 → 同意才落盘', () => {
+describe('generate：不等人点，直接落盘', () => {
   let r;
-  let diskWhenAsked;
+  let before1;
   before(async () => {
     reset();
-    onGate = async () => {
-      diskWhenAsked = await project.readPlot(P1);
-      return 'proceed';
-    };
+    before1 = t.read(P1);
+    onGate = async () => assert.fail('外部 agent 这条路上不该推卡片');
     r = await call('generate', { target: P1, capability: 'generate' });
   });
 
@@ -169,30 +169,40 @@ describe('generate → 当场问 → 同意才落盘', () => {
     assert.ok(mcpTurns()[0].segments[0].call.output.includes('进入宗门'));
   });
 
-  test('问了这一句，卡片挂在这个气泡上', () => {
-    assert.equal(gates.length, 1);
-    assert.equal(gates[0].turnId, mcpTurns()[0].id);
-    assert.ok(gates[0].title.startsWith('Agent 要'), gates[0].title);
+  test('没有推卡片，落盘那一问替作者答了、记在那一行上', () => {
+    assert.equal(gates.length, 0);
+    const answers = mcpTurns()[0].segments[0].call.answers;
+    assert.ok(answers.some((a) => a.kind === 'gate' && a.question.startsWith('Agent 要')), JSON.stringify(answers));
   });
 
-  test('还没答时磁盘上没动静', () => {
-    assert.ok(!bundle.plotFile.isPlotFilled(diskWhenAsked.sections));
-  });
-
-  test('答了才落盘', async () => {
+  test('已经落盘', async () => {
     const plot = await project.readPlot(P1);
     assert.equal(plot.sections['梗概'], '进入宗门');
   });
 
-  test('返回里没有正文，只有形状与结论', () => {
+  test('改动账：这一份改了，改之前那一版存进了历史版本（带备注）', async () => {
+    const changes = mcpTurns()[0].segments[0].call.changes;
+    const f = changes.files.find((x) => x.path === P1);
+    assert.equal(f.status, 'modified');
+    assert.ok(f.before, JSON.stringify(f));
+    assert.equal(await bundle.history.readSnapshot(project, P1, f.before), before1);
+    const listed = await bundle.history.listSnapshots(project, P1);
+    assert.ok(listed.find((v) => v.id === f.before).note.startsWith('Agent：'), JSON.stringify(listed));
+  });
+
+  test('返回里没有正文，只有形状、结论与改动清单', () => {
     assert.equal(r.isError, false);
     assert.ok(!r.text.includes('踩点、失手'), r.text);
     assert.ok(r.text.includes('draftId'), r.text);
     assert.ok(r.text.includes('不要再写一遍'), r.text);
+    assert.ok(r.text.includes(`修改 ${P1}`), r.text);
+    assert.ok(r.text.includes('撤销'), r.text);
   });
 
-  test('工具条上记着落盘结论', () => {
+  test('工具条上记着落盘结论，推给前端的那一行带着改动账', () => {
     assert.ok(mcpTurns()[0].segments[0].call.summary.includes('已写入'), mcpTurns()[0].segments[0].call.summary);
+    const result = posted.filter((m) => m.type === 'toolResult').at(-1);
+    assert.equal(result.changes.files[0].path, P1);
   });
 
   test('收尾放开生成位', () => {
@@ -202,26 +212,46 @@ describe('generate → 当场问 → 同意才落盘', () => {
   });
 });
 
-describe('generate 不采纳', () => {
-  let r;
-  let before2;
+describe('撤销这一步', () => {
+  let row;
+  let turn;
   before(async () => {
     reset();
-    before2 = await project.readPlot(P2);
-    onGate = async () => 'skip';
-    r = await call('generate', { target: P2, capability: 'generate' });
+    turn = mcpTurns()[0];
+    row = turn.segments[0].call;
+    await controller.handle({ type: 'undoAgentStep', turnId: turn.id, callId: row.callId });
   });
 
-  test('磁盘没动', async () => {
-    const plot = await project.readPlot(P2);
-    assert.deepEqual(plot.sections, before2.sections);
+  test('放回改之前那一版', async () => {
+    const plot = await project.readPlot(P1);
+    assert.equal(plot.sections['梗概'], '第 1 章要达成的事');
   });
 
-  test('返回说不要重复生成', () => {
-    assert.ok(r.text.includes('不要重复生成'), r.text);
+  test('那一行记下撤销过了，推给前端', () => {
+    assert.ok(row.undone && row.undone.summary.includes('已放回 1 份'), JSON.stringify(row.undone));
+    const result = posted.filter((m) => m.type === 'toolResult').at(-1);
+    assert.equal(result.callId, row.callId);
+    assert.ok(result.undone);
   });
 
-  test('接在上一次的同一个气泡里', () => {
+  test('agent 写的那一版也存了一版（撤销本身也退得回来）', async () => {
+    const listed = await bundle.history.listSnapshots(project, P1);
+    assert.ok(listed.some((v) => (v.note ?? '').startsWith('撤销「')), JSON.stringify(listed));
+  });
+
+  test('再点一次：只说撤销过了，不动磁盘', async () => {
+    const text = t.read(P1);
+    reset();
+    await controller.handle({ type: 'undoAgentStep', turnId: turn.id, callId: row.callId });
+    assert.equal(t.read(P1), text);
+    assert.ok(toasts().some((x) => x.message.includes('已经撤销过')), JSON.stringify(toasts()));
+  });
+});
+
+describe('连着几次调用', () => {
+  test('接在上一次的同一个气泡里', async () => {
+    reset();
+    await call('generate', { target: P2, capability: 'generate' });
     const turns = mcpTurns();
     assert.equal(turns.length, 1);
     assert.equal(turns[0].segments.length, 2);
@@ -229,8 +259,7 @@ describe('generate 不采纳', () => {
 
   test('作者说了话之后另起一个气泡', async () => {
     controller.current.turns.push({ id: 'u-x', role: 'user', content: '先停一下', at: new Date().toISOString() });
-    onGate = async () => 'skip';
-    await call('generate', { target: P2, capability: 'generate' });
+    await call('generate', { target: P2, capability: 'generate', writeMode: 'rewrite' });
     assert.equal(mcpTurns().length, 2);
     assert.equal(controller.current.turns.at(-1).mcp, true);
   });
@@ -247,28 +276,49 @@ describe('生成位被占', () => {
       lease.release();
     }
   });
+
+  test('有任务在跑时不撤销', async () => {
+    const turn = mcpTurns()[0];
+    const row = turn.segments[1].call;
+    const text = t.read(P2);
+    const lease = controller.beginGeneration();
+    reset();
+    try {
+      await controller.handle({ type: 'undoAgentStep', turnId: turn.id, callId: row.callId });
+    } finally {
+      lease.release();
+    }
+    assert.equal(t.read(P2), text);
+    assert.equal(row.undone, undefined);
+    assert.ok(toasts().some((x) => x.level === 'error' && x.message.includes('有任务在跑')), JSON.stringify(toasts()));
+  });
 });
 
-describe('edit：动手前先问', () => {
-  test('跳过：一字不改，返回说不要重试', async () => {
+describe('edit：不等人点，改完撤销得了', () => {
+  let r;
+  let row;
+  before(async () => {
     reset();
-    onGate = async () => 'skip';
-    const before3 = await project.readPlot(P1);
-    const r = await call('edit', { path: P1, old: '进入宗门', new: '离开宗门' });
-    assert.equal(gates.length, 1);
-    assert.ok(gates[0].title.includes('改'), gates[0].title);
-    assert.ok(r.text.includes('不要重试'), r.text);
-    const after3 = await project.readPlot(P1);
-    assert.deepEqual(after3.sections, before3.sections);
+    onGate = async () => assert.fail('不该问作者');
+    r = await call('edit', { path: P1, old: '第 1 章要达成的事', new: '离开宗门' });
+    const turn = mcpTurns().at(-1);
+    row = turn.segments.at(-1).call;
   });
 
-  test('同意：改了', async () => {
-    reset();
-    onGate = async () => 'proceed';
-    const r = await call('edit', { path: P1, old: '进入宗门', new: '离开宗门' });
+  test('改了，没推卡片', async () => {
     assert.equal(r.isError, false, r.text);
+    assert.equal(gates.length, 0);
     const plot = await project.readPlot(P1);
     assert.equal(plot.sections['梗概'], '离开宗门');
+  });
+
+  test('之后又被改过：撤销跳过它，不拿旧版去盖', async () => {
+    const changed = t.read(P1).replace('离开宗门', '作者自己改的');
+    t.write(P1, changed);
+    project.invalidate();
+    await controller.handle({ type: 'undoAgentStep', turnId: mcpTurns().at(-1).id, callId: row.callId });
+    assert.equal(t.read(P1), changed);
+    assert.ok(row.undone.summary.includes('跳过 1 份'), row.undone.summary);
   });
 });
 
@@ -315,8 +365,10 @@ describe('generate 正文接着写：落盘追加在已有正文后面', () => {
     r = await call('generate', { target: CH, capability: 'generate', writeMode: 'continue', targetWords: 10 });
   });
 
-  test('卡片写的是追加', () => {
-    assert.ok(gates[0].title.includes('追加'), gates[0].title);
+  test('落盘那一问写的是追加（替作者答了）', () => {
+    const row = mcpTurns().at(-1).segments.at(-1).call;
+    const gate = row.answers.find((x) => x.kind === 'gate');
+    assert.ok(gate.question.includes('追加'), gate.question);
   });
 
   test('原有的正文还在，新写的接在后面', async () => {
@@ -326,7 +378,7 @@ describe('generate 正文接着写：落盘追加在已有正文后面', () => {
   });
 });
 
-// 动作工具的闸门按动作报：同一个 skills，list 是查询，bind 要先问作者。
+// 动作工具的闸门按动作报：同一个 skills，list 是查询，bind 动手（不问，撤销得了）。
 describe('skills：按动作分闸门', () => {
   test('list 是查询：照样列得出，不进对话页、不占生成位', async () => {
     reset();
@@ -338,15 +390,62 @@ describe('skills：按动作分闸门', () => {
     assert.equal(mcpTurns().length, turnsBefore);
   });
 
-  // 绑定改的是这个工程往后每一次生成的提示词，下游没有 diff 可看：动手前问，跳过就不写。
-  test('bind 先在对话页问；作者跳过就不写 skills.json', async () => {
+  // 绑定改的是这个工程往后每一次生成的提示词：不问，skills.json 记成这一步新建的，撤销就搬进回收站。
+  test('bind 不问，直接写 skills.json；撤销把它搬进回收站', async () => {
     reset();
-    onGate = async () => 'skip';
+    onGate = async () => assert.fail('不该问作者');
     const r = await call('skills', { action: 'bind', id: 'builtin:plain-prose', stage: 'drafting' });
-    assert.equal(gates.length, 1);
-    assert.ok(gates[0].title.includes('绑到「写正文」阶段'), gates[0].title);
+    assert.equal(gates.length, 0);
     assert.equal(r.isError, false, r.text);
+    assert.equal(t.has('.novelwarden/skills.json'), true);
+    const turn = mcpTurns().at(-1);
+    const row = turn.segments.at(-1).call;
+    assert.deepEqual(row.changes.files.map((f) => [f.path, f.status]), [['.novelwarden/skills.json', 'created']]);
+    await controller.handle({ type: 'undoAgentStep', turnId: turn.id, callId: row.callId });
     assert.equal(t.has('.novelwarden/skills.json'), false);
+    assert.ok(row.undone.summary.includes('搬进回收站 1 份'), row.undone.summary);
+  });
+});
+
+// 工程动作背后的 feature 自己弹的确认框：外部 agent 这条路上替作者答掉（第一颗按钮），答了什么记下来，改动撤销得了。
+describe('工程动作：功能层的确认框替作者答', () => {
+  const CARD = '.novelwarden/characters/林昭.md';
+  const RAW = '---\nname: 林昭\naliases: [她, 阿昭]\n---\n\n# 林昭\n\n## 身份\n主角。\n';
+  let r;
+  let row;
+  let turn;
+  before(async () => {
+    reset();
+    t.write(CARD, RAW);
+    project.invalidate();
+    h.answers.length = 0;
+    r = await call('characters', { action: 'cleanAliases' });
+    turn = mcpTurns().at(-1);
+    row = turn.segments.at(-1).call;
+  });
+
+  test('没问真宿主，也没推卡片', () => {
+    assert.equal(gates.length, 0);
+    assert.ok(!h.confirms.some((c) => c.message.includes('不该当别名')), JSON.stringify(h.confirms.map((c) => c.message)));
+  });
+
+  test('照第一颗按钮做了：别名清掉了「她」', () => {
+    assert.equal(r.isError, false, r.text);
+    assert.ok(!t.read(CARD).includes('她,'), t.read(CARD));
+    assert.ok(t.read(CARD).includes('阿昭'), t.read(CARD));
+  });
+
+  test('那一问记在那一行上，也回给了 agent', () => {
+    const a = row.answers.find((x) => x.kind === 'confirm');
+    assert.ok(a.question.includes('不该当别名'), a.question);
+    assert.equal(a.answer, '清理');
+    assert.ok(r.text.includes('途中的确认已按缺省作答'), r.text);
+  });
+
+  test('撤销：卡片回到原样', async () => {
+    assert.deepEqual(row.changes.files.map((f) => [f.path, f.status]), [[CARD, 'modified']]);
+    await controller.handle({ type: 'undoAgentStep', turnId: turn.id, callId: row.callId });
+    assert.equal(t.read(CARD), RAW);
   });
 });
 

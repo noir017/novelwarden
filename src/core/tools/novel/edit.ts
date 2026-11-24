@@ -39,17 +39,13 @@ export const editTool: ToolDef = {
   mutating: true,
 
   /**
-   * **`always`：任何策略下都要问一句。**
-   *
-   * 它改的也是已有内容，但 `ws.edit` 走的是「拿这份内容和自己 diff」那条路
-   * （`review: false`，理由见 `workspace/index.ts`），所以覆盖审阅在这里落成
-   * 确认框——框里写出的 old → new 两段原文**就是它的 diff**。放开它，
-   * 「覆盖已有内容一律过一遍人」就有了一个例外（第 25(a) 条）。
+   * 写盘（`mutating`）：不等人点，改之前那一版由改动账存下（`workspace/journal.ts`），作者在对话页上撤销这一步。
+   * old → new 两段原文写在 `detail` 里，就是工具条上看得见的那份 diff。
    */
   intent(args, project): ToolIntent {
     const target = text(args.path);
     return {
-      gate: 'always',
+      gate: 'mutating',
       title: `改「${describePath(target, project)}」里的一段文字`,
       detail: [
         target,

@@ -1,5 +1,6 @@
 import type { DirListing } from '../files/fileTree';
 import type { CallPrompt } from '../model/callChoice';
+import type { AgentAnswer, AgentStepChanges, AgentStepUndo } from '../model/agentStep';
 import type { LogEntry } from '../runtime/logger';
 import type { TaskOpen, TaskSnapshot } from '../runtime/progress';
 import type { SkillSource, SkillStage } from '../model/writingSkill';
@@ -97,6 +98,10 @@ export type OutMessage =
       elapsedMs: number;
       argsText?: string;
       resultText?: string;
+      /** 外部 agent 这一步动了哪几份文件、替作者答了什么、撤销过没有（同 `SerializedToolCall`）。 */
+      changes?: AgentStepChanges;
+      answers?: AgentAnswer[];
+      undone?: AgentStepUndo;
     }
   /**
    * 要动手了，等作者点头。**问在对话页里，不是一个盖住整个窗口的模态框。**
@@ -109,8 +114,8 @@ export type OutMessage =
    * `turnId` / `callId` 仍然带着：答完之后前端往那一轮的工具串（或产物正文
    * 下面）补一行「已跳过/已允许」当记录。
    *
-   * **两种问法共用这一条**：外部 agent 的 `always` 动作动手前（`controller/mcp.ts`），以及
-   * **产物落盘前那一句**（第 19 条，任何情况下都问）。两种都只有两颗按钮
+   * 问的是**产物落盘前那一句**（第 19 条）这类要作者当场拿主意的事；外部 agent 的调用里不推这一条，由后端替作者
+   * 答掉、记在那一步上（`controller/gate.ts`）。只有两颗按钮
    * ——**叫停整轮不在这张卡上**，那是输入框旁边那颗「停止」；与「这一个
    * 文件要不要动」是两件事，混进闸门只会被误当成「跳过」。
    *
@@ -438,6 +443,8 @@ export interface VersionView {
   words: number;
   bytes: number;
   checkpoint?: { note: string; auto: boolean };
+  /** 快照的备注（「Agent：批量写章 之前」，`workspace/history.ts` 的 `NOTES_FILE`）。存档点那几行没有。 */
+  note?: string;
 }
 
 export interface EditorFileView {

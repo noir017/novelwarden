@@ -9,6 +9,7 @@
 | 文件 | 职责 |
 |---|---|
 | [types.ts](types.ts) | 全部数据结构（`Chapter` / `SummaryCast` / `CharacterCard` / `LoreEntry` / `ProjectManifest` / `NovelConfig`）与角色卡的固定小节定义。 |
+| [agentStep.ts](agentStep.ts) | 外部 agent 一步的记录：替作者答了什么、动了哪几份文件（改之前那一版的快照 id、结束时的指纹）、两个进度，随会话落盘、读回来容错。 |
 | [chapterFile.ts](chapterFile.ts) | ★ 「什么文件算章节」的唯一定义（第 9 条）。纯函数，扫描器、编辑器、独立版文件监听共用。 |
 | [naming.ts](naming.ts) | ★ 称呼学（纯函数）：判泛称、过滤别名；只过滤 aliases、不过滤 name，剧作称谓（`主角`、`反派`）例外。 |
 | [identity.ts](identity.ts) | ★ 同一人聚类（纯函数）：同章共现作硬约束的贪心聚类，不用并查集。 |

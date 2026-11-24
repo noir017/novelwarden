@@ -107,7 +107,7 @@ declare global {
     'nf-reveal-in-files': CustomEvent<{ path: string; dir: boolean }>;
     'nf-show-versions': Event;
     'nf-version-diff-query': CustomEvent<{ available: boolean }>;
-    'nf-version-diff-command': CustomEvent<CheckpointFileDiffCommand>;
+    'nf-version-diff-command': CustomEvent<VersionDiffCommand>;
     'nf-selection-query': CustomEvent<EditorSelection>;
     'nf-threads-query': CustomEvent<{ available: boolean }>;
     'nf-threads-command': CustomEvent<ThreadsOverviewCommand>;
@@ -246,11 +246,25 @@ export function commandVersions(name: 'open'): void {
 
 /** 存档点弹窗里「对比」一份：那个存档点里的这一份 ↔ 现在，在编辑区的对比标签里看（`editor/versions.ts` 接）。 */
 export interface CheckpointFileDiffCommand {
+  kind?: 'checkpoint';
   path: string;
   /** 同 `CheckpointFileStatus`：改过的、之后删掉的、之后新建的。 */
   status: 'changed' | 'deleted' | 'added';
   checkpoint: { id: string; time: number; note: string; auto: boolean };
 }
+
+/**
+ * 对话页里外部 agent 那一步改过的一份：改之前那一版（历史版本里的快照）↔ 现在。`snapshot` 缺席（新建的、旧版没存下）
+ * 左边是空的；删掉的右边是空的。
+ */
+export interface SnapshotFileDiffCommand {
+  kind: 'snapshot';
+  path: string;
+  status: 'changed' | 'deleted' | 'added';
+  snapshot?: { id: string; label: string };
+}
+
+export type VersionDiffCommand = CheckpointFileDiffCommand | SnapshotFileDiffCommand;
 
 /** 有没有人画得了对比标签（只有装了内置编辑器的独立版、桌面版回答）。 */
 export function queryVersionDiff(): boolean {
@@ -259,7 +273,7 @@ export function queryVersionDiff(): boolean {
   return status.available;
 }
 
-export function commandVersionDiff(cmd: CheckpointFileDiffCommand): void {
+export function commandVersionDiff(cmd: VersionDiffCommand): void {
   window.dispatchEvent(new CustomEvent('nf-version-diff-command', { detail: cmd }));
 }
 

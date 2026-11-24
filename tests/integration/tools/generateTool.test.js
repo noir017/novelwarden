@@ -698,9 +698,10 @@ describe('工具定义本身', () => {
     assert.equal(tool().costly, true);
   });
 
-  // 一个字都不写磁盘。
-  test('没标 mutating', () => {
-    assert.ok(!tool().mutating, String(tool().mutating));
+  // 工具体自己一个字都不写；但经 MCP 调用时产出直接落盘（controller/mcp.ts，外部 agent 不等人点）——
+  // 宿主看到的提示要照实说它会写东西。
+  test('标了 mutating', () => {
+    assert.equal(tool().mutating, true);
   });
 
   // 领域知识在 context/prompts.ts 里，由 generate 内部那次调用自己带着。

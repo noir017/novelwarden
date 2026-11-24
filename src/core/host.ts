@@ -3,6 +3,10 @@ import { NovelProject } from './model/project';
 import { Attachment } from './model/session';
 import { EditorFileCheck, EditorOpenIntent, EditorPane } from './protocol';
 import type { CallAnswer, CallPrompt } from './model/callChoice';
+import { AgentAnswer, currentAgentCall, noteAnswer } from './runtime/agentCall';
+import { scoped } from './runtime/logger';
+
+const log = scoped('Agent');
 
 /**
  * core 对宿主的唯一依赖面。VS Code 插件与独立 Web 服务各实现一份。
@@ -174,9 +178,85 @@ export function initHost(host: Host): void {
   initConfigFromHost(host);
 }
 
+/**
+ * 当前的宿主。**在外部 agent 的一次调用里**（`runtime/agentCall.ts`）拿到的是替作者作答的那一个（{@link answeringHost}）：
+ * 外部 agent 的操作不等人点，兜底的是改之前存下的那一版与对话页上的「撤销这一步」（AGENTS 第 19 / 25 条）。
+ */
 export function getHost(): Host {
   if (!current) {
     throw new Error('Host 尚未初始化');
   }
-  return current;
+  return currentAgentCall() ? answeringHost(current) : current;
+}
+
+/**
+ * 替作者作答的宿主：问的话一律当场答掉、记一笔（`noteAnswer`），其余原样转给 `base`。
+ *
+ * | 问法 | 答什么 |
+ * |---|---|
+ * | `confirm` / `confirmCall` | **第一颗按钮**：确认框把「照做」放在第一颗（取消是关掉弹窗，不是一颗按钮）；调模型那一问用打开时的缺省模型与详细度 |
+ * | `reviewReplace` / `mergeTexts` | 采纳新版 |
+ * | `input` | 缺省值（过得了校验才用）；没有就当取消 |
+ * | `pick` | 只有一项就挑它；好几项不替作者挑，当取消 |
+ *
+ * 可选的能力（`reviewReplace`、`mergeTexts`）`base` 没有就也没有：调用方按「宿主有没有这个能力」分支，不能凭空多出一个。
+ */
+function answeringHost(base: Host): Host {
+  const record = (answer: AgentAnswer) => {
+    noteAnswer(answer);
+    log.info(`替作者答了：${answer.question}`, answer.answer);
+  };
+  const overrides: Partial<Host> = {
+    async input(opts) {
+      const value = opts.value;
+      const ok = value !== undefined && !opts.validate?.(value);
+      record({ kind: 'input', question: opts.title ?? opts.prompt ?? '输入', detail: opts.prompt, answer: ok ? value : '取消（没有缺省值）' });
+      return ok ? value : undefined;
+    },
+    async confirm(message, actions, opts) {
+      const action = actions[0];
+      record({ kind: 'confirm', question: message, detail: opts?.detail, answer: action ?? '取消（没有可点的按钮）' });
+      return action;
+    },
+    async confirmCall(message, actions, opts) {
+      const action = actions[0];
+      record({ kind: 'call', question: message, detail: opts.detail, answer: action ?? '取消（没有可点的按钮）' });
+      if (action === undefined) {
+        return undefined;
+      }
+      return {
+        action,
+        choice: {
+          ...(opts.call.model ? { model: opts.call.model } : {}),
+          ...(opts.call.contextDetail ? { contextDetail: opts.call.contextDetail } : {}),
+        },
+      };
+    },
+    async pick<T>(choices: PickChoice<T>[], title: string): Promise<T | undefined> {
+      const only = choices.length === 1 ? choices[0] : undefined;
+      record({ kind: 'pick', question: title, answer: only ? only.label : `取消（有 ${choices.length} 项可选，不替作者挑）` });
+      return only?.value;
+    },
+  };
+  if (base.reviewReplace) {
+    overrides.reviewReplace = async (name, _current, _proposed, relPath) => {
+      record({ kind: 'review', question: `用新版本覆盖「${name}」`, detail: relPath, answer: '采纳' });
+      return 'apply';
+    };
+  }
+  if (base.mergeTexts) {
+    overrides.mergeTexts = async (title) => {
+      record({ kind: 'merge', question: title, answer: '用新版' });
+      return 'apply';
+    };
+  }
+  return new Proxy(base, {
+    get(target, prop) {
+      if (Object.prototype.hasOwnProperty.call(overrides, prop)) {
+        return overrides[prop as keyof Host];
+      }
+      const value = Reflect.get(target, prop, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
 }

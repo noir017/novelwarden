@@ -40,7 +40,6 @@ import {
   readText,
   readTextIfExists,
   sanitizeFileName,
-  writeText,
 } from '../model/fs';
 import { Chapter, SummaryCast } from '../model/types';
 import { parseMarkdown, replaceSection, rewriteFrontmatter, stringifyFrontmatter } from '../model/markdown';
@@ -99,7 +98,10 @@ import {
 } from './guard';
 import { Handler, HandlerCtx, handlerFor } from './handlers';
 import { renderFinalizedPlot } from './handlers/plot';
+import { copyOnDisk, renameOnDisk, unlinkOnDisk, writeOnDisk } from './disk';
 import { moveHistory, snapshotBeforeWrite, snapshotNow } from './history';
+import { noteMarks } from './journal';
+import { ProgressMarks, sameMarks } from '../model/agentStep';
 import { SearchOptions, SearchResult, search } from './search';
 
 const log = scoped('工作区');
@@ -133,7 +135,7 @@ export interface WriteOptions {
    * 覆盖前是否审阅。缺省 true。
    *
    * **agent 路径不允许传 false**——「不静默覆盖」是产品承诺，不是偏好设置
-   * （AGENTS 第 3 / 19 条）。留这个开关只给**已经有自己那道闸**的调用方：批量路径（它跳过已有
+   * （AGENTS 第 3 / 19 条）；外部 agent 那条路上这一问由宿主替作者答「采纳」并记下，改之前那一版由改动账存着（`journal.ts`）。留这个开关只给**已经有自己那道闸**的调用方：批量路径（它跳过已有
    * 产物，根本走不到覆盖）、内置编辑器（乐观锁）、`edit` 与 `setParagraphStyle`（改的就是作者点的那几个字），
    * 以及功能层自己问过作者的覆盖（更新角色卡 / 提取角色的审阅采纳、批量更新时的「全部直接采纳」、章节改名时
    * 同步正文的 `# 标题` 行）——同一件事不问第二次。传了 false 照样过守卫、照样存历史版本。
@@ -334,7 +336,7 @@ export class Workspace {
       // 覆盖（含追加）之前先把磁盘上的旧内容存一版（history.ts：只管创作产物、有节流）。绝不抛——存不下也照常写盘。
       await snapshotBeforeWrite(this.project, target, final);
     }
-    await writeText(guarded.abs, final);
+    await writeOnDisk(this.project, guarded.abs, final, { mkdir: true });
     this.project.invalidate();
 
     const side = handler.after && !(opts.deferAfter && ctx.path.kind === 'chapter') ? await handler.after(ctx, final) : [];
@@ -407,8 +409,7 @@ export class Workspace {
       ctx.path.kind === 'other' && this.project.draftRelPathFor(fromRel) ? 'chapter' : ctx.path.kind
     );
 
-    await fs.mkdir(path.dirname(this.project.pathOf(toRel)), { recursive: true });
-    await fs.rename(fromAbs, this.project.pathOf(toRel));
+    await renameOnDisk(this.project, fromAbs, this.project.pathOf(toRel));
     this.project.invalidate();
 
     // 主文件已经搬过去了：快照先跟上（绝不抛），伴生那一步出了错也不会把它们落在旧路径下。
@@ -477,8 +478,7 @@ export class Workspace {
     const side = handler.onRemove ? await handler.onRemove(ctx, normalized) : [];
 
     const dest = await trashPathFor(this.project, normalized);
-    await fs.mkdir(path.dirname(dest), { recursive: true });
-    await fs.rename(abs, dest);
+    await renameOnDisk(this.project, abs, dest);
     this.project.invalidate();
 
     log.info(`已移到回收站：${normalized}`, `落点 ${this.project.relPath(dest)}`);
@@ -530,7 +530,7 @@ export class Workspace {
       await fs.mkdir(this.project.pathOf(dir), { recursive: true });
     }
     for (const file of plan.files) {
-      await fs.copyFile(this.project.pathOf(file.from), this.project.pathOf(file.to), fsConstants.COPYFILE_EXCL);
+      await copyOnDisk(this.project, this.project.pathOf(file.from), this.project.pathOf(file.to), fsConstants.COPYFILE_EXCL);
     }
     this.project.invalidate();
 
@@ -605,8 +605,7 @@ export class Workspace {
     if (guarded.existed) {
       await snapshotNow(this.project, normalized);
     }
-    await fs.mkdir(path.dirname(guarded.abs), { recursive: true });
-    await fs.writeFile(guarded.abs, bytes);
+    await writeOnDisk(this.project, guarded.abs, bytes, { mkdir: true });
     this.project.invalidate();
     return { rel: normalized, message: `已退回 ${normalized}` };
   }
@@ -810,10 +809,10 @@ export class Workspace {
       // 换掉的是这一章原来那份（改标题、改章号时它在旧路径上），旧内容先存一版。
       await snapshotBeforeWrite(this.project, previous.relPath, text);
     }
-    await writeText(this.project.pathOf(rel), text);
+    await writeOnDisk(this.project, this.project.pathOf(rel), text, { mkdir: true });
 
     if (previous && previous.relPath !== rel) {
-      await fs.unlink(this.project.pathOf(previous.relPath)).catch(() => undefined);
+      await unlinkOnDisk(this.project, this.project.pathOf(previous.relPath)).catch(() => undefined);
       // 改标题（还没有正文）、改章号都换了文件名：这一份的快照（连同刚存的那一版）跟着搬到新路径下，绝不抛。
       await moveHistory(this.project, previous.relPath, rel);
     }
@@ -856,8 +855,7 @@ export class Workspace {
       return false;
     }
     const dest = await trashPathFor(this.project, plotRelPath);
-    await fs.mkdir(path.dirname(dest), { recursive: true });
-    await fs.rename(this.project.pathOf(plotRelPath), dest);
+    await renameOnDisk(this.project, this.project.pathOf(plotRelPath), dest);
     this.project.invalidate();
     if (!(await this.project.getPlot(plot.no))) {
       await this.dropPlannedThreadEvents(plot.no);
@@ -921,7 +919,7 @@ export class Workspace {
       return 'same';
     }
     await snapshotBeforeWrite(this.project, plotRelPath, next);
-    await writeText(abs, next);
+    await writeOnDisk(this.project, abs, next, { mkdir: true });
     this.project.invalidate();
     return 'retitled';
   }
@@ -946,7 +944,7 @@ export class Workspace {
     if (next === undefined || next === raw) {
       return next !== undefined;
     }
-    await fs.writeFile(abs, next, 'utf8');
+    await writeOnDisk(this.project, abs, next);
     this.project.invalidate();
     return true;
   }
@@ -972,7 +970,7 @@ export class Workspace {
       return false;
     }
     if (next !== raw) {
-      await fs.writeFile(abs, next, 'utf8');
+      await writeOnDisk(this.project, abs, next);
       this.project.invalidate();
     }
     return true;
@@ -1007,7 +1005,7 @@ export class Workspace {
     if (next === undefined || next === raw) {
       return false;
     }
-    await fs.writeFile(abs, next, 'utf8');
+    await writeOnDisk(this.project, abs, next);
     this.project.invalidate();
     return true;
   }
@@ -1024,7 +1022,7 @@ export class Workspace {
     }
     const next = replaceSection(raw, PLOT_LORE_KEY, renderLoreLines(lines));
     if (next !== raw) {
-      await fs.writeFile(abs, next, 'utf8');
+      await writeOnDisk(this.project, abs, next);
       this.project.invalidate();
     }
     return true;
@@ -1139,7 +1137,7 @@ export class Workspace {
     if ((await readTextIfExists(abs)) === undefined) {
       // markdown 家族给一行标题好认；其余（.txt / 无扩展名 / .json）留空文件，
       // 往里塞 markdown 语法只会碍事。
-      await writeText(abs, isMarkdownPath(rel) ? `# ${chapter.title} · 草稿\n\n` : '');
+      await writeOnDisk(this.project, abs, isMarkdownPath(rel) ? `# ${chapter.title} · 草稿\n\n` : '', { mkdir: true });
     }
     return rel;
   }
@@ -1160,7 +1158,7 @@ export class Workspace {
       throw new WsError('outOfRoot', `路径超出工程目录：${rel}`);
     }
     const guarded = await guardWrite(this.project, normalized, { mode: 'overwrite' });
-    await writeText(guarded.abs, text);
+    await writeOnDisk(this.project, guarded.abs, text, { mkdir: true });
     return normalized;
   }
 
@@ -1198,13 +1196,13 @@ export class Workspace {
     if (current) {
       const dest = await trashPathFor(this.project, current.relPath);
       await fs.mkdir(path.dirname(dest), { recursive: true });
-      await fs.copyFile(this.project.pathOf(current.relPath), dest);
+      await copyOnDisk(this.project, this.project.pathOf(current.relPath), dest);
       trashed = this.project.relPath(dest);
     }
     // 回收站那一份照旧（永不裁剪，定稿完成提示里说的就是它）；历史版本里再存一版，编辑器的「历史」面板里
     // 找得到、对比得了——七节整体换掉，节流拦不住它。
     await snapshotBeforeWrite(this.project, rel, text);
-    await writeText(this.project.pathOf(rel), text);
+    await writeOnDisk(this.project, this.project.pathOf(rel), text, { mkdir: true });
     this.project.invalidate();
     return { rel, trashed };
   }
@@ -1273,6 +1271,7 @@ export class Workspace {
     const rel = this.project.relPath(this.project.globalSummaryPath);
     const fm = stringifyFrontmatter({ through, generatedBy: 'novelwarden' });
     await this.overwrite(rel, `${fm}\n\n# 全文大纲\n\n${content.trim()}\n`);
+    await noteMarks(this.project);
     const manifest = await this.project.readManifest();
     manifest.globalSummaryThrough = through;
     await this.project.writeManifest(manifest);
@@ -1292,6 +1291,7 @@ export class Workspace {
     if (after === before) {
       return before;
     }
+    await noteMarks(this.project);
     manifest.threadsThrough = after.through;
     if (after.judged.length > 0) {
       manifest.threadsJudged = after.judged;
@@ -1300,6 +1300,32 @@ export class Workspace {
     }
     await this.project.writeManifest(manifest);
     return after;
+  }
+
+  /**
+   * 撤销外部 agent 的一步时把 `project.json` 里的两个进度放回去（`features/agentUndo.ts`）：只换这两个值，章节索引照旧。
+   * `expect` 是那一步结束时的值，现在已经不是它（之后又推过）就不动，返回 false。
+   */
+  async restoreMarks(marks: ProgressMarks, expect: ProgressMarks): Promise<boolean> {
+    const manifest = await this.project.readManifest();
+    const now: ProgressMarks = {
+      globalSummaryThrough: manifest.globalSummaryThrough,
+      threadsThrough: manifest.threadsThrough,
+      threadsJudged: manifest.threadsJudged,
+    };
+    if (!sameMarks(now, expect)) {
+      return false;
+    }
+    await noteMarks(this.project);
+    for (const key of ['globalSummaryThrough', 'threadsThrough', 'threadsJudged'] as const) {
+      if (marks[key] === undefined) {
+        delete manifest[key];
+      } else {
+        (manifest as unknown as Record<string, unknown>)[key] = marks[key];
+      }
+    }
+    await this.project.writeManifest(manifest);
+    return true;
   }
 
   /**
@@ -1432,7 +1458,7 @@ export class Workspace {
    */
   private async overwrite(rel: string, text: string): Promise<void> {
     await snapshotBeforeWrite(this.project, rel, text);
-    await writeText(this.project.pathOf(rel), text);
+    await writeOnDisk(this.project, this.project.pathOf(rel), text, { mkdir: true });
   }
 
   private ctxOf(rel: string): HandlerCtx {

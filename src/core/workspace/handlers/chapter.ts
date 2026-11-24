@@ -21,10 +21,10 @@
  * `moveHistory`）；正文自己的快照由 `Workspace.move` 挪。
  */
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
 import { getHost } from '../../host';
 import { scoped } from '../../runtime/logger';
 import { NovelProject } from '../../model/project';
+import { renameOnDisk } from '../disk';
 import { moveHistory } from '../history';
 import { Handler, HandlerCtx } from './types';
 
@@ -122,8 +122,7 @@ async function carryMirror(
     getHost().toast(`新位置已有${what}${isDir ? '目录' : ''}：${to}，旧${what}留在 ${from} 未动。`, 'error');
     return [`新位置已有${what} ${to}，旧${what}留在 ${from} 未动`];
   }
-  await fs.mkdir(path.dirname(toAbs), { recursive: true });
-  await fs.rename(fromAbs, toAbs);
+  await renameOnDisk(project, fromAbs, toAbs);
   log.info(`${what}已跟随移动`, `${from} → ${to}`);
   // 伴生搬家不经 `Workspace.move`，它们的快照在这里跟上（绝不抛）。没搬动的（目标已有、移出了 chapters/）快照也留在原处。
   return [`${what} ${from} → ${to}`, ...(await moveHistory(project, from, to))];

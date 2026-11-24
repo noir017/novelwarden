@@ -660,11 +660,11 @@ async function targetWordsOf(c: ChatController, target: CreationTarget): Promise
  * 已经写过。现在它和别的动手请求（写文件、改一段字）长一个样、在同一个
  * 位置、**产出的当下就问**（[gate.ts](gate.ts)）。
  *
- * ## 不交给宿主的权限配置
+ * ## 外部 agent 那条路
  *
- * 外部 agent 的宿主（Claude Code 之类）自己有一层「让不让调这个工具」的权限，
- * 可以被设成全自动。这一问不在那一层：**任何情况下都问**（`controller/mcp.ts`
- * 产出草稿后照样走这里）。那是产品承诺（第 19 条），不是偏好设置。
+ * `controller/mcp.ts` 产出草稿后也走这里，但跑在「外部 agent 的这一次」里（`runtime/agentCall.ts`）：
+ * `askGate` 不推卡片、当场答「确认」并记一笔，删修饰的对照与覆盖审阅同样替作者答「用新版」。兜底的是网关
+ * 动文件之前存下的那一版与对话页上的「撤销这一步」（第 19 / 25 条）。
  *
  * ## 落点从 draft 里取，不由前端传
  *

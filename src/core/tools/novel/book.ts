@@ -2,7 +2,7 @@
  * `book` —— 拆书：导入原稿、从已写正文补齐、从参考书学写法。
  *
  * 都是工程页那几颗按钮背后的同一个函数。`import` 会新建章节文件——建的是作者自己那本 txt 里的章，
- * 切分结果先在确认框里给作者看，同名一律不覆盖。要 `path` 的两个只认工程里的 txt
+ * 切分结果写在途中那一问里（外部 agent 这条路上替作者答掉、随结果回去），同名一律不覆盖。要 `path` 的两个只认工程里的 txt
  * （`features/bookText.ts` 的那张清单），不认章节文件、隐藏目录与工程外的路径。
  */
 import { str } from '../schema';
@@ -25,7 +25,7 @@ export const bookTool = defineActionTool({
 
   actions: {
     import: {
-      label: '导入原稿：把一本 txt 按章标题切成章节，接在已有章节之后（切分结果先给作者看；导入本身不调模型，导入完作者可以选择接着补齐）',
+      label: '导入原稿：把一本 txt 按章标题切成章节，接在已有章节之后（导入本身不调模型；导入完接着从已写正文补齐，那一步要调模型）',
       costly: true,
       uses: TXT,
       requires: TXT,
@@ -33,14 +33,14 @@ export const bookTool = defineActionTool({
         const r = await importManuscript(ctx.project, { path: String(args.path).trim() });
         if (r.imported === 0) {
           return {
-            text: '这一次没有导入：要么作者取消了，要么认不出章节标题（每章开头要有单独一行「第一章 xxx」）。不要重试同一个动作——先问作者。',
+            text: '这一次没有导入：认不出章节标题（每章开头要有单独一行「第一章 xxx」），或者途中那一问被取消了（见结果末尾）。不要重试同一个动作——先问作者。',
             calls: 0,
           };
         }
         return {
           text:
             `已导入 ${r.imported} 章。` +
-            (r.calls > 0 ? `作者接着从已写正文补齐了，调用模型 ${r.calls} 次，结果见工程页。` : '作者没有接着补齐；需要时用 derive。'),
+            (r.calls > 0 ? `接着从已写正文补齐了，调用模型 ${r.calls} 次，结果见工程页。` : '没有接着补齐；需要时用 derive。'),
           calls: r.calls,
         };
       },
@@ -67,7 +67,7 @@ export const bookTool = defineActionTool({
           .join('；');
         return made
           ? { text: `${made}。`, calls: r.calls }
-          : { text: '这一次什么都没写：要么作者取消了，要么没学成（见工程页提示）。不要重试同一个动作——先问作者。', calls: r.calls };
+          : { text: '这一次什么都没写：没学成（见工程页提示），或者途中那一问被取消了（见结果末尾）。不要重试同一个动作——先问作者。', calls: r.calls };
       },
     },
   },

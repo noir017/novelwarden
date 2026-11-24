@@ -32,6 +32,8 @@
  *   **大改总是存**：整章重写、修稿、一键排版、定稿写回，新内容和旧内容一比就超出这个数。改动按公共前后缀粗算
  *   （{@link changedChars}）。
  * - 「现在存一版」（{@link snapshotNow}）跳过节流，但和最新快照一字不差时照样不重复存。
+ * - 外部 agent 动一份文件之前（`journal.ts`）同「现在存一版」，另外不是创作产物的也存（`anyKind`），并记一句备注
+ *   （{@link NOTES_FILE}）：「版本」侧栏照着标出「Agent：<动作> 之前」。
  *
  * ## 保留
  *
@@ -206,7 +208,16 @@ export interface SnapshotInfo {
   time: number;
   words: number;
   bytes: number;
+  /** 这一版的备注（「Agent：批量写章 之前」），见 {@link NOTES_FILE}。 */
+  note?: string;
 }
+
+/**
+ * 快照的备注：每份文件的快照目录里一份 `{ 快照文件名: 备注 }`。外部 agent 动一份文件之前存的那一版带一句
+ * 「Agent：<动作> 之前」（`journal.ts`），「版本」侧栏照着标出来。不是快照的名字（以点开头），不进排序与修剪；
+ * 跟着快照目录搬家、合并（{@link mergeHistoryDir}），修剪时一起去掉被裁的那几条。读不懂当没有（第 1 条）。
+ */
+export const NOTES_FILE = '.notes.json';
 
 /**
  * 这份文件能不能存历史版本。能就给 undefined，不能给一句给人看的原因（界面上禁用按钮时说的就是它）。
@@ -237,11 +248,18 @@ export async function listSnapshots(project: NovelProject, rel: string): Promise
     return [];
   }
   const dir = project.pathOf(relDir);
+  const notes = await readNotes(dir);
   const out: SnapshotInfo[] = [];
   for (const name of sortSnapshotNames(await snapshotNamesIn(dir))) {
     try {
       const buf = await fs.readFile(path.join(dir, name));
-      out.push({ id: name, time: parseSnapshotFileName(name)!.time, words: countWords(decodeFileText(buf)), bytes: buf.length });
+      out.push({
+        id: name,
+        time: parseSnapshotFileName(name)!.time,
+        words: countWords(decodeFileText(buf)),
+        bytes: buf.length,
+        ...(notes[name] ? { note: notes[name] } : {}),
+      });
     } catch {
       // 列的时候刚被裁掉、或者作者手删了：跳过这一个。
     }
@@ -251,12 +269,17 @@ export async function listSnapshots(project: NovelProject, rel: string): Promise
 
 /** 读某一个快照的全文。`id` 只认快照文件名（防 `../`）；不存在抛 `WsError('notFound')`。 */
 export async function readSnapshot(project: NovelProject, rel: string, id: string): Promise<string> {
+  return decodeFileText(await readSnapshotBytes(project, rel, id));
+}
+
+/** 同 {@link readSnapshot}，字节原样（撤销时写回去用：GBK 的旧稿写回去还是 GBK）。 */
+export async function readSnapshotBytes(project: NovelProject, rel: string, id: string): Promise<Buffer> {
   const relDir = historyDirOf(project, rel);
   if (relDir === undefined || id.includes('/') || id.includes('\\') || !parseSnapshotFileName(id)) {
     throw new WsError('notFound', `找不到这一版：${id}`);
   }
   try {
-    return decodeFileText(await fs.readFile(path.join(project.pathOf(relDir), id)));
+    return await fs.readFile(path.join(project.pathOf(relDir), id));
   } catch {
     throw new WsError('notFound', `找不到这一版（可能已经被裁掉了）：${id}`);
   }
@@ -269,8 +292,22 @@ export interface SnapshotResult {
   saved?: string;
   /** 为什么没存。 */
   skipped?: SnapshotSkip | 'notTracked' | 'missing' | 'tooLarge';
+  /** 没存是因为与最新一个快照一字不差（`skipped: 'same'`）：那一个的文件名——它就是磁盘上此刻这一份。 */
+  latest?: string;
   /** 存的时候出错了（已经记了 warn）。 */
   error?: string;
+}
+
+export interface SnapshotOptions {
+  force?: boolean;
+  now?: number;
+  /**
+   * 不是创作产物（`other`）也存。外部 agent 动的每一份都要找得回来（`journal.ts`），工程根下随手记的笔记也一样；
+   * 情节大纲（没有文件）与还不是小说工程的目录照旧不存。
+   */
+  anyKind?: boolean;
+  /** 给这一版记一句备注（{@link NOTES_FILE}）。与最新一个一字不差没另存时，备注记在那一个上（它已经有备注就不动）。 */
+  note?: string;
 }
 
 /**
@@ -281,7 +318,7 @@ export async function snapshotBeforeWrite(
   project: NovelProject,
   rel: string,
   next: string | undefined,
-  opts: { force?: boolean; now?: number } = {}
+  opts: SnapshotOptions = {}
 ): Promise<SnapshotResult> {
   try {
     return await snapshot(project, rel, next, opts);
@@ -293,20 +330,20 @@ export async function snapshotBeforeWrite(
 }
 
 /** 「现在存一版」：把**磁盘上当前**这份强制存一个快照（跳过节流；与最新快照一字不差时不重复存）。 */
-export function snapshotNow(project: NovelProject, rel: string): Promise<SnapshotResult> {
-  return snapshotBeforeWrite(project, rel, undefined, { force: true });
+export function snapshotNow(project: NovelProject, rel: string, opts: Pick<SnapshotOptions, 'anyKind' | 'note'> = {}): Promise<SnapshotResult> {
+  return snapshotBeforeWrite(project, rel, undefined, { ...opts, force: true });
 }
 
 async function snapshot(
   project: NovelProject,
   rel: string,
   next: string | undefined,
-  opts: { force?: boolean; now?: number }
+  opts: SnapshotOptions
 ): Promise<SnapshotResult> {
   const normalized = normalizeRel(rel);
   // 情节大纲没有文件（各章细纲梗概的汇总）：磁盘上残留的老 `outline.md` 不是现在的书，不存。
   const kind = normalized === undefined ? 'other' : kindOfPath(project, normalized).kind;
-  if (normalized === undefined || kind === 'other' || kind === 'outline') {
+  if (normalized === undefined || (kind === 'other' && !opts.anyKind) || kind === 'outline') {
     return { skipped: 'notTracked' };
   }
   if (!(await isDir(project.novelDir))) {
@@ -342,6 +379,12 @@ async function snapshot(
   const now = opts.now ?? Date.now();
   const decision = decideSnapshot({ old, next, latest, now, force: opts.force });
   if (!decision.save) {
+    if (decision.reason === 'same' && names[0]) {
+      if (opts.note) {
+        await noteSnapshot(dir, names[0], opts.note);
+      }
+      return { skipped: 'same', latest: names[0] };
+    }
     return { skipped: decision.reason };
   }
 
@@ -357,7 +400,62 @@ async function snapshot(
   if (pruned.length > 0) {
     log.debug(`裁掉 ${normalized} 最旧的 ${pruned.length} 个历史版本`, `只留最近 ${HISTORY_KEEP} 个`);
   }
+  if (opts.note || pruned.length > 0) {
+    await rewriteNotes(dir, (notes) => {
+      for (const stale of pruned) {
+        delete notes[stale];
+      }
+      if (opts.note) {
+        notes[name] = opts.note;
+      }
+    });
+  }
   return { saved: name };
+}
+
+// ---------------------------------------------------------------- 备注
+
+async function readNotes(dir: string): Promise<Record<string, string>> {
+  try {
+    const parsed: unknown = JSON.parse(await fs.readFile(path.join(dir, NOTES_FILE), 'utf8'));
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {};
+    }
+    const out: Record<string, string> = {};
+    for (const [name, note] of Object.entries(parsed)) {
+      if (typeof note === 'string' && parseSnapshotFileName(name)) {
+        out[name] = note;
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** 改一下备注表再写回去；改完是空的就删掉这份文件（目录里没留备注的痕迹）。 */
+async function rewriteNotes(dir: string, edit: (notes: Record<string, string>) => void): Promise<void> {
+  const notes = await readNotes(dir);
+  const before = JSON.stringify(notes);
+  edit(notes);
+  if (JSON.stringify(notes) === before) {
+    return;
+  }
+  const file = path.join(dir, NOTES_FILE);
+  if (Object.keys(notes).length === 0) {
+    await fs.unlink(file).catch(() => undefined);
+    return;
+  }
+  await fs.writeFile(file, `${JSON.stringify(notes, null, 1)}\n`, 'utf8');
+}
+
+/** 给一个已有的快照记备注。它已经有备注就不动：先记的那一句说的是它最早因为什么存下。 */
+async function noteSnapshot(dir: string, name: string, note: string): Promise<void> {
+  await rewriteNotes(dir, (notes) => {
+    if (!notes[name]) {
+      notes[name] = note;
+    }
+  });
 }
 
 // ---------------------------------------------------------------- 搬
@@ -424,6 +522,9 @@ async function carryHistory(project: NovelProject, from: string, to: string): Pr
 async function mergeHistoryDir(src: string, dst: string): Promise<number> {
   let renamed = 0;
   let received = false;
+  // 备注表不当快照拷：拷完按落下的名字并进 `dst` 那一份（撞名加了序号的，备注跟着新名字走）。
+  const notes = await readNotes(src);
+  const landed: Record<string, string> = {};
   for (const entry of await fs.readdir(src, { withFileTypes: true })) {
     const from = path.join(src, entry.name);
     const into = path.join(dst, entry.name);
@@ -438,19 +539,33 @@ async function mergeHistoryDir(src: string, dst: string): Promise<number> {
       }
       continue;
     }
+    if (entry.name === NOTES_FILE) {
+      continue;
+    }
     const name = await copyUnique(from, dst, entry.name);
     await fs.unlink(from);
     received = true;
+    if (notes[entry.name]) {
+      landed[name] = notes[entry.name];
+    }
     if (name !== entry.name) {
       renamed++;
     }
   }
   if (received) {
     const names = await snapshotNamesIn(dst);
-    for (const stale of snapshotsToPrune(names)) {
+    const pruned = snapshotsToPrune(names);
+    for (const stale of pruned) {
       await fs.unlink(path.join(dst, stale)).catch(() => undefined);
     }
+    await rewriteNotes(dst, (merged) => {
+      Object.assign(merged, landed);
+      for (const stale of pruned) {
+        delete merged[stale];
+      }
+    });
   }
+  await fs.unlink(path.join(src, NOTES_FILE)).catch(() => undefined);
   await fs.rmdir(src).catch(() => undefined);
   return renamed;
 }

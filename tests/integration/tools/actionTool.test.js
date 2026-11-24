@@ -261,11 +261,11 @@ describe('描述与 schema', () => {
 });
 
 describe('意图', () => {
-  test('缺省 mutating，标题是动作的说法；调模型的提醒随后还有一问', () => {
+  test('缺省 mutating，标题是动作的说法；调模型的次数指向这一步的代答', () => {
     const i = fakeTool.intent({ action: 'spend', path: 'a.md', name: '林昭' });
     assert.equal(i.gate, 'mutating');
     assert.equal(i.title, '花三次');
-    assert.equal(i.detail, 'a.md 林昭\n要调模型的动作随后还会告诉你预计调用几次，那一步你也可以不同意。');
+    assert.equal(i.detail, 'a.md 林昭\n会调模型（预计调用几次见这一步的代答）。');
   });
 
   test('查询类报 auto', () => {

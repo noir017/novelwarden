@@ -4,7 +4,7 @@
  * 这些动作背着一批 agent 不该自己去执行的不变量：批量路径**跳过已有产物**、用不带全文兜底的
  * 严格解析（第 19 条）；正文落盘要在细纲上记 `writtenFrom`（第 18 条）。让它拿 `write` 自己拼，
  * 等于把这些交给一个每次都可能记错的东西。所以每个动作就是工程页那颗按钮背后的同一个函数，
- * 确认框（「有 N 章还没排细纲，需要调用 N 次模型」）照弹（第 4 条）。
+ * 确认框（「有 N 章还没排细纲，需要调用 N 次模型」）照样经 `askCall` 写明次数（第 4 条）——外部 agent 这条路上替作者答掉，那句话随结果末尾的代答回去。
  */
 import { bool, int, str } from '../schema';
 import { ArgError, countedBy, defineActionTool, toInt } from './actions';
@@ -16,7 +16,7 @@ export const pipelineTool = defineActionTool({
   name: 'pipeline',
   summary:
     '流水线上的批量动作。它们背着固定流程（只补空白不覆盖已有产物、正文落盘在细纲上记指纹），' +
-    '所以走这里，不要自己用 write 拼。调模型的动作会先弹确认框告诉作者要调用几次，他可以不同意。',
+    '所以走这里，不要自己用 write 拼。调模型的动作不等作者确认，预计调用几次随结果回给你；改动作者可以撤销。',
   usage:
     '**连续多章的同类工作用这里**（batchPlots / batchManuscripts），比一章一章 generate 省钱，' +
     '而且有进度条、能停、失败的会挂在那一章上。from / to 指定章号区间，只给 from 时按缺省章数往后数。',
@@ -62,7 +62,7 @@ export const pipelineTool = defineActionTool({
         return {
           gate: 'mutating',
           title: '批量写章',
-          detail: [scope, '随后还会告诉你预计调用几次，那一步你也可以不同意。'].filter(Boolean).join('\n'),
+          detail: [scope, '会调模型（预计调用几次见这一步的代答）。'].filter(Boolean).join('\n'),
         };
       },
       async run(ctx, args) {

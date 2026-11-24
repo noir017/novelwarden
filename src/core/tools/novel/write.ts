@@ -8,19 +8,19 @@
  * 伴生搬迁在 handler 里做过一次。这一层要做的只有三件**属于 agent 的**事：
  *
  * 1. **把 draftId 换成 artifact**（等价于作者在那张落盘卡片上点了「写入」）；
- * 2. **把守卫的结论翻译成模型能照着改的话**（越界了、已存在了、作者没采纳）；
+ * 2. **把守卫的结论翻译成模型能照着改的话**（越界了、已存在了、没落盘）；
  * 3. **记账失败**（第 16 条）。
  *
  * 如果哪天要在这里写一段路径检查，说明绕过了 workspace——停下来重想。
  *
  * ## 五条硬约束
  *
- * 1. **`review` 永远 `true`，且不作为工具参数暴露。** 模型不该有能力关掉审阅
- *    （第 3 / 19 条：不静默覆盖）。这是产品承诺不是偏好设置。
+ * 1. **`review` 永远 `true`，且不作为工具参数暴露。** 外部 agent 这条路上那一问由宿主替作者答「采纳」并记进这一步的代答
+ *    （`host.ts`），改之前那一版由改动账存下——覆盖照样留痕、撤销得了（第 3 / 19 条）。
  * 2. **`draftId` 找不到时 `error`，不静默降级成写空文件。**
  * 3. **draft 没有 `artifact`（讨论这类 text 产出）时 `error`**——
  *    一段批评意见不该被写成一份细纲。
- * 4. **作者在审阅里拒绝 → 明说「作者没有采纳」**，让它别原地重试（重试同一个
+ * 4. **审阅放弃了这次写入 → 明说「没有落盘」**，让它别原地重试（重试同一个
  *    动作是最常见的烧钱方式）。
  * 5. **写失败 `recordFailure` 挂在对应细纲上，成功 `clearFailures`**（第 16 条）。
  */
@@ -45,26 +45,15 @@ export const writeTool: ToolDef = {
   name: 'write',
   mutating: true,
 
-  /**
-   * **覆盖那一档是 `reviewed`，不是 `mutating`**：`ws.write` 会带着 diff 去请
-   * 作者过目，在它之前再弹一个「确定吗」是纯噪声——diff 本身就同时回答了
-   * 「要不要动」与「改了什么」，而后者是前者的依据。
-   *
-   * 这条不受策略影响（第 25(a) 条），所以它写在**工具**这一侧：只有工具知道
-   * 自己随后会不会走审阅那条路。
-   */
+  /** 写盘（`mutating`）：不等人点，改之前那一版由改动账存下（`workspace/journal.ts`），作者在对话页上撤销这一步。 */
   intent(args, project): ToolIntent {
     const mode = text(args.mode) || 'create';
     const target = text(args.path);
     if (mode === 'overwrite') {
-      return { gate: 'reviewed', title: `覆盖「${describePath(target, project)}」` };
+      return { gate: 'mutating', title: `覆盖「${describePath(target, project)}」` };
     }
-    // 写作技能与它的阶段绑定（`.novelwarden/skills/**`、`skills.json`）：改的是往后每一次生成的
-    // 提示词，下游没有 diff。新建与追加也照 `skills bind` 那样先问——不然 agent 用 write
-    // 新建一份 skills.json，就绕过了 bindSkill 那一问。覆盖仍走上面的 diff。
-    const skill = project !== undefined && kindOfPath(project, target).kind === 'skill';
     return {
-      gate: skill ? 'always' : 'mutating',
+      gate: 'mutating',
       title: `写入「${describePath(target, project)}」`,
       detail: `${target}（${mode === 'append' ? '追加到末尾' : '新建'}）`,
     };
@@ -75,7 +64,7 @@ export const writeTool: ToolDef = {
     '内容有两种给法，二选一：draftId 用 generate 产出的那份草稿（会按该路径应有的格式渲染、' +
     '并记上游指纹，等价于作者在落盘卡片上点了「写入」），content 直接给文本。' +
     'mode=create 新建（目标已存在会报错，这是缺省），mode=overwrite 整份替换，mode=append 追加到末尾。' +
-    '**覆盖已有内容一定会先请作者过目**，他可以不同意；追加与新建不打扰他。' +
+    '写入不等作者确认：改之前的那一版会存下来，作者可以在对话页撤销这一步。' +
     '删除、改名、移动没有对应的工具——那些由作者自己做。',
 
   parameters: objectSchema(
@@ -160,12 +149,10 @@ export const writeTool: ToolDef = {
       });
 
       if (r.skipped) {
-        // 不是失败，是作者的决定。**说清楚**，否则它会原地重试同一个动作。
+        // 覆盖审阅放弃了这次写入（外部 agent 这条路上替作者答「采纳」，走到这里是宿主交回了取消）。**说清楚**，否则它会原地重试。
         return {
-          text:
-            `作者看过之后没有采纳这次写入（${what}，${r.rel}），磁盘上那份一字未改。` +
-            '不要重试同一个动作——换个做法，或者问问他想怎么改。',
-          display: { title: `write ${r.rel}`, detail: '作者未采纳' },
+          text: `这次写入没有落盘（${what}，${r.rel}），磁盘上那份一字未改。不要原样重试——先 read 看看现在的内容。`,
+          display: { title: `write ${r.rel}`, detail: '未落盘' },
         };
       }
 
@@ -205,7 +192,7 @@ function describe(err: unknown, rel: string, mode: WriteMode): string {
     switch (err.code) {
       case 'exists':
         return (
-          `${err.message}。要替换它就用 mode=overwrite（作者会先看到改动再决定）；` +
+          `${err.message}。要替换它就用 mode=overwrite（改之前那一版会存下，作者可以撤销）；` +
           '要接在后面写用 mode=append。'
         );
       case 'outOfRoot':

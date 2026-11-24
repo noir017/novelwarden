@@ -57,6 +57,7 @@ import { installCheckpoints, renderCheckpointDiff, renderCheckpoints } from './c
 import { applyBookInspected, applyProjectCreated, applyWorkspaces, installWelcome } from './welcome';
 import { onMessage } from '../vscodeApi';
 import { openChapterMessage } from '../narrow';
+import type { SerializedToolCall } from '../protocol';
 
 restoreDraft();
 exposeToast();
@@ -455,18 +456,7 @@ function appendToolCall(
  * 卡里的，而这条 `toolResult` 里根本没有它——重建时得把卡里当下那份带过去。
  * （落盘的结论随后还会重推一次同样的 `toolResult`，那时同样不能把正文抹掉。）
  */
-function settleToolCall(
-  turnId: string,
-  result: {
-    callId: string;
-    name: string;
-    ok: boolean;
-    summary: string;
-    elapsedMs: number;
-    argsText?: string;
-    resultText?: string;
-  }
-): void {
+function settleToolCall(turnId: string, result: Omit<SerializedToolCall, 'title' | 'output'>): void {
   const node = bubbleOf(turnId);
   const card = node?.querySelector<HTMLDetailsElement>(`.gen[data-call="${result.callId}"]`);
   if (card) {

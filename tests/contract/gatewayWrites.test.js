@@ -70,3 +70,30 @@ describe('第 7 条：网关之外没有新的直接写盘', () => {
     assert.deepEqual(found, expected);
   });
 });
+
+/**
+ * 网关里面：改作者文件只经 `workspace/disk.ts`（先记账再动磁盘，外部 agent 的这一步才撤销得了，见 `workspace/journal.ts`）。
+ * 网关自己的副本不算：历史版本（`history.ts`）、存档点（`checkpoints.ts`）。建目录不算改动，不数。
+ */
+describe('网关里改盘只经 disk.ts', () => {
+  const WORKSPACE = path.join(CORE, 'workspace');
+  const OWN = new Set(['disk.ts', 'history.ts', 'checkpoints.ts'].map((f) => path.join(WORKSPACE, f)));
+  const MUTATE =
+    /(?<![\w$])(?:fs\.promises|fs|fsp|fsSync)\.(?:writeFile|appendFile|rename|copyFile|cp|rm|rmdir|unlink|truncate|symlink|link|createWriteStream)(?:Sync)?\s*\(|(?<![\w$.])(?<!function\s)(?:writeText|writeFileSync|appendFileSync|renameSync|copyFileSync|cpSync|rmSync|rmdirSync|unlinkSync)\s*\(/g;
+  const files = listTsFiles(WORKSPACE).filter((p) => !OWN.has(p));
+
+  test('扫到了文件（防止路径写错空跑通过）', () => {
+    assert.ok(files.length > 5, String(files.length));
+  });
+
+  test('别处没有直接改盘的 fs 调用', () => {
+    const bad = {};
+    for (const p of files) {
+      const hits = stripComments(fs.readFileSync(p, 'utf8')).match(MUTATE);
+      if (hits) {
+        bad[path.relative(ROOT, p).replace(/\\/g, '/')] = hits;
+      }
+    }
+    assert.deepEqual(bad, {});
+  });
+});

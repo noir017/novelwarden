@@ -240,6 +240,15 @@ describe('侧栏「版本」页', { skip: JSDOM_SKIP }, () => {
     assert.equal(auto.querySelector('.vs-note').textContent, '自动存档点');
   });
 
+  // 外部 agent 动这份文件之前存的那一版带备注：照着标出来，标题（对比标签上的称呼）也用它。
+  test('快照带备注时标出来', () => {
+    h.ui.post({ type: 'versions', path: PATH, entries: [{ ...entries[0], note: 'Agent：批量写章 之前' }, ...entries.slice(1)] });
+    const row = h.row('b.txt');
+    assert.equal(row.querySelector('.vs-note').textContent, 'Agent：批量写章 之前');
+    assert.equal(h.row('a.txt').querySelector('.vs-note'), null);
+    h.ui.post({ type: 'versions', path: PATH, entries });
+  });
+
   test('打字：最上面多一行「还没保存的改动」，「比现在」跟着变', async () => {
     assert.equal(h.unsaved(), null);
     h.type(`${DISK}风停了。\n`);

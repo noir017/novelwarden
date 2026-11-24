@@ -27,7 +27,6 @@
  *   `upstreamHash` / `writtenFrom` / `sourceHash` 自己就在 frontmatter 里，算进去会让「排一次细纲」
  *   立刻使这一章的正文过期。那个哈希在 `model/plotFile.ts` 里定义。
  */
-import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { readTextIfExists } from '../../model/fs';
 import { parseMarkdown, rewriteFrontmatter } from '../../model/markdown';
@@ -45,6 +44,7 @@ import {
 import { SummaryCast } from '../../model/types';
 import type { LoreLine } from '../../model/loreFile';
 import { Handler, HandlerCtx } from './types';
+import { writeOnDisk } from '../disk';
 
 export const plotHandler: Handler = {
   /**
@@ -118,7 +118,7 @@ export const plotHandler: Handler = {
     if (next === undefined || next === raw) {
       return [];
     }
-    await fs.writeFile(abs, next, 'utf8');
+    await writeOnDisk(ctx.project, abs, next);
     ctx.project.invalidate();
     return [`细纲副本 ${ctx.rel} 去掉了 ${dropped.join(' / ')}（副本没写过、没同步过）`];
   },
@@ -191,7 +191,7 @@ async function recordUpstream(
   if (next === text) {
     return [];
   }
-  await fs.writeFile(ctx.project.pathOf(ctx.rel), next, 'utf8');
+  await writeOnDisk(ctx.project, ctx.project.pathOf(ctx.rel), next);
   ctx.project.invalidate();
   return [`记下${label} ${upstream}`];
 }

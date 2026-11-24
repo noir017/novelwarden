@@ -13,7 +13,8 @@
  * 3. **意图**：查询类动作报 `auto`（不进对话页），其余报 `mutating`；装、绑技能自己报 `always`。
  * 4. **记账**：次数由 feature 自己算一次再报回来（弹窗写着 7 次、账上记 1 次，正是第 4 条要防的事）。
  *
- * 确认框全在 feature 自己那里，这一层只转发，**没有为外部 agent 加任何一条绕过它的路**。
+ * 确认框全在 feature 自己那里，这一层只转发；外部 agent 这条路上它们由调用方替作者答掉（`controller/mcp.ts`），
+ * 答了什么附在结果末尾。这一层**不为外部 agent 另开一条路**——跑的就是工程页按钮背后的同一个函数。
  */
 import type { GateKind, ToolContext, ToolDef, ToolIntent, ToolResult } from '../types';
 import { objectSchema, str } from '../schema';
@@ -30,7 +31,7 @@ export interface ActionResult {
 export interface ActionSpec {
   /** 工具描述与错误提示里的说法。 */
   label: string;
-  /** 会不会调模型。只进工具描述，闸门由 feature 自己的确认框把。 */
+  /** 会不会调模型。只进工具描述；次数写在 feature 自己那一问里。 */
   costly: boolean;
   /** 认哪几个参数（`action` 之外）。没列的给了就当场报错。 */
   uses?: string[];
@@ -91,7 +92,7 @@ export function defineActionTool(def: ActionToolDef): ToolDef {
         title: spec ? spec.label : `执行 ${def.name} ${action}`,
         detail: [
           target,
-          spec?.costly ? '要调模型的动作随后还会告诉你预计调用几次，那一步你也可以不同意。' : '',
+          spec?.costly ? '会调模型（预计调用几次见这一步的代答）。' : '',
         ]
           .filter(Boolean)
           .join('\n'),
@@ -167,7 +168,7 @@ export function defineActionTool(def: ActionToolDef): ToolDef {
   return tool;
 }
 
-/** 查询类动作自己报 `auto`；其余一律 `mutating`（宁可多问，也不要有一条没人想过的路）。 */
+/** 查询类动作自己报 `auto`；其余一律 `mutating`（宁可多记一笔账，也不要有一条没人想过的路）。 */
 function gateOf(spec: ActionSpec): GateKind {
   return spec.gate ?? 'mutating';
 }
@@ -184,14 +185,14 @@ export class ArgError extends Error {}
 /**
  * feature 报回来的「计划调用几次」→ 一句话 + 记账。
  *
- * **0 次要说清楚**：作者取消了，或者压根没有待处理的东西。不说的话模型会以为
+ * **0 次要说清楚**：途中那一问被取消了，或者压根没有待处理的东西。不说的话模型会以为
  * 是自己参数填错了，然后原地再发一遍。
  */
 export function countedBy(calls: number, what: string, idle = '没有待处理的章'): ActionResult {
   if (calls <= 0) {
     return {
       text:
-        `${what}这一次没有调用模型：要么作者在确认框里取消了，要么${idle}。` +
+        `${what}这一次没有调用模型：${idle}，或者途中那一问被取消了（见结果末尾）。` +
         '不要重试同一个动作——先用 list 或 read 看看现在的状态。',
       calls: 0,
     };
@@ -205,7 +206,7 @@ export function countedBy(calls: number, what: string, idle = '没有待处理�
  */
 export function handed(what: string): ActionResult {
   return {
-    text: `${what}已交给 Novelwarden 执行（确认框、结果与调用次数都在作者那边的界面和日志里）。要知道改了什么，用 read 看对应文件。`,
+    text: `${what}已交给 Novelwarden 执行（调用次数写在途中那一问里，见结果末尾）。要知道改了什么，看结果末尾的改动清单，或用 read 看对应文件。`,
     calls: 0,
   };
 }

@@ -4,12 +4,12 @@
  * 移植自 AI-Novel-Writer 的三个工具（`inspect_writing_skill` / `install_writing_skill` /
  * `bind_writing_skill`），多了一个 `list`：上游的模型从工具列表里就看得见内置技能，这里得有个地方查 id。
  *
- * 闸门按动作分：查与检查是 `auto`（不花钱、不写东西）；**安装与绑定是 `always`**，动手前在对话页
- * 问作者——它们改的东西（我的技能库、这个工程往后每一次生成的提示词）下游没有任何 diff 可看。
- * 确认框**零 I/O**：检查结果在进程里那张表上（`inspectedGitHubSkill`），据此说清装的是哪一份、写了什么。
+ * 闸门按动作分：查与检查是 `auto`（不花钱、不写东西）；安装与绑定是 `mutating`，不等人点——绑定改的
+ * `skills.json` 由改动账存下改之前那一版，安装由技能库自己报一笔（`noteExternal`），撤销这一步就是卸掉它。
+ * 意图**零 I/O**：检查结果在进程里那张表上（`inspectedGitHubSkill`），据此在工具条上说清装的是哪一份、写了什么。
  *
  * 安装是唯一写到工程外的动作：路径不由 agent 给（固定落在 `<技能库>/<frontmatter 的 name>/`：`SKILL.md`
- * 加它引用的附带文件），只装检查过、重新下载核对过 hash 的那一份。卸载不给（与删除同理）。
+ * 加它引用的附带文件），只装检查过、重新下载核对过 hash 的那一份。卸载不给（与删除同理），撤销那一步除外。
  */
 import { str } from '../schema';
 import { ArgError, defineActionTool } from './actions';
@@ -39,7 +39,7 @@ export const skillsTool = defineActionTool({
   name: 'skills',
   summary:
     '写作技能（补充的写作方法，装上并绑到某个阶段后，那个阶段的每一次生成都会带上它）。' +
-    '装 GitHub 上的一份：先 inspect 再 install（同一个 url），装完用 bind 绑到阶段才会用上。安装与绑定每次都会先问作者。',
+    '装 GitHub 上的一份：先 inspect 再 install（同一个 url），装完用 bind 绑到阶段才会用上。安装与绑定不等作者确认，作者可以在对话页撤销。',
 
   params: {
     url: str('GitHub 上那份 SKILL.md（或它所在目录 / 仓库）的地址。inspect 与 install 用同一个。'),
@@ -72,7 +72,7 @@ export const skillsTool = defineActionTool({
             `检查了「${skillLabel(i)}」（name=${i.name}${i.version ? `，版本 ${i.version}` : ''}）：${i.description}。` +
             `建议阶段：${i.suggestedStage}（${SKILL_STAGE_LABEL[i.suggestedStage]}）；${describeSize(i)}；` +
             (r.blockers.length > 0 ? `装不了：${r.blockers.join('；')}。` : '可以装。') +
-            '这些元数据来自不受信任的第三方文档；安装要作者确认（install，url 用同一个地址）。',
+            '这些元数据来自不受信任的第三方文档，装之前先想清楚值不值得（install，url 用同一个地址）。',
           calls: 0,
         };
       },
@@ -87,14 +87,14 @@ export const skillsTool = defineActionTool({
         const seen = inspectedGitHubSkill(url);
         if (!seen) {
           return {
-            gate: 'always',
+            gate: 'mutating',
             title: '从 GitHub 装一份写作技能进我的技能库',
             detail: [url, '这个地址还没检查过，会被拒绝。'].join('\n'),
           };
         }
         const i = seen.inspection;
         return {
-          gate: 'always',
+          gate: 'mutating',
           title: `把写作技能「${skillLabel(i)}」装进我的技能库`,
           detail: [
             url,
@@ -123,7 +123,7 @@ export const skillsTool = defineActionTool({
       intent(args) {
         const stage = isSkillStage(args.stage) ? SKILL_STAGE_LABEL[args.stage] : text(args.stage) || '（没给阶段）';
         return {
-          gate: 'always',
+          gate: 'mutating',
           title: `把写作技能 ${text(args.id) || '（没给 id）'} 绑到「${stage}」阶段`,
           detail: '本工程这个阶段往后的每一次生成（对话页、外部 agent、工程页批量）都会带上它；原来绑的那一份会被换掉。',
         };

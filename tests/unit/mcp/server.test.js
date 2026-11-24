@@ -139,11 +139,12 @@ describe('tools/list', () => {
     assert.ok(tools.read.inputSchema.properties.path, JSON.stringify(tools.read.inputSchema));
   });
 
-  test('查询只读，生成不只读，写盘有破坏性', () => {
+  // generate 的产出直接落盘（外部 agent 这条路不等人点），所以与 write 一样标有破坏性。
+  test('查询只读，生成与写盘有破坏性', () => {
     assert.equal(tools.read.annotations.readOnlyHint, true);
     assert.equal(tools.read.annotations.destructiveHint, false);
     assert.equal(tools.generate.annotations.readOnlyHint, false);
-    assert.equal(tools.generate.annotations.destructiveHint, false);
+    assert.equal(tools.generate.annotations.destructiveHint, true);
     assert.equal(tools.write.annotations.readOnlyHint, false);
     assert.equal(tools.write.annotations.destructiveHint, true);
   });

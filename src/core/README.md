@@ -19,7 +19,7 @@
 
 依赖方向自上而下：`features/` / `generation/` → `context/` / `llm/` → `skills/` → `workspace/` → `model/`，反向不允许（`skills/` 只 `import type` 网关，写绑定时由调用方把 `Workspace` 交进来）。`tools/` 坐在最上面（它调 `generation/`、`workspace/` 与 `features/`），**不认识 `controller/`**——反过来会成环。
 
-`mcp/` 只认 `tools/` 的契约（`ToolSpec`、`NOVEL_TOOLS`），tools 一行都不 import `mcp/` 与 `controller/`。绑在一起的是 `controller/mcp.ts`——它给工具绑好当前工程，占生成锁、在对话页挂 MCP 气泡、问那两句（`always` 动手前、产物落盘前）。这条边由 [tests/contract/layerBoundary.test.js](../../tests/contract/layerBoundary.test.js) 守着。
+`mcp/` 只认 `tools/` 的契约（`ToolSpec`、`NOVEL_TOOLS`），tools 一行都不 import `mcp/` 与 `controller/`。绑在一起的是 `controller/mcp.ts`——它给工具绑好当前工程，占生成锁、在对话页挂 MCP 气泡，途中的确认替作者答掉、网关动每份文件之前存一版（改动账），作者在那一行上撤销这一步。这条边由 [tests/contract/layerBoundary.test.js](../../tests/contract/layerBoundary.test.js) 守着。
 
 本目录根下只保留入口胶水与跨子目录契约：
 

@@ -484,6 +484,99 @@ details.tool-row > summary.tool-line:hover {
   display: none;
 }
 
+/* ----------------------------------------------------------------- 外部 agent 一步的记录
+ *
+ * 摘要行上「改 3 份 · 撤销」，展开后两段清单：改动（点一份开对比标签）、替作者答掉的那几问（view/agentStep.ts）。
+ * 「撤销」点两下才发，第一下换成警示色。
+ */
+
+.step-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.9em;
+  color: var(--vscode-descriptionForeground);
+}
+
+.step-undo.is-armed {
+  color: var(--vscode-inputValidation-warningBorder, #b89500);
+  font-weight: 600;
+}
+
+.step-undone {
+  opacity: 0.8;
+}
+
+.step-detail ul {
+  list-style: none;
+  margin: 2px 0 4px;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.step-file {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.step-verb {
+  flex: 0 0 auto;
+  min-width: 1.4em;
+  text-align: center;
+  font-size: 0.85em;
+  border-radius: 3px;
+  background: var(--vscode-badge-background, rgba(128, 128, 128, 0.25));
+  color: var(--vscode-badge-foreground, inherit);
+}
+
+.step-created .step-verb {
+  background: var(--vscode-gitDecoration-addedResourceForeground, #2ea043);
+  color: #fff;
+}
+
+.step-deleted .step-verb {
+  background: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+  color: #fff;
+}
+
+.step-path {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--vscode-editor-font-family);
+}
+
+.step-words,
+.step-note {
+  opacity: 0.75;
+  font-size: 0.9em;
+}
+
+.step-unsaved {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  font-size: 0.9em;
+}
+
+.step-answers li {
+  margin: 1px 0;
+  word-break: break-word;
+}
+
+.step-answers summary {
+  cursor: pointer;
+}
+
+/* generate 卡里那一块：与正文之间隔一条线，左右与正文对齐。 */
+.gen-step {
+  padding: 4px 11px 6px;
+  border-top: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+  font-size: 0.92em;
+}
+
 /* 参数与返回：再一层折叠。花钱那一下更要查得出它动的是哪一章。 */
 .gen-args {
   font-size: 0.82em;

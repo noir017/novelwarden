@@ -223,12 +223,12 @@ describe('覆盖已有内容一定先请作者过目', () => {
   });
 
   // 不说清楚它会原地重试——那是最常见的烧钱方式。
-  test('回给模型的话说清了作者没有采纳', () => {
-    assert.ok(rejected.text.includes('没有采纳'), rejected.text);
+  test('回给模型的话说清了没有落盘', () => {
+    assert.ok(rejected.text.includes('没有落盘'), rejected.text);
   });
 
-  test('还明说了不要重试同一个动作', () => {
-    assert.ok(rejected.text.includes('不要重试'), rejected.text);
+  test('还明说了不要原样重试', () => {
+    assert.ok(rejected.text.includes('不要原样重试'), rejected.text);
   });
 
   test('拒绝不算 error（那是作者的决定，不是故障）', () => {
@@ -263,7 +263,7 @@ describe('正文（章节）走同一个网关', () => {
     const r = await run({ path: CHAPTER_REL, content: '整章换掉。', mode: 'overwrite' });
     assert.equal(h.reviewed.length, 1, JSON.stringify(h.reviewed.map((x) => x.name)));
     assert.equal(h.reviewed[0].name, '第 3 章');
-    assert.ok(r.text.includes('没有采纳'), r.text);
+    assert.ok(r.text.includes('没有落盘'), r.text);
   });
 
   test('作者拒绝后正文一字未改', () => {
@@ -468,8 +468,10 @@ describe('工具定义本身', () => {
     assert.ok(Object.values(props).every((p) => p.type !== 'object'), JSON.stringify(props));
   });
 
-  test('描述里说清了覆盖会请作者过目', () => {
-    assert.ok(tool().description.includes('过目') || tool().description.includes('审阅'), tool().description);
+  // 外部 agent 这条路不等人点：描述里说清改之前那一版存得下、作者撤销得了。
+  test('描述里说清了不等确认、作者撤销得了', () => {
+    assert.ok(tool().description.includes('不等作者确认'), tool().description);
+    assert.ok(tool().description.includes('撤销'), tool().description);
   });
 
   // 删除/改名/移动收益接近零，误操作的收拾成本极高。
