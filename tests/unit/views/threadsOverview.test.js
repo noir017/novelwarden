@@ -305,6 +305,26 @@ describe('叙事线总览 · 伏笔的格子与连线', () => {
     assert.equal(cellAt(row, 2).deviation, false, '第 1 章已经埋了');
     assert.equal(cellAt(row, 3).deviation, true, '第 3 章该收没收');
   });
+
+  // 2026-11-27 二期：强化不算收（连线照旧延到回收章）；计划强化、那一章同步了却一条实际的都没有算偏差；悬停写强化几次、最近第几章。
+  test('强化：不算收；计划强化没发生算偏差；悬停写「强化 N 次 · 最近第 c 章」', () => {
+    const b = {
+      threads: [
+        line('支线甲', {
+          fores: ['密信：信里写着师父的名字（第 9 章前收）'],
+          events: [ev(1, '埋', '密信露面', '密信'), ev(2, '强化', '信角露出一个字', '密信'), plan(3, '强化', '再提密信', '密信'), plan(4, '强化', '又提', '密信'), ev(4, '强化', '信被人动过', '密信')],
+        }),
+      ],
+      unfiled: unfiled(),
+    };
+    const row = foreOf(lineOf(views.buildThreadsMatrix(b, chapters(), 4), '支线甲'), '密信');
+    assert.equal(row.status, '已埋');
+    assert.deepEqual(row.span, { from: 1, to: 9, kind: 'open' });
+    assert.equal(cellAt(row, 2).deviation, false);
+    assert.equal(cellAt(row, 3).deviation, true, '第 3 章计划强化、同步了却没有');
+    assert.equal(cellAt(row, 4).deviation, false, '第 4 章计划的强化发生了');
+    assert.match(row.tip, /第 1 章埋下，还没收 · 强化 2 次 · 最近第 4 章$/);
+  });
 });
 
 // 故事时间（2026-10-24）：伏笔埋了多少天。同日「时间线总览」：「时间线」一组与月份带挪去时间线总览（tests/unit/views/timeline.test.js），

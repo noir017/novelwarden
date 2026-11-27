@@ -207,9 +207,9 @@ describe('threads 层 · 第 5 章', () => {
     assert.equal(fire.text, '- 青崖镇的大火（主线 · 进行中）最近：第 1 章推进：起火');
   });
 
-  test('「未归属的伏笔」一行：逾期的提，还没到埋的时候的不提', () => {
+  test('「未归属的伏笔」一行：逾期的提（带上它是什么与埋下时的原句，2026-11-27），还没到埋的时候的不提', () => {
     const loose = threadItems(b).find((i) => i.label === '叙事线 · 未归属的伏笔');
-    assert.equal(loose.text, '- 未归属的伏笔：提灯人（已过第 4 章，还没收）');
+    assert.equal(loose.text, '- 未归属的伏笔：提灯人（已过第 4 章，还没收——院外提灯的人；第 2 章埋下：「提着灯」）');
   });
 
   test('消息里一节：一条一行，说清没到回收章的伏笔不许提前揭开，排在前文正文与本章细纲之前', () => {
@@ -406,7 +406,7 @@ describe('threads 层 · 拆细纲（按区间挑）', () => {
   test('批次第 5–9 章：没收的伏笔一条一个，这一批要收的、逾期的在前，这一批要埋的排在已埋的前面；第 9 章才埋的这一批也带', async () => {
     const fores = threadItems(await buildPlot({ from: 5, to: 9 })).filter((i) => i.label.startsWith('伏笔 · '));
     assert.deepEqual(fores.map((i) => i.text), [
-      '- 提灯人（挂在「未归属的伏笔」· 已埋 · 已过第 4 章，还没收）是什么：院外提灯的人',
+      '- 提灯人（挂在「未归属的伏笔」· 已埋 · 已过第 4 章，还没收）是什么：院外提灯的人；正文里：第 2 章埋下：「提着灯」',
       '- 沈青的旧伤（挂在「林昭与沈青」· 计划 · 本批要收，最晚第 5 章，还没埋，先埋再收）',
       '- 断剑（挂在「未归属的伏笔」· 计划 · 本批要埋，计划第 9 章）',
       '- 玉佩的来历（挂在「林昭与沈青」· 已埋 · 第 18 章前收，之前不要揭开）是什么：沈家旧物',
@@ -454,7 +454,7 @@ describe('threads 层 · 拆细纲（按区间挑）', () => {
     assert.equal(rest.text, '其余没收的伏笔（名额外，只列名字；细纲没安排就别揭开，也别另起同名的）：沈青的旧伤、断剑 等 3 条。');
     assert.equal(rest.note, '名额外的只列名字，最多 2 个，其余 1 条连名字也没列');
     const user = userOf(b);
-    assert.ok(user.includes('没收的伏笔：\n- 提灯人（挂在「未归属的伏笔」· 已埋 · 已过第 4 章，还没收）是什么：院外提灯的人\n其余没收的伏笔（'), user);
+    assert.ok(user.includes('没收的伏笔：\n- 提灯人（挂在「未归属的伏笔」· 已埋 · 已过第 4 章，还没收）是什么：院外提灯的人；正文里：第 2 章埋下：「提着灯」\n其余没收的伏笔（'), user);
     const excluded = await buildPlot({ from: 5, to: 9 }, { excludedIds: [fores[0].id] }, cfg);
     const after = threadItems(excluded).filter((i) => i.label.startsWith('伏笔 · '));
     assert.equal(after.find((i) => i.id === fores[0].id).status, 'excluded');

@@ -1597,3 +1597,91 @@ describe('水位：叙事线判到第几章（四期）', () => {
     assert.equal(t.describeChapterRuns([]), '');
   });
 });
+
+// 2026-11-27 二期（设计稿 docs/design/plans/2026-11-27-rhythm-and-foreshadow.md）：伏笔加「强化」，回收那一章带上种子。
+describe('threadFile.ts · 伏笔的强化与回收时的种子（2026-11-27）', () => {
+  const plant = ev(3, '埋', { foreshadowing: '玉佩', evidence: '他摸了摸怀里那块温润的青玉佩' });
+  const touch = (chapter, evidence) => ev(chapter, '强化', { foreshadowing: '玉佩', evidence });
+
+  test('认法：「强化」「加深」「reinforce」都是强化；进展里一行写成「强化〈伏笔名〉」（项目符号由解析文件那一层去掉）', () => {
+    assert.equal(t.eventTypeOf('强化'), '强化');
+    assert.equal(t.eventTypeOf('加深'), '强化');
+    assert.equal(t.eventTypeOf('reinforce'), '强化');
+    assert.equal(t.isForeshadowEvent('强化'), true);
+    const e = t.parseEventLine('第 9 章 · 强化〈玉佩的来历〉：玉佩又发烫 〔证据：「玉佩贴着胸口发烫」〕');
+    assert.deepEqual([e.chapter, e.type, e.foreshadowing, e.evidence], [9, '强化', '玉佩的来历', '玉佩贴着胸口发烫']);
+    assert.equal(t.renderEventLine(e), '第 9 章 · 强化〈玉佩的来历〉：玉佩又发烫 〔证据：「玉佩贴着胸口发烫」〕');
+  });
+
+  test('状态：强化不改状态（还是已埋），记几次、最近第几章碰过；收了之后再报的强化也不把它打开', () => {
+    const open = line([plant, touch(9, 'a'), touch(12, 'b')], { foreshadowing: [{ name: '玉佩', what: '沈家旧物', resolve: 30 }] });
+    const [f] = t.foreshadowingOf(open, 20);
+    assert.deepEqual([f.status, f.plantedAt, f.reinforced, f.lastTouched, f.overdue], ['已埋', 3, 2, 12, false]);
+    const closed = line([plant, ev(15, '收', { foreshadowing: '玉佩' }), touch(16, 'c')], { foreshadowing: [{ name: '玉佩', what: '' }] });
+    const [g] = t.foreshadowingOf(closed, 20);
+    assert.deepEqual([g.status, g.closedAt, g.reinforced], ['已收', 15, 1]);
+    const [h] = t.foreshadowingOf(line([], { foreshadowing: [{ name: '玉佩', what: '' }] }), 20);
+    assert.deepEqual([h.status, h.reinforced, h.lastTouched], ['计划', 0, undefined]);
+  });
+
+  test('种子：它是什么 + 埋下那一句 + 最近一次强化（最多两句、每句截 50 字）；只认实际的、带证据的', () => {
+    const long = '长'.repeat(60);
+    const events = [plant, touch(9, '第一次强化'), touch(12, long), { ...touch(14, '计划里的'), planned: true }, touch(13, undefined)];
+    assert.equal(t.seedText({ name: '玉佩', what: '沈家旧物' }, events), `沈家旧物；第 3 章埋下：「他摸了摸怀里那块温润的青玉佩」；第 12 章强化：「${'长'.repeat(50)}…」`);
+    assert.deepEqual(t.seedLines('玉佩', [touch(9, '甲'), touch(12, '乙')]), ['第 9 章强化：「甲」', '第 12 章强化：「乙」']);
+    assert.equal(t.seedText({ name: '玉佩', what: '' }, []), '');
+  });
+
+  test('写正文：本章计划收、已过回收章的伏笔带上种子；没到回收章的照旧只给名字', () => {
+    const pair = line([ev(2, '推进'), plant, touch(9, '玉佩贴着胸口发烫'), ev(4, '埋', { foreshadowing: '断剑', evidence: '剑断成两截' })], {
+      name: '林昭与沈青',
+      kind: '感情线',
+      relPath: 'p',
+      index: 0,
+      foreshadowing: [{ name: '玉佩', what: '沈家旧物', resolve: 12 }, { name: '断剑', what: '剑是师父的', resolve: 30 }],
+    });
+    const book = { threads: [pair], unfiled: { name: '未归属的伏笔', relPath: 'u', foreshadowing: [], events: [] } };
+    const [c] = t.manuscriptThreads(book, 12, '');
+    assert.ok(
+      c.line.endsWith('没收的伏笔：玉佩（本章计划收——沈家旧物；第 3 章埋下：「他摸了摸怀里那块温润的青玉佩」；第 9 章强化：「玉佩贴着胸口发烫」）、断剑（第 30 章前不要揭开）'),
+      c.line
+    );
+    const [d] = t.manuscriptThreads(book, 11, '');
+    assert.ok(d.line.includes('玉佩（第 12 章前不要揭开）'), d.line);
+    assert.ok(!d.line.includes('沈家旧物'), d.line);
+  });
+
+  test('定稿认事件：还没埋下的不能强化；埋下了的照收；未归属的被强化不挪到线上', () => {
+    const text = '玉佩贴着胸口发烫。院外有人提着灯走过。';
+    const pair = line([], { name: '林昭与沈青', kind: '感情线', foreshadowing: [{ name: '玉佩', what: '' }, { name: '断剑', what: '' }] });
+    pair.events.push(plant);
+    const book = { threads: [pair], unfiled: { name: '未归属的伏笔', relPath: 'u', foreshadowing: [{ name: '提灯人', what: '' }], events: [ev(2, '埋', { foreshadowing: '提灯人' })] } };
+    const r = t.verifyFinds(
+      {
+        events: [
+          { line: '林昭与沈青', type: '强化', foreshadowing: '玉佩', what: '又发烫', evidence: '玉佩贴着胸口发烫' },
+          { line: '林昭与沈青', type: '强化', foreshadowing: '断剑', what: 'x', evidence: '玉佩贴着胸口发烫' },
+          { line: '林昭与沈青', type: '强化', foreshadowing: '提灯人', what: '又来了', evidence: '院外有人提着灯走过' },
+        ],
+      },
+      { chapter: 6, text, judged: [pair], book }
+    );
+    assert.deepEqual(r.events.map((e) => [e.line, e.event.type, e.event.foreshadowing]), [
+      ['林昭与沈青', '强化', '玉佩'],
+      [undefined, '强化', '提灯人'],
+    ]);
+    assert.deepEqual(r.dropped.map((d) => d.why), ['这条伏笔还没埋下，不能强化']);
+  });
+
+  test('拆细纲：计划里能排强化；还没埋、前面也没排埋的强化丢掉并说清；埋了的照记', () => {
+    const decoded = t.decodePlanEntries([{ line: '林昭与沈青', type: '强化', foreshadowing: '玉佩', what: '再露一次' }], 9);
+    assert.deepEqual(decoded.entries.map((e) => [e.type, e.foreshadowing]), [['强化', '玉佩']]);
+    const pair = line([plant], { name: '林昭与沈青', relPath: 'p', index: 0, foreshadowing: [{ name: '玉佩', what: '' }, { name: '断剑', what: '' }] });
+    const book = { threads: [pair], unfiled: { name: '未归属的伏笔', relPath: 'u', foreshadowing: [], events: [] } };
+    const [c] = t.resolvePlanEvents(book, [
+      { no: 9, entries: [{ line: '', type: '强化', foreshadowing: '玉佩', what: '再露一次' }, { line: '', type: '强化', foreshadowing: '断剑', what: 'x' }] },
+    ]);
+    assert.deepEqual(c.events.map((e) => [e.line, e.event.type, e.event.foreshadowing]), [['林昭与沈青', '强化', '玉佩']]);
+    assert.deepEqual(c.dropped, [{ what: '强化〈断剑〉', why: '这条伏笔还没埋，「强化」要排在「埋」之后（先在更早的一章安排「埋」）' }]);
+  });
+});

@@ -47,7 +47,7 @@ describe('threadsPrompt.ts · 试跑之后补上的几句', () => {
       '「他」不要换成人名',
       '给出的伏笔已经埋下的不要再报「埋」',
       // 复跑之后：「计划」状态的伏笔第 1 章就被报了「收」。
-      '还没埋下的伏笔不能直接报「收」「弃」',
+      '还没埋下的伏笔不能直接报「强化」「收」「弃」',
     ]) {
       assert.ok(THREAD_FIND_SYSTEM.includes(s), s);
     }
@@ -144,7 +144,7 @@ describe('threadsPrompt.ts · 2026-10-25 起按格式写、转写成 JSON', () =
     assert.ok(plan.includes('{"threads":[{"title":"…","kind":"感情线","from":3,"to":18,"intent":"…","foreshadowing":[{"title":"…","what":"…","plant":3,"resolve":18}]}]}'), plan);
     assert.ok(plan.includes('只能是主线、支线、感情线、人物线这四个词之一'), plan);
     const find = m.threadFindJsonContract();
-    assert.ok(find.includes('{"events":[...],"newThreads":[...],"newForeshadowing":[...]}') && find.includes('只能是推进、关系、收束、放弃、埋、收、弃之一'), find);
+    assert.ok(find.includes('{"events":[...],"newThreads":[...],"newForeshadowing":[...]}') && find.includes('只能是推进、关系、收束、放弃、埋、强化、收、弃之一'), find);
     assert.ok(find.includes('不带最外面那一对「」；一个字都不能改、不能补、不能删'), find);
     assert.ok(m.threadProgressJsonContract().includes('{"progress":[{"line":"…","text":"…"}]}'));
     assert.ok(m.threadMergeJsonContract().includes('{"merges":[{"new":"…","into":"…","reason":"…"}]}'));
@@ -170,5 +170,28 @@ describe('threads.ts · 当前进度的【人物】', () => {
     assert.deepEqual(people(cards, text), ['- 林昭（女；又称 小昭）']);
     assert.deepEqual(people(cards, `${text}沈青追问李叔。`), ['- 林昭（女；又称 小昭）', '- 沈青（男）', '- 李叔（男）']);
     assert.deepEqual(people([], text), []);
+  });
+});
+
+// 2026-11-27 二期：伏笔加「强化」。认事件时说清什么算强化、提一句不算；排细纲时可以排、不强制。
+describe('threadsPrompt.ts · 强化（2026-11-27）', () => {
+  test('认事件：八种类型，强化的定义与「提一句不算」；还没埋下的不能强化', () => {
+    const { THREAD_FIND_SYSTEM } = mod();
+    for (const x of [
+      '八种类型：',
+      '「强化〈伏笔名〉」',
+      '- 强化：一条已经埋下的伏笔又给了新线索、加深了疑点、让读者离真相更近一步，但还没揭开。只是提了一句名字、角色回想一下、把读者已经知道的再说一遍，都不算强化，不要报；',
+      '伏笔的事件（埋、强化、收、弃）必须写伏笔名',
+    ]) {
+      assert.ok(THREAD_FIND_SYSTEM.includes(x), x);
+    }
+  });
+
+  test('排细纲：叙事线合同允许排强化（可选），转写合同的 type 多一个词', () => {
+    const prompts = loadModule('src/core/context/prompts.ts');
+    const format = prompts.blueprintFormat({ from: 5, to: 9 });
+    assert.ok(format.includes('是推进、关系、收束（这条线走完了）、埋、强化、收哪一种'), format);
+    const transcribe = JSON.stringify(prompts.blueprintTranscribeMessages('x', { from: 5, to: 9 }));
+    assert.ok(transcribe.includes('推进|关系|收束|埋|强化|收') && transcribe.includes('只在埋、强化、收时给'), transcribe.slice(0, 300));
   });
 });

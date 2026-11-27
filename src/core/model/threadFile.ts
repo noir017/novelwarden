@@ -65,11 +65,14 @@ export type ThreadOrigin = '计划' | '正文';
 
 /** 线的事件：推进、关系（人物关系的变动）、收束（这条线走完了）、放弃。 */
 export type LineEventType = '推进' | '关系' | '收束' | '放弃';
-/** 伏笔的事件：埋、收、弃。 */
-export type ForeshadowEventType = '埋' | '收' | '弃';
+/**
+ * 伏笔的事件：埋、强化、收、弃。**强化**（2026-11-27，设计稿 docs/design/plans/2026-11-27-rhythm-and-foreshadow.md「二期」）：正文给了
+ * 新线索、加深了疑点，但没揭开；只提一句名字不算。它不改伏笔的状态（还是「已埋」），只记「最近第几章碰过」。
+ */
+export type ForeshadowEventType = '埋' | '强化' | '收' | '弃';
 export type ThreadEventType = LineEventType | ForeshadowEventType;
 export const LINE_EVENT_TYPES: readonly LineEventType[] = ['推进', '关系', '收束', '放弃'];
-export const FORESHADOW_EVENT_TYPES: readonly ForeshadowEventType[] = ['埋', '收', '弃'];
+export const FORESHADOW_EVENT_TYPES: readonly ForeshadowEventType[] = ['埋', '强化', '收', '弃'];
 
 /**
  * 「进展」里的一行。`planned` 的是计划事件（拆细纲写进来的），其余是实际事件（定稿写进来的，
@@ -231,6 +234,9 @@ const TYPE_ALIASES: [string, ThreadEventType][] = [
   ['埋下', '埋'],
   ['埋设', '埋'],
   ['plant', '埋'],
+  ['强化', '强化'],
+  ['加深', '强化'],
+  ['reinforce', '强化'],
   ['收', '收'],
   ['回收', '收'],
   ['揭开', '收'],
@@ -636,9 +642,14 @@ export interface ForeshadowState extends Foreshadowing {
   resolveBy?: number;
   /** 过了 {@link resolveBy} 还没收、也没弃。 */
   overdue: boolean;
+  /** 实际强化了几次（2026-11-27）。 */
+  reinforced: number;
+  /** 最近一次实际埋或强化在第几章（2026-11-27：工程页、总览的提示写「最近第 c 章碰过」）。没埋过时缺席。 */
+  lastTouched?: number;
 }
 
-const FORESHADOW_STATUS: Record<ForeshadowEventType, ForeshadowStatus> = { 埋: '已埋', 收: '已收', 弃: '已弃' };
+/** 伏笔状态只看埋、收、弃：强化不改状态。 */
+const FORESHADOW_STATUS: Record<Exclude<ForeshadowEventType, '强化'>, ForeshadowStatus> = { 埋: '已埋', 收: '已收', 弃: '已弃' };
 
 /**
  * 推迟的写法（拆细纲合同：给伏笔所在的线写一条推进，「〈伏笔名〉推迟到第 N 章收」）。认的是归一形（去空白与标点），
@@ -707,11 +718,13 @@ export function foreshadowingOf(file: ThreadFileBase, current: number, plans: re
   return list.map((f) => {
     const key = threadKey(f.name);
     const mine = actual.filter((e) => threadKey(e.foreshadowing!) === key);
-    const last = latest(mine);
-    const status = last ? FORESHADOW_STATUS[last.type as ForeshadowEventType] : '计划';
+    const last = latest(mine.filter((e) => e.type !== '强化'));
+    const status = last ? FORESHADOW_STATUS[last.type as Exclude<ForeshadowEventType, '强化'>] : '计划';
     const planted = mine.filter((e) => e.type === '埋');
     const plantedAt = planted.length > 0 ? Math.min(...planted.map((e) => e.chapter)) : undefined;
     const closedAt = status === '已收' || status === '已弃' ? last!.chapter : undefined;
+    const reinforced = mine.filter((e) => e.type === '强化');
+    const lastTouched = latest([...planted, ...reinforced])?.chapter;
     const by = dueOf(f, plans);
     return {
       ...f,
@@ -721,6 +734,8 @@ export function foreshadowingOf(file: ThreadFileBase, current: number, plans: re
       ...(by.plant !== undefined ? { plantBy: by.plant } : {}),
       ...(by.resolve !== undefined ? { resolveBy: by.resolve } : {}),
       overdue: (status === '计划' || status === '已埋') && by.resolve !== undefined && current > by.resolve,
+      reinforced: reinforced.length,
+      ...(lastTouched !== undefined ? { lastTouched } : {}),
     };
   });
 }
@@ -1649,8 +1664,8 @@ export function verifyFinds(
       } else if (known && type !== '埋' && !plantedBefore.has(key) && !plantedHere.has(key)) {
         why = `这条伏笔还没埋下，不能${type}`;
       } else if (known) {
-        // 未归属的被收、被弃，模型说了在哪条送去认的线上：挪过去（记下了才算，见下面）。
-        const home = !known.line && type !== '埋' ? judged.get(threadKey(lineName)) : undefined;
+        // 未归属的被收、被弃，模型说了在哪条送去认的线上：挪过去（记下了才算，见下面）。强化不挪（2026-11-27：还没揭开，说不准属于哪条）。
+        const home = !known.line && (type === '收' || type === '弃') ? judged.get(threadKey(lineName)) : undefined;
         if (home && !rehomed.has(key)) {
           moving = { name: known.name, line: home };
         }
@@ -1996,6 +2011,28 @@ const NO_RESOLVE_HINT = '还没定哪一章收，细纲没安排就别揭开';
 const LINE_NOW_MAX = 80;
 const LINE_ITEM_MAX = 40;
 const LINE_INTENT_MAX = 60;
+/** 回收那一章带的种子（2026-11-27）：最多几句证据原句（埋下那一句 + 最近一次强化）、每句截多少字。整层照旧受总字数管。 */
+const SEED_MAX = 2;
+const SEED_CHARS = 50;
+
+/**
+ * 一条该收的伏笔带的种子（2026-11-27，设计稿「二期 2」）：它是什么，加上埋下时、最近一次强化时正文里的原句。从前回收那一章
+ * 只给名字，模型不知道当初怎么埋的，收的时候对不上（玉佩埋下时是青色，收的时候写成白色）。`events` 只看实际的、带证据的。
+ * 没到回收章的不带（那里只给名字和「第 b 章前不要揭开」，说明里有真相）。
+ */
+export function seedText(f: Pick<Foreshadowing, 'name' | 'what'>, events: readonly ThreadEvent[]): string {
+  return [f.what ? clip(f.what, LINE_INTENT_MAX) : '', ...seedLines(f.name, events)].filter(Boolean).join('；');
+}
+
+/** 种子那几句：`第 3 章埋下：「……」`、`第 9 章强化：「……」`（拆细纲那一行另有「是什么」，只要这几句）。 */
+export function seedLines(name: string, events: readonly ThreadEvent[]): string[] {
+  const key = threadKey(name);
+  const mine = events.filter((e) => !e.planned && e.evidence && e.foreshadowing && threadKey(e.foreshadowing) === key);
+  const plant = mine.filter((e) => e.type === '埋').sort((a, b) => a.chapter - b.chapter)[0];
+  const touches = mine.filter((e) => e.type === '强化').sort((a, b) => a.chapter - b.chapter);
+  const picked = [...(plant ? [plant] : []), ...touches.slice(-(SEED_MAX - (plant ? 1 : 0)))];
+  return picked.map((e) => `第 ${e.chapter} 章${e.type === '埋' ? '埋下' : '强化'}：「${clip(e.evidence!, SEED_CHARS)}」`);
+}
 
 /** 压成一行、去掉句末的标点（一行里几段用「；」接，「。；」不好看），超长截断。 */
 function clip(text: string, max: number): string {
@@ -2110,8 +2147,13 @@ function foreshadowList(
     );
   let rest = 0;
   const shown = items.filter((x) => x.forced || rest++ < max);
+  // 该收的（第 0 档：本章计划收、已过回收章还没收）带上种子（2026-11-27）。
+  const itemText = (x: (typeof shown)[number]): string => {
+    const seed = x.hint[0] === 0 ? seedText(x.f, file.events) : '';
+    return `${x.f.name}（${x.hint[1]}${seed ? `——${seed}` : ''}）`;
+  };
   return {
-    text: shown.map((x) => `${x.f.name}（${x.hint[1]}）`).join('、'),
+    text: shown.map(itemText).join('、'),
     due: items.some((x) => x.hint[0] === 0),
     mentioned: shown.filter((x) => x.forced).map((x) => x.f.name),
   };
@@ -2465,7 +2507,13 @@ export function plotThreads(
         // 计划在这几章之后才埋、或挂在还没开始的线上：提了等于叫模型提前埋。
         continue;
       }
-      const parts = [f.what ? `是什么：${clip(f.what, LINE_INTENT_MAX)}` : '', mine.length > 0 ? `${scope}原来的计划：${rangePlanText(mine, true)}` : ''].filter(Boolean);
+      // 该收的带上埋下、强化时的原句（2026-11-27）：排「收」的那一章照着它写揭开。
+      const seeds = rank === 0 ? seedLines(f.name, before.events) : [];
+      const parts = [
+        f.what ? `是什么：${clip(f.what, LINE_INTENT_MAX)}` : '',
+        seeds.length > 0 ? `正文里：${seeds.join('；')}` : '',
+        mine.length > 0 ? `${scope}原来的计划：${rangePlanText(mine, true)}` : '',
+      ].filter(Boolean);
       fores.push({
         relPath: file.relPath,
         name: f.name,
@@ -2532,9 +2580,9 @@ export const PLAN_EVENT_LIMIT = 6;
 /**
  * 计划里能写的类型：线的推进 / 关系 / 收束，伏笔的埋 / 收。⚑ 设计稿的合同只列了「推进|关系|埋|收」四种，这里多认一个
  * 「收束」——一条线计划在哪一章走完是排细纲时就定得下来的事，写正文那一层会提醒「本章计划：收束」。放弃、弃不是计划
- * 出来的，不认。
+ * 出来的，不认。伏笔的强化（2026-11-27）也能排，可选：埋得久、收得远的伏笔中途给一次新线索。
  */
-export const PLAN_EVENT_TYPES: readonly ThreadEventType[] = ['推进', '关系', '收束', '埋', '收'];
+export const PLAN_EVENT_TYPES: readonly ThreadEventType[] = ['推进', '关系', '收束', '埋', '强化', '收'];
 
 /**
  * 解码一章的 `threads`（批次的 features/blueprint.ts 与单章的 features/artifact.ts 共用，第 22 条）。**宽松收、绝不抛**：
@@ -2564,7 +2612,7 @@ export function decodePlanEntries(raw: unknown, no: number): { entries?: PlanEnt
     const label = `${line || '？'}${fore ? `〈${fore}〉` : ''} ${typeText || '（没写类型）'}`;
     let why = '';
     if (!type || !PLAN_EVENT_TYPES.includes(type)) {
-      why = '类型不是推进 / 关系 / 收束 / 埋 / 收之一';
+      why = '类型不是推进 / 关系 / 收束 / 埋 / 强化 / 收之一';
     } else if (isForeshadowEvent(type) && !fore) {
       why = '没写是哪一条伏笔';
     } else if (isForeshadowEvent(type) && nameProblem(fore)) {
@@ -2707,8 +2755,8 @@ export function resolvePlanEvents(
           ch.dropped.push({ what: label, why: `这条伏笔已经${state.status === '已收' ? '收' : '弃'}了` });
         } else if (p.type === '埋' && state?.status === '已埋') {
           ch.dropped.push({ what: label, why: `这条伏笔第 ${state.plantedAt} 章已经埋下了` });
-        } else if (p.type === '收' && state?.status !== '已埋' && !(plantAt !== undefined && plantAt < no)) {
-          ch.dropped.push({ what: label, why: '这条伏笔还没埋，「收」要排在「埋」之后（先在更早的一章安排「埋」）' });
+        } else if ((p.type === '收' || p.type === '强化') && state?.status !== '已埋' && !(plantAt !== undefined && plantAt < no)) {
+          ch.dropped.push({ what: label, why: `这条伏笔还没埋，「${p.type}」要排在「埋」之后（先在更早的一章安排「埋」）` });
         } else {
           if (p.type === '埋') {
             notePlant(known.name, no);

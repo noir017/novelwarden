@@ -345,7 +345,7 @@ describe('叙事线总览 · 矩阵', { skip: JSDOM_SKIP }, () => {
   test('头上一行：定稿到第几章、几条线、几条伏笔；图例', () => {
     assert.equal(h.doc.querySelector('.tov-meta').textContent, '同步到第 3 章 · 2 条线 · 4 条伏笔');
     const legend = h.doc.querySelector('.tov-legend').textContent;
-    for (const word of ['只有计划', '只有实际', '计划也发生了', '计划了、同步了却没发生', '埋', '收', '弃']) {
+    for (const word of ['只有计划', '只有实际', '计划也发生了', '计划了、同步了却没发生', '埋', '强化', '收', '弃']) {
       assert.ok(legend.includes(word), legend);
     }
     assert.equal(h.note(), '');
@@ -533,6 +533,29 @@ describe('叙事线总览 · 伏笔连线', { skip: JSDOM_SKIP }, () => {
     h = harness();
     h.open();
     h.respond();
+  });
+
+  // 2026-11-27 二期：强化画 ▲（实际）/ △（计划），排在埋、收、弃之后。
+  test('强化：实际的画 ▲、计划的画 △；同一格有埋的画埋', () => {
+    const o = overview();
+    const fore = o.unfiled.foreshadowing[0];
+    o.unfiled.foreshadowing[0] = {
+      ...fore,
+      cells: [
+        cell(1, [], [ev('埋', '断剑出土', '半截断剑', '断剑'), ev('强化', '剑上有字', '剑身刻着字', '断剑')]),
+        cell(2, [], [ev('强化', '有人认得这把剑', '老铁匠愣住了', '断剑')]),
+        cell(3, [ev('强化', '再提', '', '断剑')], []),
+      ],
+    };
+    const g = harness();
+    g.open();
+    g.respond(o);
+    const row = g.foreRow('断剑');
+    assert.ok(g.cellOf(row, 1).querySelector('.tov-fmark-plant.done'));
+    assert.equal(g.cellOf(row, 2).querySelector('.tov-fmark-touch').textContent, '▲');
+    const planned = g.cellOf(row, 3).querySelector('.tov-fmark-touch');
+    assert.equal(planned.textContent, '△');
+    assert.ok(planned.classList.contains('tov-fmark-plan'));
   });
 
   test('收了的：埋 ● 到收 ◆ 一条实线', () => {

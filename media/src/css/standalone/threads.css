@@ -430,6 +430,13 @@
   color: var(--vscode-descriptionForeground);
 }
 
+/* 强化（2026-11-27）：▲，计划的 △。 */
+.tov-fmark-touch {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--vscode-charts-orange, #d18616);
+}
+
 /* 伏笔的连线：收了的实线、埋了没收的虚线、还没埋的淡虚线；逾期标红。画在格子底下。 */
 .tov-span {
   position: absolute;

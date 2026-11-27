@@ -82,19 +82,19 @@ describe('长篇约束 · 细纲合同里的叙事线', () => {
   });
 
   // 细纲试点（2026-10-25）：写细纲的模型按小标题写，不写 JSON；JSON 合同挪给转写那一步。
-  test('输出格式：九个小标题，叙事线五种类型、一章最多 6 条，埋新伏笔写明第几章前收；不写 JSON', () => {
+  test('输出格式：九个小标题，叙事线六种类型（2026-11-27 加了强化）、一章最多 6 条，埋新伏笔写明第几章前收；不写 JSON', () => {
     const c = plot('generate', { range: { from: 6, to: 10 } });
     assert.match(c, /每章下面依次是这九个小标题，一个都不能少，哪一节没有内容就写「无」：梗概、出场人物、时间地点、关键事件、看点、状态变更、叙事线、新角色、设定。/);
-    assert.match(c, /- 叙事线：本章在叙事线上的计划，一条一行、行首写「- 」，最多 6 条。每条写清：哪条线（照抄线名）；是推进、关系、收束（这条线走完了）、埋、收哪一种/);
+    assert.match(c, /- 叙事线：本章在叙事线上的计划，一条一行、行首写「- 」，最多 6 条。每条写清：哪条线（照抄线名）；是推进、关系、收束（这条线走完了）、埋、强化、收哪一种/);
     assert.match(c, /埋一条新伏笔再写明计划第几章前收/);
     assert.match(c, /不写 JSON。/);
     assert.doesNotMatch(c, /\{"blueprints"/);
   });
 
-  test('转写合同：threads 五种类型，foreshadowing 只在埋、收时给，resolve 只在原文写了时给；文字一律照抄', () => {
+  test('转写合同：threads 六种类型，foreshadowing 只在埋、强化、收时给，resolve 只在原文写了时给；文字一律照抄', () => {
     const c = p.blueprintJsonContract({ from: 6, to: 10 });
-    assert.match(c, /threads：「叙事线」一节，一条一项 \{"line":"线名","type":"推进\|关系\|收束\|埋\|收","foreshadowing":"伏笔名","what":"这一章在这条线上发生什么","resolve":N\}/);
-    assert.match(c, /foreshadowing 只在埋、收时给；resolve 只在原文写了第几章前收时给/);
+    assert.match(c, /threads：「叙事线」一节，一条一项 \{"line":"线名","type":"推进\|关系\|收束\|埋\|强化\|收","foreshadowing":"伏笔名","what":"这一章在这条线上发生什么","resolve":N\}/);
+    assert.match(c, /foreshadowing 只在埋、强化、收时给；resolve 只在原文写了第几章前收时给/);
     assert.match(c, /文字一律从原文照抄：不改写、不总结、不润色/);
     assert.match(c, /原文写的是第 6–10 章，一章一项/);
   });

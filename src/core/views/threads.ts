@@ -509,7 +509,7 @@ function foreshadowRows(
     const mine = file.events.filter((e) => isForeshadowEvent(e.type) && e.foreshadowing && threadKey(e.foreshadowing) === key);
     const actual = mine.filter((e) => !e.planned);
     const plantedBy = (no: number) => actual.some((e) => e.type === '埋' && e.chapter <= no);
-    const closedBy = (no: number) => actual.some((e) => e.type !== '埋' && e.chapter <= no);
+    const closedBy = (no: number) => actual.some((e) => (e.type === '收' || e.type === '弃') && e.chapter <= no);
     const cells = cellsOf(mine, last);
     for (const cell of cells) {
       if (!finalized.has(cell.chapter)) {
@@ -518,7 +518,9 @@ function foreshadowRows(
       const types = new Set(cell.planned.map((e) => e.type));
       const missedPlant = types.has('埋') && !plantedBy(cell.chapter) && !closedBy(cell.chapter);
       const missedClose = (types.has('收') || types.has('弃')) && !closedBy(cell.chapter);
-      cell.deviation = missedPlant || missedClose;
+      // 计划在这一章强化的（2026-11-27）：这一章一条实际的都没有、也还没收，算没发生。
+      const missedTouch = types.has('强化') && cell.actual.length === 0 && !closedBy(cell.chapter);
+      cell.deviation = missedPlant || missedClose || missedTouch;
     }
     const plannedChapters = (type: '埋' | '收') => mine.filter((e) => e.planned && e.type === type).map((e) => e.chapter);
     const span = spanOf(f, plannedChapters('埋'), plannedChapters('收'), current, last);
@@ -609,5 +611,7 @@ function foreshadowTip(f: ForeshadowState, days?: number): string {
         : f.status === '已埋'
           ? `第 ${f.plantedAt} 章埋下，还没收${days !== undefined ? `（故事里已经过了 ${days} 天）` : ''}`
           : '还没埋';
-  return [f.what, plan, `${state}${f.overdue ? `，过了第 ${f.resolveBy} 章（逾期）` : ''}`].filter(Boolean).join('\n');
+  // 强化过的（2026-11-27）：几次、最近第几章碰过（⚑ 作者定的：不挂 ⚠，交给作者判断）。
+  const touched = f.reinforced > 0 && f.lastTouched !== undefined ? ` · 强化 ${f.reinforced} 次 · 最近第 ${f.lastTouched} 章` : '';
+  return [f.what, plan, `${state}${f.overdue ? `，过了第 ${f.resolveBy} 章（逾期）` : ''}${touched}`].filter(Boolean).join('\n');
 }

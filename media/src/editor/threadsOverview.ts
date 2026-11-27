@@ -305,6 +305,7 @@ function legend(): HTMLElement {
   item(lineMark('dev'), '计划了、同步了却没发生');
   box.appendChild(el('span', 'tov-legend-sep', '·'));
   item(foreMark('埋', false), '埋');
+  item(foreMark('强化', false), '强化');
   item(foreMark('收', false), '收');
   item(foreMark('弃', false), '弃');
   const dashed = el('span', 'tov-legend-dash');
@@ -332,10 +333,15 @@ function lineMarkKind(cell: ThreadsOverviewCell): LineMarkKind {
   return cell.planned.length > 0 ? 'both' : 'actual';
 }
 
-/** 伏笔的记号：埋 ●、收 ◆、弃 ✕；计划的（还没发生的）画空心 ○ / ◇。 */
-function foreMark(type: '埋' | '收' | '弃', planned: boolean): HTMLElement {
+/** 伏笔的记号：埋 ●、强化 ▲、收 ◆、弃 ✕；计划的（还没发生的）画空心 ○ / △ / ◇。 */
+function foreMark(type: '埋' | '强化' | '收' | '弃', planned: boolean): HTMLElement {
   if (type === '弃') {
     const mark = el('span', 'tov-fmark tov-fmark-drop', '✕');
+    mark.setAttribute('aria-hidden', 'true');
+    return mark;
+  }
+  if (type === '强化') {
+    const mark = el('span', `tov-fmark tov-fmark-touch${planned ? ' tov-fmark-plan' : ''}`, planned ? '△' : '▲');
     mark.setAttribute('aria-hidden', 'true');
     return mark;
   }
@@ -345,19 +351,25 @@ function foreMark(type: '埋' | '收' | '弃', planned: boolean): HTMLElement {
   return mark;
 }
 
-/** 一格伏笔画哪个记号：实际的先（弃 → 收 → 埋），没有实际的画计划的（收 → 埋）。 */
+/** 一格伏笔画哪个记号：实际的先（弃 → 收 → 埋 → 强化），没有实际的画计划的（收 → 埋 → 强化）。 */
 function foreMarkOf(cell: ThreadsOverviewCell): HTMLElement {
   const actual = new Set(cell.actual.map((e) => e.type));
   const planned = new Set(cell.planned.map((e) => e.type));
-  const type: '埋' | '收' | '弃' = actual.has('弃')
+  const type: '埋' | '强化' | '收' | '弃' = actual.has('弃')
     ? '弃'
     : actual.has('收')
       ? '收'
       : actual.has('埋')
         ? '埋'
-        : planned.has('收') || planned.has('弃')
-          ? '收'
-          : '埋';
+        : actual.has('强化')
+          ? '强化'
+          : planned.has('收') || planned.has('弃')
+            ? '收'
+            : planned.has('埋')
+              ? '埋'
+              : planned.has('强化')
+                ? '强化'
+                : '埋';
   const mark = foreMark(type, actual.size === 0);
   if (cell.deviation) {
     mark.classList.add('tov-mark-dev');

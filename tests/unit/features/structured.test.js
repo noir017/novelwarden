@@ -218,7 +218,7 @@ describe('blueprint.ts · 细纲批次', () => {
       { line: '乙', type: '推进', what: '第 6 条' },
     ]);
     const w = r.warnings.join('\n');
-    assert.match(w, /青崖旧案 放弃：类型不是推进 \/ 关系 \/ 收束 \/ 埋 \/ 收之一，没收/);
+    assert.match(w, /青崖旧案 放弃：类型不是推进 \/ 关系 \/ 收束 \/ 埋 \/ 强化 \/ 收之一，没收/);
     assert.match(w, /青崖旧案 埋：没写是哪一条伏笔，没收/);
     assert.match(w, /？ 关系：没写是哪一条线，没收/);
     assert.match(w, /丙 推进：一章最多写 6 条，没收/);
