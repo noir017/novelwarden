@@ -50,7 +50,10 @@ export interface PersistedSettings {
   concurrency?: number;
   /** 一次调用失败后，换模型重试的次数上限。 */
   fallbackAttempts?: number;
-  /** 写完正文删修饰。缺席 = 开。 */
+  /**
+   * 写完正文删修饰。缺席 = 关：它是给 flash-lite 这类管不住修饰的模型准备的，强一些的模型（Hydrogen 实测）
+   * 一章只删得动约 1%，却要多调一次模型、按 1.2 倍篇幅写（见 docs/design/plans/2026-10-03-plain-prose.md）。
+   */
   trimModifiers?: boolean;
   /** 独立版：已经开着工程时，打开另一个工程用新窗口。缺席 = 开。 */
   openInNewWindow?: boolean;
@@ -145,7 +148,7 @@ export function readConfig(): NovelConfig {
     requestTimeoutMs: c.requestTimeoutMs ?? 300000,
     concurrency: clamp('并发请求数', c.concurrency, CONCURRENCY_RANGE),
     fallbackAttempts: clamp('换模型重试次数', c.fallbackAttempts, FALLBACK_RANGE),
-    trimModifiers: c.trimModifiers !== false,
+    trimModifiers: c.trimModifiers === true,
     openInNewWindow: c.openInNewWindow !== false,
   };
 }

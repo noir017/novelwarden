@@ -395,7 +395,7 @@ export function settingsPane(opts: PaneOptions = {}): string {
     <div class="hint" id="contextDetailHint"></div>
 
     <div class="pane-head"><span>删修饰</span></div>
-    <div class="hint">写完一章正文之后，让同一个模型再过一遍，只删名词前堆的形容词、动词前的程度副词这类多余修饰，不加字、不动对白；删坏的段落自动退回原文。每章多调 1 次模型。对话页写入前可以逐段把删改退回原文。</div>
+    <div class="hint">写完一章正文之后，让同一个模型再过一遍，只删名词前堆的形容词、动词前的程度副词这类多余修饰，不加字、不动对白；删坏的段落自动退回原文。每章多调 1 次模型。对话页写入前可以逐段把删改退回原文。写正文的模型管不住修饰（如 flash-lite）时再打开；强一些的模型删不掉多少。</div>
     <div class="grid">
       <label class="field"><span>写完正文删修饰</span><input type="checkbox" id="setTrimModifiers"></label>
     </div>

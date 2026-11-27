@@ -72,7 +72,7 @@ export function renderSettings(
   }
   const trim = maybeById<HTMLInputElement>(TRIM_FIELD);
   if (trim) {
-    trim.checked = settings.trimModifiers !== false;
+    trim.checked = settings.trimModifiers === true;
   }
   const newWindow = maybeById<HTMLInputElement>(NEW_WINDOW_FIELD);
   if (newWindow) {
@@ -137,7 +137,7 @@ function save(): void {
   for (const [key, id] of Object.entries(NUMERIC_FIELDS)) {
     settings[key as NumericField] = Number(byId<HTMLInputElement>(id).value);
   }
-  settings.trimModifiers = maybeById<HTMLInputElement>(TRIM_FIELD)?.checked !== false;
+  settings.trimModifiers = maybeById<HTMLInputElement>(TRIM_FIELD)?.checked === true;
   const detail = maybeById<HTMLSelectElement>(DETAIL_FIELD);
   settings.contextDetail = normalizeContextDetail(detail ? Number(detail.value) : undefined);
   const newWindow = maybeById<HTMLInputElement>(NEW_WINDOW_FIELD);
