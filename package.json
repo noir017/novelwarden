@@ -539,6 +539,7 @@
     "package": "node esbuild.js --production",
     "embed": "node scripts/embed-media.js",
     "media": "node scripts/build-media.js",
+    "skill:cli": "node scripts/gen-cli-skill.js",
     "pretypecheck": "node scripts/embed-media.js",
     "typecheck": "tsc --noEmit && tsc --noEmit -p media/tsconfig.json",
     "test:unit": "node --test --test-reporter=./tests/reporters/quiet.mjs \"tests/unit/**/*.test.js\"",
