@@ -355,6 +355,22 @@ describe('WorkspaceHub：几个窗口', () => {
     assert.equal(hub.mcpBackend(path.join(windowDir, 'not-open')), undefined);
   });
 
+  test('MCP 按需加载：ensureMcpBackend 自动打开已初始化工程，未初始化或不存在的回 undefined', async () => {
+    const initProj = path.join(windowDir, 'init-book');
+    fs.mkdirSync(path.join(initProj, '.novelwarden'), { recursive: true });
+    fs.writeFileSync(path.join(initProj, '.novelwarden', 'project.json'), JSON.stringify({ name: 'test' }));
+
+    assert.equal(hub.mcpBackend(initProj), undefined);
+    const backend = await hub.ensureMcpBackend(initProj);
+    assert.ok(backend);
+    assert.ok(hub.openRoots().includes(real(initProj)));
+
+    const uninit = path.join(windowDir, 'plain-dir');
+    fs.mkdirSync(uninit, { recursive: true });
+    assert.equal(await hub.ensureMcpBackend(uninit), undefined);
+    assert.equal(await hub.ensureMcpBackend(path.join(windowDir, 'not-exist')), undefined);
+  });
+
   test('窗口全关了：最近操作的工程留着（MCP 还要用），别的空闲回收', async () => {
     const a = await openWindow(projA);
     const b = await openWindow(projB);

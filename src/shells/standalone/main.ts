@@ -10,12 +10,18 @@ import { NovelProject } from '../../core/model/project';
 import { FileConfigStore } from '../../core/stores';
 import { tokenFromEnv, exposureError } from './auth';
 import { parseArgs } from './cli';
+import { runMcpCli } from './mcpCli';
 import { startServer } from './server';
 import { openWithSystem } from './systemOpen';
 import { TerminalHost } from './terminalHost';
 
 async function main(): Promise<void> {
-  const opts = parseArgs(process.argv.slice(2));
+  const rawArgs = process.argv.slice(2);
+  if (rawArgs[0] === 'mcp') {
+    process.exit(await runMcpCli(rawArgs.slice(1)));
+  }
+
+  const opts = parseArgs(rawArgs);
 
   if (opts.init) {
     // CLI 交互式 init：终端问答后写盘，不开服务。

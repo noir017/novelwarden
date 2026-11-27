@@ -21,6 +21,7 @@ export interface CliOptions {
 /**
  * novelwarden [dir] [--port N] [--host ADDR] [--no-open] [--verbose]
  * novelwarden init [dir]
+ * novelwarden mcp <status|tools|call|toolName> [...]
  *
  * 不带目录起服务时 `root` 为 undefined（不再把 cwd 当成工程）。
  * `init` 不带目录时仍默认当前目录，与原来一致。

@@ -12,8 +12,9 @@ agent 做得更好，自己再做一份只是更弱的重复。真正值钱的�
 |---|---|
 | [server.ts](server.ts) | ★ 协议：`initialize` / `ping` / `tools/list` / `tools/call` / `notifications/cancelled`，会话，状态简报 |
 | [http.ts](http.ts) | Streamable HTTP 传输：POST 回 JSON（`tools/call` 回 SSE 带进度保活）、会话头、DELETE、GET 405、Origin 校验。只用标准 `Request` / `Response` |
+| [rest.ts](rest.ts) | 普通 HTTP REST 传输：`GET /api/status`、`GET /api/tools[/:name]`、`POST /api/tools/:name`（支持 JSON 与 SSE 保活），给 curl 与 CLI 用 |
 | [instructions.ts](instructions.ts) | `initialize` 回给客户端的使用说明（只说怎么用工具，不写领域知识） |
-| [index.ts](index.ts) | `createNovelMcp(backend)`：工具清单 + 说明 + 传输，壳只给「当前工程的执行端」 |
+| [index.ts](index.ts) | `createNovelMcp` / `createNovelRest`：工具清单 + 说明 + 两种 HTTP 传输，壳只给「当前工程的执行端」 |
 
 执行端在 [controller/mcp.ts](../controller/mcp.ts)：一次调用落到一个工程上，落到哪个由壳决定（`backend(project)`）。
 
@@ -24,9 +25,11 @@ agent 做得更好，自己再做一份只是更弱的重复。真正值钱的�
 ```
 MCP 已就绪：http://127.0.0.1:3000/mcp
     claude mcp add --transport http novelwarden http://127.0.0.1:3000/mcp
+HTTP API 已就绪：http://127.0.0.1:3000/api/tools
+    CLI：novelwarden mcp status --url http://127.0.0.1:3000
 ```
 
-调用落在**最近操作的那个网页窗口开着的工程**上；地址带 `?project=<工程目录>`（每次请求都看地址，不必重新 initialize）就落到那个工程，它必须在某个窗口里开着。没打开工程时工具照样列得出来，调用回一句「先打开工程」。
+调用落在**最近操作的那个网页窗口开着的工程**上；地址带 `?project=<工程目录>`（每次请求都看地址，不必重新 initialize）就落到那个工程——若该目录已是初始化过的小说工程，服务端会按需加载，不必先在网页里打开。没打开工程时工具照样列得出来，调用回一句「先打开工程」。
 VS Code 壳还没接（要另起一个 HTTP 服务，等用得上再说）。
 
 ## 分层

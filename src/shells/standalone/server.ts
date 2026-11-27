@@ -19,7 +19,7 @@ import {
   setSinkLevel,
 } from '../../core/runtime/logger';
 import { InMessage, OutMessage } from '../../core/protocol';
-import { MCP_PATH, createNovelMcp } from '../../core/mcp';
+import { API_PREFIX, MCP_PATH, createNovelMcp, createNovelRest } from '../../core/mcp';
 import { FileConfigStore, FileSecretStore } from '../../core/stores';
 import { PRODUCT_VERSION, assetBytes } from './assets';
 import { LEGACY_TOKEN_ENV, LOGIN_PATH, TOKEN_ENV, handleLogin, isAllowedOrigin, isAuthorized, loginRequired } from './auth';
@@ -80,8 +80,11 @@ export async function startServer(opts: ServeOptions): Promise<number> {
   let port = opts.port;
   const host = opts.host ?? '127.0.0.1';
   const token = opts.token;
-  const mcp = createNovelMcp((project) => hub.mcpBackend(project), {
-    allowOrigin: (origin, req) => isAllowedOrigin(origin, req, port, !!token),
+  const allowOrigin = (origin: string | null, req: Request) => isAllowedOrigin(origin, req, port, !!token);
+  const mcp = createNovelMcp((project) => hub.ensureMcpBackend(project), { allowOrigin });
+  const rest = createNovelRest((project) => hub.ensureMcpBackend(project), {
+    allowOrigin,
+    projects: () => ({ open: hub.openRoots(), default: hub.defaultRoot() }),
   });
 
   const server = await serve({
@@ -111,6 +114,10 @@ export async function startServer(opts: ServeOptions): Promise<number> {
         // 空闲就断，这里对这一个请求关掉。
         server.timeout(req, 0);
         return mcp.handle(req);
+      }
+      if (url.pathname === API_PREFIX || url.pathname.startsWith(`${API_PREFIX}/`)) {
+        server.timeout(req, 0);
+        return rest.handle(req);
       }
       if (url.pathname === '/ws') {
         // 没配令牌时只靠「仅绑 127.0.0.1」保护。恶意网页无法读跨源
@@ -210,5 +217,6 @@ export async function startServer(opts: ServeOptions): Promise<number> {
   }
   const addCmd = `claude mcp add --transport http novelwarden ${base}${MCP_PATH}`;
   log.info(`MCP 已就绪：${base}${MCP_PATH}`, token ? `${addCmd}（另加 --header 带令牌，写法见 README「Docker 部署」）` : addCmd);
+  log.info(`HTTP API 已就绪：${base}${API_PREFIX}/tools`, `CLI：novelwarden mcp status --url ${base}`);
   return server.port;
 }

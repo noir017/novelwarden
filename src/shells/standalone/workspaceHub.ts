@@ -200,6 +200,35 @@ export class WorkspaceHub {
     if (!rt) {
       return undefined;
     }
+    return this.wrapBackend(rt);
+  }
+
+  /**
+   * 给 HTTP / MCP 端点用：已打开就直接返回；若显式传了 `project` 且它是已初始化的小说工程目录
+   * （含 `.novelwarden/project.json` 等），则按需加载，支持无头 / 纯 CLI 调用。
+   */
+  async ensureMcpBackend(project?: string): Promise<McpBackend | undefined> {
+    const existing = this.mcpBackend(project);
+    if (existing || !project) {
+      return existing;
+    }
+    const resolved = await this.resolveDir(project, () => undefined);
+    if (!resolved || !isInitializedProject(resolved)) {
+      return undefined;
+    }
+    try {
+      const rt = await this.ensureRuntime(resolved);
+      if (!this.lastActive) {
+        this.lastActive = rt;
+      }
+      return this.wrapBackend(rt);
+    } catch (err) {
+      log.warn(`按需打开工程失败：${resolved}`, describeError(err));
+      return undefined;
+    }
+  }
+
+  private wrapBackend(rt: Runtime): McpBackend {
     const backend = createMcpBackend(rt.controller);
     return {
       call: (name, args, signal) => runInScope(rt.scope, () => backend.call(name, args, signal)),
@@ -766,6 +795,12 @@ function expandHome(p: string): string {
     return os.homedir();
   }
   return /^~[\\/]/.test(trimmed) ? path.join(os.homedir(), trimmed.slice(2)) : trimmed;
+}
+
+function isInitializedProject(dir: string): boolean {
+  return ['.novelwarden', '.novelforge', '.novel'].some((meta) =>
+    fsSync.existsSync(path.join(dir, meta, 'project.json'))
+  );
 }
 
 function normalizePath(p: string): string {

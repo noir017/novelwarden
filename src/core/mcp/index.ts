@@ -10,10 +10,13 @@ import { NOVEL_TOOLS } from '../tools/novel';
 import { specOf } from '../tools/registry';
 import { McpHttpHandler, McpHttpOptions } from './http';
 import { MCP_INSTRUCTIONS } from './instructions';
+import { McpRestHandler, McpRestOptions } from './rest';
 import { McpBackend, McpServer } from './server';
 
 export { McpHttpHandler } from './http';
 export type { McpHttpOptions } from './http';
+export { API_PREFIX, McpRestHandler } from './rest';
+export type { McpRestOptions, RestToolInfo } from './rest';
 export { McpServer, McpSession, PROTOCOL_VERSIONS } from './server';
 export type { McpBackend, McpCallResult } from './server';
 export { MCP_INSTRUCTIONS } from './instructions';
@@ -24,7 +27,10 @@ export const MCP_PATH = '/mcp';
 /** `serverInfo.version`。只给客户端日志看，不参与任何判断。 */
 const SERVER_VERSION = '0.1.0';
 
-export function createNovelMcp(backend: (project?: string) => McpBackend | undefined, opts: McpHttpOptions = {}): McpHttpHandler {
+export function createNovelMcp(
+  backend: (project?: string) => McpBackend | undefined | Promise<McpBackend | undefined>,
+  opts: McpHttpOptions = {}
+): McpHttpHandler {
   const server = new McpServer({
     tools: NOVEL_TOOLS.map(specOf),
     backend,
@@ -32,4 +38,15 @@ export function createNovelMcp(backend: (project?: string) => McpBackend | undef
     instructions: MCP_INSTRUCTIONS,
   });
   return new McpHttpHandler(server, opts);
+}
+
+export function createNovelRest(
+  backend: (project?: string) => McpBackend | undefined | Promise<McpBackend | undefined>,
+  opts: Omit<McpRestOptions, 'tools' | 'backend'> = {}
+): McpRestHandler {
+  return new McpRestHandler({
+    tools: NOVEL_TOOLS.map(specOf),
+    backend,
+    ...opts,
+  });
 }

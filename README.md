@@ -624,6 +624,17 @@ start: 大衍三年三月初七
 
   ```
   claude mcp add --transport http novelwarden http://127.0.0.1:36800/mcp
+
+- **HTTP API 与 CLI 工具**：同端口额外挂了 `/api/status`、`/api/tools`、`POST /api/tools/<工具名>`（鉴权与 `?project=` 规则同 `/mcp`，指向已初始化工程目录时按需加载），并自带 CLI 子命令调用：
+
+  ```sh
+  novelwarden mcp status                                  # 查已打开工程与状态简报
+  novelwarden mcp tools                                   # 列全部工具（加工具名看参数）
+  novelwarden mcp read --path .novelwarden/premise.md     # 直接调工具（call 的简写）
+  novelwarden mcp call pipeline --action batchPlots --from 1 --to 5 --project /path/to/book
+  ```
+
+  服务地址与工程目录也可用 `NOVELWARDEN_URL` / `NOVELWARDEN_PROJECT` 指定；开启鉴权时令牌通过 `NOVELWARDEN_TOKEN` 环境变量传入。
   ```
 
 ---

@@ -57,7 +57,7 @@ export interface McpServerOptions {
    * 工程的执行端。`project` 是客户端在 MCP 地址上写的 `?project=<工程目录>`：给了就落到那个工程，
    * 没给由壳决定（独立版：作者最近操作的那个窗口）。那个工程没打开时回 undefined。
    */
-  backend(project?: string): McpBackend | undefined;
+  backend(project?: string): McpBackend | undefined | Promise<McpBackend | undefined>;
   version: string;
   instructions: string;
 }
@@ -219,7 +219,7 @@ export class McpServer {
         ? (params.arguments as Record<string, unknown>)
         : {};
 
-    const backend = this.opts.backend(session.project);
+    const backend = await this.opts.backend(session.project);
     if (!backend) {
       const text = session.project
         ? `Novelwarden 里没有打开这个小说工程：${session.project}。请作者先在 Novelwarden 里打开它。`
