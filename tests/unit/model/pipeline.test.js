@@ -1360,4 +1360,25 @@ describe('pipeline.ts · 写前检查的叙事线提醒', () => {
     );
     assert.deepEqual(pipeline.threadRemindersFor(watch, [7]).map((r) => r.kind), ['overdue', 'stalled'], '没有 unplanted 也不崩');
   });
+
+  // 2026-11-27 节奏体检：问题段从细纲现算，挂在 watch.rhythm 上，碰到要写的哪一章就报；说法另起一句「节奏提醒」。
+  test('节奏：问题段碰到要写的章才报；只有节奏时只有那一句；两类都有时叙事线在前、「还没记上」只注在叙事线那句', () => {
+    const rhythm = [
+      { kind: 'dry', from: 3, to: 7, planned: true },
+      { kind: 'static', from: 9, to: 9, planned: false },
+    ];
+    const quiet = { lines: [], foreshadowing: [], unplanted: [], rhythm };
+    assert.deepEqual(pipeline.threadRemindersFor(quiet, [7]), [{ kind: 'rhythm', issue: rhythm[0] }]);
+    assert.deepEqual(pipeline.threadRemindersFor(quiet, [8]), []);
+    assert.deepEqual(pipeline.threadRemindersFor(quiet, [8, 9]).map((r) => r.issue.kind), ['static']);
+    assert.equal(
+      pipeline.describeThreadReminders('本章', pipeline.threadRemindersFor(quiet, [7]), pipeline.unrecordedBefore(2, 7)),
+      '节奏提醒：第 3–7 章只有钩子，没有兑现（含计划）。只是提醒，照写不拦。'
+    );
+    assert.equal(
+      pipeline.describeThreadReminders('本章', pipeline.threadRemindersFor({ ...watch, rhythm }, [7])),
+      '叙事线提醒：伏笔〈玉佩的来历〉计划第 5 章前收，还没收，本章计划里也没安排收；〈青崖旧案〉（主线）已经 5 章没有进展，本章计划里也没安排推进。' +
+        '节奏提醒：第 3–7 章只有钩子，没有兑现（含计划）。只是提醒，照写不拦。'
+    );
+  });
 });

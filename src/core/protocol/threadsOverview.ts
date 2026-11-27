@@ -8,6 +8,7 @@
  * 构建见 `views/threads.ts` 的 `buildThreadsOverview`（纯读盘、不调模型、不落盘；状态现算，第 18、28 条），
  * 前端只画（`media/src/editor/threadsOverview.ts`）。设计见 docs/design/plans/2026-10-20-narrative-threads.md「八」。
  */
+import type { RhythmIssue } from '../model/pipeline';
 import type { ForeshadowStatus, ThreadEventType, ThreadKind, ThreadStatus } from '../model/threadFile';
 
 /**
@@ -42,6 +43,12 @@ export interface ThreadsOverviewChapter {
    * 时间线里写到的最后一章之后、没推的章缺席。
    */
   time?: string;
+  /**
+   * 「看点」那一行这一格写的字（2026-11-27，节奏体检）：第一种兑现的头一个字，只有钩子的写「钩」；细纲里没有、或一条都认不出类型时缺席。
+   */
+  highlight?: string;
+  /** 这一章细纲的「看点」，一条一行（悬停看）。细纲里没有看点时缺席。 */
+  highlights?: string;
 }
 
 /** 格子里的一条事件（悬停看）。 */
@@ -149,4 +156,8 @@ export interface ThreadsOverview {
    * 原本要画到第几章。截掉的那几章上的事件不画，界面上照实说一句（第 2 条的精神：不静默截断）。
    */
   clippedFrom?: number;
+  /**
+   * 节奏问题（2026-11-27，model/rhythm.ts）：「看点」那一行落在问题段里的格子标出来，悬停说是什么问题。没有时缺席。
+   */
+  rhythm?: RhythmIssue[];
 }

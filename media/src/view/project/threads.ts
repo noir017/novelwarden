@@ -33,7 +33,7 @@
 import { el as mk } from '../../dom';
 import { commandThreadsOverview, commandTimelineOverview, queryThreadsOverview, queryTimelineOverview } from '../../globals';
 import type { MenuItem } from '../../globals';
-import { THREAD_PLAN_CALLS, THREADS_JUDGE_CALLS } from '../../protocol';
+import { THREAD_PLAN_CALLS, THREADS_JUDGE_CALLS, describeRhythmIssue } from '../../protocol';
 import type { ProjectTree, ThreadLineView, ThreadUnfiledView, TimelineChapterView, TimelineGroupView, TimelineSegmentView } from '../../protocol';
 import { linkBtn } from '../buttons';
 import { onContextMenu } from '../menu';
@@ -153,6 +153,7 @@ export function threadsHead(tree: ProjectTree): HTMLElement | undefined {
 export function buildThreadRows(tree: ProjectTree): HTMLElement[] {
   const { lines, unfiled, lag } = tree.threads;
   const rows = lines.map((line) => buildLineRow(tree, line));
+  rows.unshift(...buildRhythmRows(tree));
   if (lag) {
     rows.unshift(buildLagRow(tree, lag));
   }
@@ -186,6 +187,30 @@ function buildLagRow(tree: ProjectTree, lag: NonNullable<ProjectTree['threads'][
   );
   row.title = `叙事线判到第 ${through} 章（从第 1 章起连续判过的），同步到第 ${tree.threads.current} 章。`;
   return row;
+}
+
+/** 节奏提醒最多列几行，再多的并成最后一句「等 N 处」。 */
+const RHYTHM_ROWS = 5;
+
+/**
+ * 节奏体检（2026-11-27，设计稿 docs/design/plans/2026-11-27-rhythm-and-foreshadow.md「一期」）：细纲看点里连着几章没兑现、同一类连用、
+ * 章末没钩子、什么都没变，一处一行挂在线的上面（与「还没判」同一个样子）。只是提醒；数据是工程页那一份 `watch.rhythm`。
+ */
+function buildRhythmRows(tree: ProjectTree): HTMLElement[] {
+  // 测试夹具与老数据里可能没有 watch（第 1 条）。
+  const issues = tree.threads.watch?.rhythm ?? [];
+  const shown = issues.slice(0, RHYTHM_ROWS);
+  const rows = shown.map((issue) => {
+    const row = mk('div', 'row-conflict threads-rhythm', `⚠ 节奏：${describeRhythmIssue(issue)}`);
+    row.title =
+      '按细纲「看点」每条行首的类型算（打脸、逆袭、收获、对决、反转、揭秘、情感算兑现，钩子是章末吊着读者的那一下；认不出类型的章不算）。' +
+      '同步过的章按正文、没同步的按计划。只是提醒，叙事线总览顶上那一行看得更清楚。';
+    return row;
+  });
+  if (issues.length > shown.length) {
+    rows.push(mk('div', 'row-conflict threads-rhythm', `⚠ 节奏：等 ${issues.length} 处，其余的见叙事线总览`));
+  }
+  return rows;
 }
 
 /** 一章的状态点：有依据 ●、推测 ○、推不出 ?、没推 ·、你定的 ★、正文写明 ◆、回忆 ↺、认不出 ✕。 */

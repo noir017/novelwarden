@@ -33,9 +33,10 @@ import {
 } from '../model/pipeline';
 import { parsePlotFileName } from '../model/plotFile';
 import { parseChapterFileName } from '../model/chapterFile';
-import { BookFacts } from '../model/pipeline';
+import { BookFacts, describeRhythmIssue } from '../model/pipeline';
 import { buildBookFacts, buildPipelineIndex, buildPlotPipeline, factsOf } from './pipeline';
 import type { PipelineIndex, PlotPipeline } from './pipeline';
+import { rhythmOf } from './threads';
 
 /** 「⟳ 上游改过」最多点名几章，超了写「等 N 章」。 */
 export const STALE_LIST_LIMIT = 5;
@@ -91,6 +92,13 @@ export async function buildStateBrief(
     const named = stale.slice(0, STALE_LIST_LIMIT).map((p) => `第 ${p.no} 章`).join('、');
     const rest = stale.length > STALE_LIST_LIMIT ? `等 ${stale.length} 章` : '';
     lines.push(`提醒：${named}${rest}的上游产物改过，现有内容可能已经对不上（⟳）`);
+  }
+  // 节奏体检（2026-11-27）：与工程页同一份、同一句。外部 agent 是调度者，只让它知道，不让它自己去重排（设计稿「原则」）。
+  const rhythm = rhythmOf(project, index.plots, chapters);
+  if (rhythm.length > 0) {
+    const named = rhythm.slice(0, STALE_LIST_LIMIT).map(describeRhythmIssue).join('；');
+    const rest = rhythm.length > STALE_LIST_LIMIT ? `；等 ${rhythm.length} 处` : '';
+    lines.push(`节奏提醒（交给作者判断，不要为它自己重排细纲）：${named}${rest}`);
   }
   return lines.join('\n');
 }

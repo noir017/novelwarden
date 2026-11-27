@@ -27,6 +27,7 @@
 import { el, setHidden } from '../dom';
 import { onContextMenu, toast } from '../globals';
 import type { MenuContext, MenuItem, ThreadsOverviewCommand } from '../globals';
+import { describeRhythmIssue } from '../protocol';
 import type {
   InMessage,
   OutMessage,
@@ -428,6 +429,9 @@ function buildGrid(d: ThreadsOverview): HTMLElement {
   const grid = el('div', 'tov-grid');
   grid.style.width = `${nameWidth + cols * CELL}px`;
   grid.appendChild(buildHeader(d));
+  if (d.rhythm || d.chapters.some((c) => c.highlights)) {
+    grid.appendChild(rhythmRow(d, cols));
+  }
   for (const group of d.groups) {
     grid.appendChild(groupRow(group.kind, `${group.lines.length} 条`));
     for (const line of group.lines) {
@@ -523,6 +527,42 @@ function rowShell(cls: string, cols: number): { row: HTMLElement; name: HTMLElem
   track.style.width = `${cols * CELL}px`;
   row.append(name, track);
   return { row, name, track };
+}
+
+/**
+ * 「看点」那一行（2026-11-27，节奏体检）：每章一格写第一种兑现的头一个字（只有钩子的写「钩」，看点没写类型的画一个点），
+ * 落在节奏问题段里的格子标黄；悬停看这一章的看点与问题。点一格同点列头（打开那一章）。
+ */
+function rhythmRow(d: ThreadsOverview, cols: number): HTMLElement {
+  const { row, name, track } = rowShell('tov-row-rhythm', cols);
+  const issues = d.rhythm ?? [];
+  const label = el('span', 'tov-group-name', '看点');
+  label.title =
+    '每章写细纲「看点」里第一种兑现的头一个字（打脸、逆袭、收获、对决、反转、揭秘、情感），只有钩子的写「钩」，没写类型的画一个点。' +
+    '黄底是节奏问题落在的章。同步过的章按正文、没同步的按计划（淡色）。';
+  name.appendChild(label);
+  if (issues.length > 0) {
+    const warn = el('span', 'tov-warn', '⚠');
+    warn.title = issues.map(describeRhythmIssue).join('\n');
+    name.appendChild(warn);
+  }
+  for (const c of d.chapters) {
+    const hits = issues.filter((i) => c.no >= i.from && c.no <= i.to);
+    if (!c.highlights && hits.length === 0) {
+      continue;
+    }
+    const planned = c.state !== 'finalized';
+    const cell = el('span', `tov-hl${hits.length > 0 ? ' tov-hl-warn' : ''}${planned ? ' tov-hl-plan' : ''}`, c.highlight ?? (c.highlights ? '·' : ''));
+    cell.style.left = `${(c.no - 1) * CELL}px`;
+    cell.dataset.ch = String(c.no);
+    cell.title = [
+      `第 ${c.no} 章${c.title ? `《${c.title}》` : ''}的看点${planned ? '（计划）' : ''}`,
+      c.highlights ?? '（细纲里没有看点）',
+      ...hits.map((i) => `⚠ ${describeRhythmIssue(i)}`),
+    ].join('\n');
+    track.appendChild(cell);
+  }
+  return row;
 }
 
 /** 种类那一行（「主线 · 1 条」），「未归属的伏笔」那一行也是它（带路径，点名字打开那份文件）。 */
@@ -667,13 +707,13 @@ function onClick(e: MouseEvent): void {
     post({ type: 'openEditor', path: link.dataset.path, pane: host?.id ?? 'main' });
     return;
   }
-  const chapter = target?.closest<HTMLElement>('.tov-cell, .tov-col');
+  const chapter = target?.closest<HTMLElement>('.tov-cell, .tov-col, .tov-hl');
   // 手指点一格：看这一格本身（弹浮窗），不跳去打开正文；打开在长按菜单里。点别处收起。
   if (isTouchEvent(e)) {
     const info = chapter && cellInfo.get(chapter);
     if (info) {
       showTip(chapter, info);
-    } else if (chapter?.classList.contains('tov-col') && chapter.title) {
+    } else if ((chapter?.classList.contains('tov-col') || chapter?.classList.contains('tov-hl')) && chapter.title) {
       showColumnTip(chapter);
     } else {
       hideTip();

@@ -17,8 +17,10 @@ import {
   unjudgedChapters,
 } from '../model/threadFile';
 import { TimelineDay, computeTimeline } from '../model/timelineFile';
-import { ThreadReminder, isFallbackChapterTitle, threadRemindersFor } from '../model/pipeline';
-import type { Plot } from '../model/plotFile';
+import { RhythmIssue, ThreadReminder, ThreadWatch, isFallbackChapterTitle, threadRemindersFor } from '../model/pipeline';
+import { Plot, isPlotFilled, sectionItems } from '../model/plotFile';
+import { RhythmChapter, highlightGlyph, highlightTypesOf, rhythmIssues } from '../model/rhythm';
+import type { Chapter } from '../model/types';
 import { NovelProject } from '../model/project';
 import {
   ThreadLineView,
@@ -79,6 +81,45 @@ function clipLine(text: string, max: number): string {
 export interface ThreadsProgress extends TimelineProgress {
   /** 叙事线的水位与水位之后另外判过的章（`project.json`）。 */
   mark: ThreadsMark;
+  /** 全书的节奏问题（2026-11-27，{@link rhythmOf}）：挂进 `watch`，页签最上面那几行与批量写章弹窗都从那里拿。 */
+  rhythm?: RhythmIssue[];
+}
+
+/**
+ * 节奏体检的取数（2026-11-27，设计稿 docs/design/plans/2026-11-27-rhythm-and-foreshadow.md「一期」）：有细纲的章，细纲按路径配对
+ * （`NovelProject.plotFor`，同流水线）；同步过 = 细纲有 `sourceHash`、正文还在（同总览的 `finalized`），其余按计划算。
+ * 读盘由调用方做（工程页、写前检查、总览各自那一趟已经读到的细纲与章节列表）。
+ */
+export function rhythmChaptersOf(project: NovelProject, plots: readonly Plot[], chapters: readonly Chapter[]): RhythmChapter[] {
+  const nos = [...new Set([...plots.map((p) => p.no), ...chapters.map((c) => c.order)])].sort((a, b) => a - b);
+  return nos.flatMap((no) => {
+    const plot = project.plotFor(no, plots, chapters);
+    if (!plot) {
+      return [];
+    }
+    return [rhythmChapter(no, plot, chapters.some((c) => c.order === no) && !!plot.sourceHash)];
+  });
+}
+
+/** 一章的体检原料。`synced`：同步过、正文还在。 */
+function rhythmChapter(no: number, plot: Plot, synced: boolean): RhythmChapter {
+  return {
+    no,
+    highlights: plot.sections.看点,
+    stateChange: plot.sections.状态变更,
+    filled: isPlotFilled(plot.sections),
+    planned: !synced,
+  };
+}
+
+/** 全书的节奏问题（{@link rhythmChaptersOf} + model/rhythm.ts 的 `rhythmIssues`）。 */
+export function rhythmOf(project: NovelProject, plots: readonly Plot[], chapters: readonly Chapter[]): RhythmIssue[] {
+  return rhythmIssues(rhythmChaptersOf(project, plots, chapters));
+}
+
+/** 叙事线的 `watch` 挂上节奏问题（没有就不挂这个键，老测试里的形状不变）。 */
+function withRhythm(watch: ThreadWatch, rhythm: readonly RhythmIssue[] | undefined): ThreadWatch {
+  return rhythm && rhythm.length > 0 ? { ...watch, rhythm: [...rhythm] } : watch;
 }
 
 /** 叙事线判到第几章：水位，不超过定稿到（定稿之后又删了细纲、正文的章不算）。 */
@@ -108,13 +149,13 @@ export function buildThreadsView(book: ThreadBook, current: number, progress?: T
     current,
     through,
     ...(behind.length > 0 ? { lag: { count: behind.length, text: `${describeChapterRuns(behind)}还没判` } } : {}),
-    watch: threadWatch(book),
+    watch: withRhythm(threadWatch(book), progress?.rhythm),
     ...(timeline ? { timeline } : {}),
   };
 }
 
 /**
- * 写这几章之前的叙事线提醒（二期，设计稿「四、写前检查」）：伏笔逾期、线断了，零调用、不拦人。读一遍叙事线目录与章节，
+ * 写这几章之前的叙事线提醒（二期，设计稿「四、写前检查」）：伏笔逾期、线断了，外加节奏（2026-11-27），零调用、不拦人。读一遍叙事线目录与章节，
  * 按第一章 `asOf`（写第 N 章时按第 N − 1 章算，`threadRemindersFor`）。`through` 是叙事线判到第几章（四期的水位，不超过定稿到；
  * 同工程页的「叙事线判到」），说法里拿它注一句还没记上的那几章（`unrecordedBefore`：没定稿的，或定稿了还没判的）。
  */
@@ -130,7 +171,9 @@ export async function threadReminders(project: NovelProject, nos: readonly numbe
     project.readThreadsMark(),
   ]);
   const current = chapters.reduce((max, c) => (c.order > max && project.plotFor(c.order, plots, chapters)?.sourceHash ? c.order : max), 0);
-  return { reminders: threadRemindersFor(threadWatch(book, first), nos), through: judgedThrough(mark, current) };
+  // 节奏按全书现在的细纲算（不 asOf）：要写的这几章的计划看点也在里面。
+  const watch = withRhythm(threadWatch(book, first), rhythmOf(project, plots, chapters));
+  return { reminders: threadRemindersFor(watch, nos), through: judgedThrough(mark, current) };
 }
 
 function compareLines(ta: Thread, a: ThreadLineView, tb: Thread, b: ThreadLineView): number {
@@ -225,6 +268,19 @@ export interface OverviewChapterInput {
   state: Exclude<ThreadsOverviewChapterState, 'none'>;
   chapterPath?: string;
   plotPath?: string;
+  /** 「看点」那一行这一格写的字与悬停看的看点（2026-11-27，{@link highlightOf}）。只有叙事线总览给。 */
+  highlight?: string;
+  highlights?: string;
+}
+
+/** 总览「看点」那一行的一格：第一种兑现的头一个字（只有钩子的写「钩」），悬停看这一章的全部看点。细纲里没看点的不给。 */
+function highlightOf(plot: Plot | undefined): Pick<OverviewChapterInput, 'highlight' | 'highlights'> {
+  const items = plot ? sectionItems(plot.sections.看点) : [];
+  if (items.length === 0) {
+    return {};
+  }
+  const glyph = highlightGlyph(highlightTypesOf(plot!.sections.看点));
+  return { ...(glyph ? { highlight: glyph } : {}), highlights: items.join('\n') };
 }
 
 /**
@@ -273,9 +329,11 @@ export async function buildThreadsOverview(project: NovelProject): Promise<Threa
     return { initialized: false, chapters: [], current: 0, through: 0, volumes: false, groups: [] };
   }
   const [book, rows, mark] = await Promise.all([project.readThreads(), overviewChapters(project), project.readThreadsMark()]);
-  const inputs = rows.map((r) => r.input);
+  const inputs = rows.map((r) => ({ ...r.input, ...highlightOf(r.plot) }));
   const current = inputs.reduce((max, c) => (c.state === 'finalized' && c.no > max ? c.no : max), 0);
-  return { initialized: true, ...buildThreadsMatrix(book, inputs, current, { mark }) };
+  // 节奏体检（2026-11-27）：同步过 = 这一列 `finalized`，与工程页 `rhythmChaptersOf` 同一个口径。
+  const rhythm = rhythmIssues(rows.flatMap((r) => (r.plot ? [rhythmChapter(r.input.no, r.plot, r.input.state === 'finalized')] : [])));
+  return { initialized: true, ...buildThreadsMatrix(book, inputs, current, { mark }), ...(rhythm.length > 0 ? { rhythm } : {}) };
 }
 
 /**

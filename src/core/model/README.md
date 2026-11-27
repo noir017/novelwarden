@@ -32,6 +32,7 @@
 | [review.ts](review.ts) | ★ 审稿报告：目标冻结、引文归一与定位（`normalizeQuote` / `locateQuote`）、报告的解析。 |
 | [plotCheck.ts](plotCheck.ts) | 写前冲突检查的选事实、提示词与校验：只认硬矛盾，每一处都要带两句能在原文里找到的引文。 |
 | [preflight.ts](preflight.ts) | ★ 一致性预检：细纲排出场的人在卡上或连续性事实里已经死了 → 一条风险。 |
+| [rhythm.ts](rhythm.ts) | 节奏体检：认「看点」每行行首的类型，逐章找连着没兑现、同类连用、没钩子、什么都没变；只进提醒。 |
 | [manuscriptCheck.ts](manuscriptCheck.ts) | 写完一章之后的确定性检查（禁用词、停在半句、比喻词计数）与续写回退点。 |
 | [sensitiveWords.ts](sensitiveWords.ts) | 自定义敏感词表 `.novelwarden/sensitive.txt` 的解析（写作体检用），坏行跳过并记原因。 |
 | [trimProse.ts](trimProse.ts) | 删修饰的纯函数：切段编号、读回 `[n] 正文`、只许删的逐段验收（`trimProblem`：新增汉字按字 LCS 算、对白一字不差、删完至少留四成、段尾标点不变）、拼回正文并按八成保底退回删得最多的段（`applyTrim`）。纯函数、零 import。 |

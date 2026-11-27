@@ -1128,16 +1128,64 @@ export interface ThreadWatch {
   foreshadowing: { name: string; resolve: number; planned: number[] }[];
   /** 还没埋（状态「计划」）、写了计划埋的章的伏笔：计划第几章埋、哪几章计划埋它（复跑之后加的第三类提醒）。 */
   unplanted: { name: string; plant: number; planned: number[] }[];
+  /**
+   * 全书的节奏问题（2026-11-27，model/rhythm.ts 的 `rhythmIssues`）：叙事线之外从细纲现算的，取数那一半（views/threads.ts）挂上来，
+   * 与要写的那几章有交集的报成 `rhythm` 一类。缺席当没有（老数据、没算的路径）。
+   */
+  rhythm?: RhythmIssue[];
+}
+
+/** 看点的八种类型（model/rhythm.ts 的 `HIGHLIGHT_TYPES`；类型放在这里是因为这个文件零 import）。 */
+export type HighlightType = '打脸' | '逆袭' | '收获' | '对决' | '反转' | '揭秘' | '情感' | '钩子';
+
+/**
+ * 一处节奏问题（2026-11-27，算法在 model/rhythm.ts）：第 `from`–`to` 章。
+ *
+ * - `dry`：连着几章都只有钩子、没有兑现；
+ * - `repeat`：同一种兑现（`type`）连着几章都有；
+ * - `noHook`：连着几章都没有钩子；
+ * - `static`：这一章「状态变更」写的是「无」（`from` = `to`）。
+ *
+ * `planned`：这一段里有还没同步的章（按计划算的），说法后面注一句。
+ */
+export interface RhythmIssue {
+  kind: 'dry' | 'repeat' | 'noHook' | 'static';
+  from: number;
+  to: number;
+  type?: HighlightType;
+  planned: boolean;
+}
+
+/** 和第 `first`–`last` 章有交集。 */
+export function rhythmTouches(issue: Pick<RhythmIssue, 'from' | 'to'>, first: number, last: number): boolean {
+  return issue.from <= last && issue.to >= first;
+}
+
+/**
+ * 一处节奏问题的说法：工程页「叙事线」页签、总览悬停、写前检查同一句（文案只有一份）。`第 12–17 章只有钩子，没有兑现（含计划）`。
+ */
+export function describeRhythmIssue(issue: RhythmIssue): string {
+  const where = issue.from === issue.to ? `第 ${issue.from} 章` : `第 ${issue.from}–${issue.to} 章`;
+  const text =
+    issue.kind === 'dry'
+      ? `${where}只有钩子，没有兑现`
+      : issue.kind === 'repeat'
+        ? `${where}连着 ${issue.to - issue.from + 1} 章都是${issue.type ?? '同一类看点'}`
+        : issue.kind === 'noHook'
+          ? `${where}章末都没有钩子`
+          : `${where}状态变更是「无」，这一章什么都没变`;
+  return `${text}${issue.planned ? '（含计划）' : ''}`;
 }
 
 /**
  * 一条提醒：伏笔逾期（写到第 `at` 章时已经过了第 `resolve` 章）、伏笔计划埋了却一直没埋（写到第 `at` 章时已经过了计划埋的
- * 第 `plant` 章），或线断了（写到第 `at` 章时已经 `gap` 章没有实际事件）。
+ * 第 `plant` 章），或线断了（写到第 `at` 章时已经 `gap` 章没有实际事件）；外加节奏问题碰到了要写的章（`rhythm`，2026-11-27）。
  */
 export type ThreadReminder =
   | { kind: 'overdue'; name: string; resolve: number; at: number }
   | { kind: 'unplanted'; name: string; plant: number; at: number }
-  | { kind: 'stalled'; name: string; lineKind: string; gap: number; at: number };
+  | { kind: 'stalled'; name: string; lineKind: string; gap: number; at: number }
+  | { kind: 'rhythm'; issue: RhythmIssue };
 
 /**
  * 写这几章之前的三类提醒（零调用、不拦人，第 20 条不进主按钮）。「现在」：写第 N 章时按第 N − 1 章算（`watch` 按第一章
@@ -1179,6 +1227,12 @@ export function threadRemindersFor(watch: ThreadWatch | undefined, chapters: rea
       out.push({ kind: 'stalled', name: l.name, lineKind: l.kind, gap: at - 1 - l.lastActive, at });
     }
   }
+  // 节奏（2026-11-27）：问题段碰到要写的哪一章就报（一批不连续的章逐章比，不按首尾区间算）。
+  for (const issue of watch.rhythm ?? []) {
+    if (nos.some((n) => rhythmTouches(issue, n, n))) {
+      out.push({ kind: 'rhythm', issue });
+    }
+  }
   return out;
 }
 
@@ -1208,10 +1262,17 @@ export function describeThreadReminders(
       ? [`〈${r.name}〉（${r.lineKind}）${one ? `已经 ${r.gap} 章没有进展` : `写到第 ${r.at} 章就断了 ${r.gap} 章`}，${where}也没安排推进`]
       : []
   );
+  const rhythm = reminders.flatMap((r) => (r.kind === 'rhythm' ? [describeRhythmIssue(r.issue)] : []));
   const gap = unrecorded
     ? `（第 ${unrecorded.from === unrecorded.to ? unrecorded.from : `${unrecorded.from}–${unrecorded.to}`} 章还没同步或还没补记，叙事线还没记上，提醒可能不准）`
     : '';
-  return `叙事线提醒：${[overdue, unplanted, stalled].filter((x) => x.length > 0).map(list).join('；')}${gap}。只是提醒，${one ? '照写不拦' : '不拦'}。`;
+  const threads = [overdue, unplanted, stalled].filter((x) => x.length > 0);
+  // 节奏另起一句（2026-11-27）：它看的是细纲的看点，不是叙事线，「还没记上」那一注与它无关。
+  const parts = [
+    threads.length > 0 ? `叙事线提醒：${threads.map(list).join('；')}${gap}。` : '',
+    rhythm.length > 0 ? `节奏提醒：${list(rhythm)}。` : '',
+  ];
+  return `${parts.join('')}只是提醒，${one ? '照写不拦' : '不拦'}。`;
 }
 
 /**

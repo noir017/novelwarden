@@ -15,7 +15,7 @@ import { describeStateThrough } from '../model/characterState';
 import { buildBookFacts, buildPlotPipeline, buildPipelineIndex, chapterOfPlotNo } from './pipeline';
 import { chapterIndexEntryOf } from './chapterIndex';
 import { volumeOf } from './quickOpen';
-import { buildThreadsView } from './threads';
+import { buildThreadsView, rhythmOf } from './threads';
 import { threadsMarkOf } from '../model/threadFile';
 import {
   ArchitectureRow,
@@ -297,6 +297,8 @@ export async function buildProjectTree(project: NovelProject): Promise<ProjectTr
       finalized: finalizedNos(rows),
       // 「时间线」组一章一行要章名、正文与卷（2026-10-24 重做）。
       chapters: plotRows.map((p) => ({ no: p.no, title: p.title, chapterPath: p.chapterPath, volume: p.volume })),
+      // 节奏体检（2026-11-27）：细纲与章节用流水线那一趟读到的同一份。
+      rhythm: rhythmOf(project, plots, chapters),
     }),
     bookStage,
     nextChapterNo: book.nextChapterNo,

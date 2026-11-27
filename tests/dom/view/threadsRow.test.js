@@ -183,6 +183,41 @@ describe('工程页 · 叙事线页签', { skip: JSDOM_SKIP }, () => {
     ui.closeMenu();
   });
 
+  // 2026-11-27 节奏体检：一处一行挂在线的上面（「还没判」那一句之下），最多 5 行，再多的并成一句。
+  describe('节奏提醒', () => {
+    const issue = (from, to) => ({ kind: 'dry', from, to, planned: false });
+    const withRhythm = (rhythm, lag) => {
+      const tree = sampleTree();
+      return {
+        ...tree,
+        threads: {
+          ...tree.threads,
+          watch: { ...tree.threads.watch, rhythm },
+          ...(lag ? { current: 60, through: 30, lag: { count: 30, text: '第 31–60 章还没判' } } : {}),
+        },
+      };
+    };
+    const rhythmRows = () => [...panel().querySelectorAll('.threads-rhythm')].map((n) => n.textContent);
+
+    test('一处一行，说法由共用的 describeRhythmIssue 给；排在「还没判」下面、线的上面', () => {
+      ui.post({ type: 'project', tree: withRhythm([issue(3, 7), { kind: 'static', from: 9, to: 9, planned: true }], true) });
+      assert.deepEqual(rhythmRows(), ['⚠ 节奏：第 3–7 章只有钩子，没有兑现', '⚠ 节奏：第 9 章状态变更是「无」，这一章什么都没变（含计划）']);
+      const body = [...panel().querySelector('.group-body').children];
+      assert.ok(body[0].classList.contains('threads-lag'));
+      assert.ok(body[1].classList.contains('threads-rhythm'));
+      assert.equal(labels().length, 5, '线照样一条一行');
+    });
+
+    test('超过 5 处：前 5 处一处一行，最后一句「等 N 处」；没有问题就一行都不画', () => {
+      ui.post({ type: 'project', tree: withRhythm([1, 10, 20, 30, 40, 50, 60].map((n) => issue(n, n + 4))) });
+      const rows = rhythmRows();
+      assert.equal(rows.length, 6);
+      assert.equal(rows[5], '⚠ 节奏：等 7 处，其余的见叙事线总览');
+      ui.post({ type: 'project', tree: sampleTree() });
+      assert.deepEqual(rhythmRows(), []);
+    });
+  });
+
   // 四期：定稿了、叙事线还没判的章。
   describe('叙事线落后于定稿', () => {
     const lagged = () => {

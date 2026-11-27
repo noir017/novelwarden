@@ -218,6 +218,8 @@ export {
   threadRemindersFor,
   describeThreadReminders,
   unrecordedBefore,
+  // 节奏体检（2026-11-27）：工程页「叙事线」页签最上面那几行、总览悬停与写前检查同一句。
+  describeRhythmIssue,
   describeTarget,
   loreOfTarget,
   // 续写大纲（2026-10-24）：工程页右键上的「续写（第 a–b 章）」与后端真续的那一段是同一个算法。

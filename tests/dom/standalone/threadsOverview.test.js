@@ -445,6 +445,57 @@ describe('叙事线总览 · 矩阵', { skip: JSDOM_SKIP }, () => {
   });
 });
 
+// 2026-11-27 节奏体检：表头下面一行「看点」，一章一格写第一种兑现的头一个字，问题段黄底，计划的淡色；悬停看看点与问题；点一格打开那一章。
+describe('叙事线总览 · 看点那一行', { skip: JSDOM_SKIP }, () => {
+  const withHighlights = (rhythm) => {
+    const o = overview();
+    const hl = { 1: ['钩', '钩子：门外有人'], 2: ['钩', '钩子：掌柜认得剑'], 3: ['打', '打脸：一剑挑冠\n钩子：口哨'], 5: [undefined, '主角回镇'] };
+    return {
+      ...o,
+      chapters: o.chapters.map((c) => (hl[c.no] ? { ...c, ...(hl[c.no][0] ? { highlight: hl[c.no][0] } : {}), highlights: hl[c.no][1] } : c)),
+      ...(rhythm ? { rhythm } : {}),
+    };
+  };
+  const hlRow = (h) => h.doc.querySelector('.tov-row-rhythm');
+  const hlCell = (h, no) => hlRow(h).querySelector(`.tov-hl[data-ch="${no}"]`);
+
+  test('紧跟在表头后面；有看点的章一格，没类型的画点；问题段的格子标黄、名字旁挂 ⚠', () => {
+    const h = harness();
+    h.open();
+    h.respond(withHighlights([{ kind: 'noHook', from: 4, to: 5, planned: true }]));
+    const row = hlRow(h);
+    assert.ok(row, '有「看点」那一行');
+    assert.ok(row.previousElementSibling.classList.contains('tov-header'));
+    assert.equal(row.querySelector('.tov-group-name').textContent, '看点');
+    assert.deepEqual(
+      [...row.querySelectorAll('.tov-hl')].map((c) => [c.dataset.ch, c.textContent, c.classList.contains('tov-hl-warn'), c.classList.contains('tov-hl-plan')]),
+      [
+        ['1', '钩', false, false],
+        ['2', '钩', false, false],
+        ['3', '打', false, false],
+        ['4', '', true, true],
+        ['5', '·', true, true],
+      ]
+    );
+    assert.equal(row.querySelector('.tov-warn').title, '第 4–5 章章末都没有钩子（含计划）');
+    assert.equal(hlCell(h, 3).title, '第 3 章《夜访》的看点\n打脸：一剑挑冠\n钩子：口哨');
+    assert.equal(hlCell(h, 5).title, '第 5 章《赤星》的看点（计划）\n主角回镇\n⚠ 第 4–5 章章末都没有钩子（含计划）');
+  });
+
+  test('点一格打开那一章；没有看点也没有问题时不画这一行', () => {
+    const h = harness();
+    h.open();
+    h.respond(withHighlights());
+    const n = h.ui.sent.length;
+    h.ui.clickEl(hlCell(h, 2));
+    assert.deepEqual(h.sentAfter(n), [{ type: 'openChapter', plotRelPath: 'chapters/002-入镇.md' }]);
+    const g = harness();
+    g.open();
+    g.respond();
+    assert.equal(hlRow(g), null);
+  });
+});
+
 describe('叙事线总览 · 线的四种格子', { skip: JSDOM_SKIP }, () => {
   test('○ 只有计划、● 只有实际、◉ 计划也发生了、红圈偏差；只画有事件的章', () => {
     const h = harness();
