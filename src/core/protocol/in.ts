@@ -1,4 +1,4 @@
-import type { LlmTask, ModelTier } from '../model/tiers';
+import type { LlmTask, ModelTier, TaskTarget } from '../model/tiers';
 import type { ThinkingDepth } from '../model/thinking';
 import type { ContextDetail } from '../model/contextDetail';
 import type { CallChoice } from '../model/callChoice';
@@ -442,7 +442,7 @@ export interface SettingsPayload {
   providers: SerializedProvider[];
   models: string[];
   tierModels: Record<ModelTier, string[]>;
-  taskTiers: Partial<Record<LlmTask, ModelTier>>;
+  taskTiers: Partial<Record<LlmTask, TaskTarget>>;
   temperature: number;
   /** 上下文详细度 1–4（model/contextDetail.ts）。 */
   contextDetail: ContextDetail;

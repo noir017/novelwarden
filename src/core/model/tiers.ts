@@ -151,8 +151,36 @@ export const DEFAULT_TASK_TIERS: Record<LlmTask, ModelTier> = {
 /** 三档的模型清单，归一化后的完整形状（每档都在，可能是空数组）。 */
 export type TierModels = Record<ModelTier, string[]>;
 
+/**
+ * 任务的归属：可以是一档（`fast` / `balanced` / `quality`），也可以直接指定某一个模型引用
+ * （形如 `<服务商id>/<模型名>`）。合法模型引用必含 `/`、三档名不含 `/`，两边命名空间不相交。
+ */
+export type TaskTarget = ModelTier | string;
+
 export function isModelTier(value: unknown): value is ModelTier {
   return typeof value === 'string' && (MODEL_TIERS as string[]).includes(value);
+}
+
+/** 是否是合法的模型引用格式（首斜杠前后均非空，见 AGENTS 第 5 条）。 */
+export function isTaskModelRef(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const trimmed = value.trim();
+  const slash = trimmed.indexOf('/');
+  return slash > 0 && slash < trimmed.length - 1;
+}
+
+/** 归一单个任务归属：合法档位或模型引用（去首尾空白），否则返回 undefined。 */
+export function normalizeTaskTarget(value: unknown): TaskTarget | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (isModelTier(trimmed)) {
+    return trimmed;
+  }
+  return isTaskModelRef(trimmed) ? trimmed : undefined;
 }
 
 export function isLlmTask(value: unknown): value is LlmTask {
@@ -170,7 +198,7 @@ export function tierOf(config: TierConfig, task: LlmTask): ModelTier {
 export interface TierConfig {
   models: string[];
   tierModels: TierModels;
-  taskTiers: Partial<Record<LlmTask, ModelTier>>;
+  taskTiers: Partial<Record<LlmTask, TaskTarget>>;
   /** 作者在确认框上为这一次指定的模型（`readConfig()` 从调用链上取，见 runtime/callScope.ts）。 */
   pinnedModel?: string;
 }
@@ -183,6 +211,8 @@ export interface TaskModels {
   inherited: boolean;
   /** true 表示作者为这一次指定了模型：清单只有它一个，不按档、不换人。 */
   pinned: boolean;
+  /** true 表示任务设置里直接指定了单个模型：清单只有它一个，不按档、不换人。 */
+  direct?: boolean;
 }
 
 /**
@@ -199,6 +229,10 @@ export function refsForTask(config: TierConfig, task: LlmTask): TaskModels {
   if (config.pinnedModel && task !== 'transcribe') {
     return { tier, refs: [config.pinnedModel], inherited: false, pinned: true };
   }
+  const target = normalizeTaskTarget(config.taskTiers?.[task]);
+  if (target && !isModelTier(target)) {
+    return { tier, refs: [target], inherited: false, pinned: false, direct: true };
+  }
   const refs = config.tierModels[tier] ?? [];
   if (refs.length > 0) {
     return { tier, refs, inherited: false, pinned: false };
@@ -214,30 +248,36 @@ export function refsForTask(config: TierConfig, task: LlmTask): TaskModels {
  */
 export function describeTierConfig(
   tierModels: TierModels,
-  taskTiers: Partial<Record<LlmTask, ModelTier>>
+  taskTiers: Partial<Record<LlmTask, TaskTarget>>
 ): string {
   const configured = MODEL_TIERS.filter((t) => (tierModels[t] ?? []).length > 0).map(
     (t) => `${TIER_LABEL[t]} ${tierModels[t].join('、')}`
   );
-  const overrides = Object.entries(taskTiers).filter(([task, tier]) => isLlmTask(task) && isModelTier(tier));
+  const overrides = Object.entries(taskTiers).flatMap(([task, raw]) => {
+    const target = normalizeTaskTarget(raw);
+    if (!isLlmTask(task) || !target) {
+      return [];
+    }
+    const label = isModelTier(target) ? TIER_LABEL[target] : `指定模型 ${target}`;
+    return [`${TASK_LABEL[task]}→${label}`];
+  });
   if (configured.length === 0 && overrides.length === 0) {
     return '未分档（全部任务用默认模型）';
   }
   const parts = [configured.length > 0 ? configured.join('／') : '三档均未配置'];
   if (overrides.length > 0) {
-    parts.push(
-      `${overrides.length} 项任务改过归属（${overrides
-        .map(([task, tier]) => `${TASK_LABEL[task as LlmTask]}→${TIER_LABEL[tier as ModelTier]}`)
-        .join('、')}）`
-    );
+    parts.push(`${overrides.length} 项任务改过归属（${overrides.join('、')}）`);
   }
   return parts.join('｜');
 }
 
-/** 给确认框和日志用的一句话，如「快速档（未配置，沿用默认模型）」「这一次指定」。 */
+/** 给确认框和日志用的一句话，如「快速档（未配置，沿用默认模型）」「这一次指定」「指定模型」。 */
 export function describeTier(picked: TaskModels): string {
   if (picked.pinned) {
     return '这一次指定';
+  }
+  if (picked.direct) {
+    return '指定模型';
   }
   return picked.inherited ? `${TIER_LABEL[picked.tier]}（未配置，沿用默认模型）` : TIER_LABEL[picked.tier];
 }

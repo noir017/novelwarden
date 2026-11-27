@@ -188,6 +188,67 @@ describe('模型分档的配置容错', () => {
     });
   });
 
+  describe('taskTiers 支持直接指定模型', () => {
+    let cfg;
+
+    before(() => {
+      settings = {
+        providers,
+        models: ['glm/glm-4-plus'],
+        tierModels: { fast: ['glm/glm-4-air'], balanced: [], quality: [] },
+        taskTiers: {
+          transcribe: '  ds/deepseek-chat ',
+          plotOutline: 'openrouter/z-ai/glm-4.6',
+          loreScan: '/bad',
+          extractStyle: 'bad/',
+        },
+      };
+      cfg = configMod.readConfig();
+    });
+
+    test('合法模型引用去空白后保留（含多层斜杠）', () => {
+      assert.equal(cfg.taskTiers.transcribe, 'ds/deepseek-chat');
+      assert.equal(cfg.taskTiers.plotOutline, 'openrouter/z-ai/glm-4.6');
+    });
+
+    test('缺前缀或缺模型名的坏引用被丢弃', () => {
+      assert.equal(cfg.taskTiers.loreScan, undefined);
+      assert.equal(cfg.taskTiers.extractStyle, undefined);
+    });
+
+    test('refsForTask 只返回指定的那个模型并标 direct', () => {
+      const picked = tiersMod.refsForTask(cfg, 'transcribe');
+      assert.deepEqual(picked.refs, ['ds/deepseek-chat']);
+      assert.equal(picked.direct, true);
+      assert.equal(picked.inherited, false);
+      assert.equal(picked.pinned, false);
+    });
+
+    test('确认框 pinnedModel 优先于普通任务的指定模型，但不影响转写', () => {
+      const pinned = { ...cfg, pinnedModel: 'glm/glm-4-plus' };
+      const outline = tiersMod.refsForTask(pinned, 'plotOutline');
+      assert.deepEqual(outline.refs, ['glm/glm-4-plus']);
+      assert.equal(outline.pinned, true);
+      assert.ok(!outline.direct);
+
+      const tr = tiersMod.refsForTask(pinned, 'transcribe');
+      assert.deepEqual(tr.refs, ['ds/deepseek-chat']);
+      assert.equal(tr.pinned, false);
+      assert.equal(tr.direct, true);
+    });
+
+    test('文案明确标出「指定模型」', () => {
+      assert.equal(tiersMod.describeTier(tiersMod.refsForTask(cfg, 'transcribe')), '指定模型');
+      assert.equal(
+        tiersMod.describeTaskModels(cfg, 'transcribe'),
+        '转写 · 整理成 JSON → 指定模型：ds/deepseek-chat'
+      );
+      assert.ok(
+        tiersMod.describeTierConfig(cfg.tierModels, cfg.taskTiers).includes('转写 · 整理成 JSON→指定模型 ds/deepseek-chat')
+      );
+    });
+  });
+
   describe('内置默认表自身的完备性', () => {
     // 内置默认必须给每个任务都指定一档，否则 refsForTask 会取到 undefined。
     test('每个任务都有内置默认档位', () => {

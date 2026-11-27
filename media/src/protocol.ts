@@ -304,8 +304,9 @@ export {
   TASK_LABEL,
   TIER_HINT,
   TIER_LABEL,
+  isModelTier,
 } from '../../src/core/model/tiers';
-export type { LlmTask, ModelTier } from '../../src/core/model/tiers';
+export type { LlmTask, ModelTier, TaskTarget } from '../../src/core/model/tiers';
 
 /**
  * 思考深度的档位与说法。与分档同一套理由：下拉框上写着「深思考」而后端

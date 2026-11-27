@@ -2,7 +2,7 @@ import { firstModelRef, normalizeProviders, resolveModelRef, seedFromLegacy } fr
 import { scoped } from './runtime/logger';
 import { currentCallChoice } from './runtime/callScope';
 import { NovelConfig } from './model/types';
-import { isLlmTask, isModelTier, LlmTask, MODEL_TIERS, ModelTier, TierModels } from './model/tiers';
+import { isLlmTask, LlmTask, MODEL_TIERS, normalizeTaskTarget, TaskTarget, TierModels } from './model/tiers';
 import {
   CONTEXT_DETAIL_LABEL,
   ContextDetail,
@@ -193,17 +193,18 @@ export function normalizeTierModels(raw: unknown): TierModels {
 }
 
 /**
- * 任务 → 档位覆盖的容错读取。
+ * 任务 → 档位/指定模型覆盖的容错读取。
  *
- * 认不出的任务名（旧版本留下的键、手改配置写错）与非法档位名一律丢弃，
- * 那一项回落内置默认。配置文件被手改坏不该让工程页任务无法启动。
+ * 认不出的任务名（旧版本留下的键、手改配置写错）与非法值（既非档位名也非 `<服务商>/<模型>`）
+ * 一律丢弃，那一项回落内置默认。配置文件被手改坏不该让工程页任务无法启动。
  */
-export function normalizeTaskTiers(raw: unknown): Partial<Record<LlmTask, ModelTier>> {
+export function normalizeTaskTiers(raw: unknown): Partial<Record<LlmTask, TaskTarget>> {
   const source = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
-  const out: Partial<Record<LlmTask, ModelTier>> = {};
-  for (const [task, tier] of Object.entries(source)) {
-    if (isLlmTask(task) && isModelTier(tier)) {
-      out[task] = tier;
+  const out: Partial<Record<LlmTask, TaskTarget>> = {};
+  for (const [task, value] of Object.entries(source)) {
+    const target = normalizeTaskTarget(value);
+    if (isLlmTask(task) && target) {
+      out[task] = target;
     }
   }
   return out;

@@ -4,7 +4,7 @@
  * `dirty` 是必要的：FileSystemWatcher 一刷新就会推一份新设置过来，
  * 如果无条件重渲染，用户正在填的 baseUrl 会被磁盘上的旧值冲掉。
  */
-import type { LlmTask, ModelTier, SerializedProvider } from '../../protocol';
+import type { LlmTask, ModelTier, SerializedProvider, TaskTarget } from '../../protocol';
 
 export const draft: {
   providers: SerializedProvider[];
@@ -12,8 +12,8 @@ export const draft: {
   models: string[];
   /** 三档各自的模型清单，与 models 同构。空档 = 沿用 models。 */
   tierModels: Record<ModelTier, string[]>;
-  /** 任务 → 档位的覆盖，只存与内置默认不同的项。 */
-  taskTiers: Partial<Record<LlmTask, ModelTier>>;
+  /** 任务 → 档位或指定模型的覆盖，只存与内置默认不同的项。 */
+  taskTiers: Partial<Record<LlmTask, TaskTarget>>;
   /** providerId -> 有没有存过 API Key。Key 本身从不回显。 */
   keys: Record<string, boolean>;
   dirty: boolean;

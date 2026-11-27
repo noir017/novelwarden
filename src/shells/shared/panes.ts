@@ -372,7 +372,7 @@ export function settingsPane(opts: PaneOptions = {}): string {
       </div>
 
       <div class="pane-head"><span>任务档位</span></div>
-      <div class="hint">每项工程页任务归在哪一档。标「默认」的是内置推荐值，按调用次数与单次难度定的。</div>
+      <div class="hint">每项工程页任务归在哪一档，或直接指定某一个模型。标「默认」的是内置推荐档位，按调用次数与单次难度定的。</div>
       <div id="taskTierTable"></div>
 
       <div class="pane-head"><span>请求与调度</span></div>

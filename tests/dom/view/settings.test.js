@@ -196,6 +196,35 @@ describe('设置页：模型分档', { skip: JSDOM_SKIP }, () => {
     assert.equal(Object.keys(sent.settings.taskTiers).length, 0, JSON.stringify(sent.settings.taskTiers));
   });
 
+  // 任务直接指定具体模型：下拉列出已配置模型，选中即写进 taskTiers；已删模型标「未配置」并在保存时恢复默认档。
+  test('下拉里可选指定模型并保存进 taskTiers', () => {
+    const opts = [...selOf(0).options].map((o) => o.value);
+    assert.ok(opts.includes('p/cheap') && opts.includes('p/smart'), opts.join('|'));
+    selOf(0).value = 'p/cheap';
+    selOf(0).dispatchEvent(new ui.window.Event('change', { bubbles: true }));
+    sent = save();
+    assert.equal(sent.settings.taskTiers.plotSummary, 'p/cheap', JSON.stringify(sent.settings.taskTiers));
+  });
+
+  test('任务指定的已删模型标「未配置」，保存时自动恢复默认档位', () => {
+    ui.post({
+      type: 'settings',
+      ack: 'saved',
+      settings: settings({ taskTiers: { transcribe: 'p/gone' } }),
+      keys: {},
+    });
+    const trIdx = taskNames().findIndex((n) => n.includes('转写'));
+    assert.ok(trIdx >= 0);
+    const trSel = selOf(trIdx);
+    assert.equal(trSel.value, 'p/gone');
+    assert.ok(
+      [...trSel.options].some((o) => o.value === 'p/gone' && o.textContent.includes('未配置')),
+      [...trSel.options].map((o) => o.textContent).join('|')
+    );
+    sent = save();
+    assert.equal(sent.settings.taskTiers.transcribe, undefined, JSON.stringify(sent.settings.taskTiers));
+  });
+
   // 档位里指向已删模型的引用：保存时摘掉，但**摘空了就让它空着**
   //（空档位是「沿用默认模型」，不该像默认模型那样兜底塞一个进去）。
   test('已删模型仍留在界面上并标出来', () => {

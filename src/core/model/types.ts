@@ -1,5 +1,5 @@
 import { ActiveModel, ProviderProfile } from './providers';
-import { LlmTask, ModelTier, TierModels } from './tiers';
+import { LlmTask, TaskTarget, TierModels } from './tiers';
 import type { ContextDetail, ContextLimits } from './contextDetail';
 
 /**
@@ -218,8 +218,8 @@ export interface NovelConfig {
    * 空 = 该档的任务沿用 `models`。只作用于工程页的后台任务。
    */
   tierModels: TierModels;
-  /** 任务 → 档位的覆盖，缺席的任务用 `DEFAULT_TASK_TIERS`。 */
-  taskTiers: Partial<Record<LlmTask, ModelTier>>;
+  /** 任务 → 档位或指定模型的覆盖，缺席的任务用 `DEFAULT_TASK_TIERS`。 */
+  taskTiers: Partial<Record<LlmTask, TaskTarget>>;
   /**
    * 作者在调模型之前的确认框上为这一次指定的模型（runtime/callScope.ts），不从 config.json 读。
    * 有它时分档池只用它、不换人（`refsForTask`）；对话页那个模型（`model` / `active`）不受影响。

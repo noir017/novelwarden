@@ -9,9 +9,10 @@ import {
   DEFAULT_CONTEXT_DETAIL,
   MODEL_TIERS,
   describeContextDetail,
+  isModelTier,
   normalizeContextDetail,
 } from '../../protocol';
-import type { SettingsPayload } from '../../protocol';
+import type { LlmTask, SettingsPayload, TaskTarget } from '../../protocol';
 import { vscode } from '../store';
 import { toast } from '../toast';
 import { allRefs, draft, touch, validateProviders } from './draft';
@@ -172,6 +173,24 @@ function save(): void {
   }
   if (droppedFromTiers > 0) {
     toast(`档位里有 ${droppedFromTiers} 个已删除的模型，已自动摘掉。`);
+  }
+
+  // 任务直接指定的模型若已被删，自动恢复默认档位并提示，不把指向空气的引用存盘。
+  let droppedFromTasks = 0;
+  const cleanedTaskTiers: Partial<Record<LlmTask, TaskTarget>> = {};
+  for (const [task, target] of Object.entries(draft.taskTiers) as [LlmTask, TaskTarget | undefined][]) {
+    if (!target) {
+      continue;
+    }
+    if (!isModelTier(target) && !refs.includes(target)) {
+      droppedFromTasks++;
+      continue;
+    }
+    cleanedTaskTiers[task] = target;
+  }
+  settings.taskTiers = cleanedTaskTiers;
+  if (droppedFromTasks > 0) {
+    toast(`任务档位里有 ${droppedFromTasks} 个已删除的指定模型，已自动恢复默认档位。`);
   }
 
   vscode.postMessage({ type: 'saveSettings', settings });

@@ -20,6 +20,7 @@ const behavior = {};
 const warns = [];
 
 let createModelPool;
+let budgetForTask;
 let collectText;
 let fake;
 let host;
@@ -35,7 +36,7 @@ before(() => {
     logger: './src/core/runtime/logger.ts',
   });
 
-  ({ createModelPool } = bundle.pool);
+  ({ createModelPool, budgetForTask } = bundle.pool);
   ({ collectText } = bundle.collect);
 
   host = makeFakeHost({ supportsVscodeLm: true, settings: () => settings });
@@ -474,6 +475,54 @@ describe('模型分档：任务归档的覆盖', () => {
 
   test('非法档位名退回内置默认而不是崩', () => {
     assert.equal(fallbackPool.refs.join(','), 'p/cheap', fallbackPool.refs.join(','));
+  });
+});
+
+describe('模型分档：任务直接指定模型', () => {
+  let pool;
+  let budget;
+  let failErr;
+  let used;
+
+  before(async () => {
+    setBehavior({});
+    configureTiers({
+      models: ['p/writer'],
+      tierModels: { fast: ['p/cheap'], quality: ['p/smart'] },
+      taskTiers: { transcribe: 'p/smart' },
+      windows: { 'p/cheap': 32000, 'p/smart': 128000 },
+    });
+    pool = await createModelPool({ task: 'transcribe' });
+    budget = budgetForTask('transcribe');
+
+    setBehavior({ 'p/smart': 'fail' });
+    configureTiers({
+      models: ['p/writer'],
+      tierModels: { fast: ['p/cheap'], quality: ['p/smart'] },
+      taskTiers: { transcribe: 'p/smart' },
+      fallbackAttempts: 3,
+    });
+    const p2 = await createModelPool({ task: 'transcribe' });
+    try {
+      await p2.run('转写', useModel);
+    } catch (e) {
+      failErr = e;
+    }
+    used = usedRefs();
+  });
+
+  test('池里只有指定的那个模型，文案标「指定模型」', () => {
+    assert.deepEqual(pool.refs, ['p/smart']);
+    assert.ok(pool.label.includes('指定模型'), pool.label);
+  });
+
+  test('预算跟着指定模型走', () => {
+    assert.equal(budget.contextWindow, 128000);
+  });
+
+  test('指定模型失败时不换用档内或默认模型', () => {
+    assert.ok(failErr);
+    assert.deepEqual(used, ['p/smart']);
   });
 });
 

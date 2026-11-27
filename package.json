@@ -429,7 +429,7 @@
             }
           },
           "additionalProperties": false,
-          "markdownDescription": "每项工程页任务归在哪一档（见 `novel.tierModels`）。只需写与内置默认不同的项——没写的任务跟着内置默认走。内置默认按「调用次数 × 单次难度」定：次数多而单次简单的归 fast，一次定调的归 quality。认不出的任务名与非法档位名一律忽略，那一项回落默认。",
+          "markdownDescription": "每项工程页任务归在哪一档（`fast`/`balanced`/`quality`，见 `novel.tierModels`），或直接指定某一个模型引用（`<服务商>/<模型>`）。只需写与内置默认不同的项——没写的任务跟着内置默认走。认不出的任务名与非法值一律忽略，那一项回落默认。",
           "markdownDeprecationMessage": "已迁移至 ~/.novelwarden/config.json，此处仅作兼容兜底。"
         },
         "novel.model": {

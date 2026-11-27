@@ -10,6 +10,7 @@ import { toast } from '../toast';
 import { draft, touch } from './draft';
 import { renderModelList } from './modelList';
 import { KIND_LABEL } from './presets';
+import { renderTaskTiers } from './taskTiers';
 
 /** 由 index.ts 注入：卡片上的「配置」要开弹窗，而弹窗又要能刷新卡片。 */
 let openModal: (id: string) => void = () => {};
@@ -37,6 +38,7 @@ export function renderProviders(): void {
     el.providerList.appendChild(buildProviderCard(p));
   }
   renderModelList();
+  renderTaskTiers();
 }
 
 function buildProviderCard(p: SerializedProvider): HTMLElement {
