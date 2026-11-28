@@ -208,7 +208,16 @@
   margin: 2px 14px 4px;
   font-size: 0.88em;
   color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
   cursor: pointer;
+}
+
+/* 表单控件缺省撑满一行（forms.css），勾选框不要。 */
+.vs-git-toggle input {
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 0;
 }
 
 .vs-unsaved .vs-when {
