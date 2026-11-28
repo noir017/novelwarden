@@ -436,3 +436,54 @@ button.settings-subtab.active {
   display: flex;
   gap: 10px;
 }
+
+/* 通用页：Git 自动同步状态条 */
+.git-sync-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+  border-radius: var(--radius);
+  font-size: 0.9em;
+}
+
+.git-sync-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 9px;
+  font-size: 0.85em;
+  font-weight: 500;
+  border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  color: var(--vscode-descriptionForeground);
+  flex: 0 0 auto;
+}
+
+.git-sync-badge.is-ok {
+  color: var(--vscode-testing-iconPassed, #73c991);
+  border-color: var(--vscode-testing-iconPassed, #73c991);
+}
+
+.git-sync-badge.is-busy {
+  color: var(--vscode-textLink-foreground, #3794ff);
+  border-color: var(--vscode-textLink-foreground, #3794ff);
+}
+
+.git-sync-badge.is-warn {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  border-color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+.git-sync-badge.is-error {
+  color: var(--vscode-errorForeground, #f48771);
+  border-color: var(--vscode-errorForeground, #f48771);
+}
+
+.git-sync-detail {
+  flex: 1 1 160px;
+  min-width: 0;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.4;
+}

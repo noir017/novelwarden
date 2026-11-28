@@ -77,6 +77,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await setInitializedContext(project);
     registerWatcher(context, project, chat);
     registerOutlineFs(context, project);
+    if (chat) {
+      context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument((doc) => {
+          if (doc.uri.scheme !== 'file') {
+            return;
+          }
+          const rel = project.relPath(doc.uri.fsPath);
+          if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) {
+            chat.notifyFileSaved(rel);
+          }
+        })
+      );
+    }
   }
 
   const refresh = async () => {

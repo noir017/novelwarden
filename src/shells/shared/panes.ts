@@ -294,13 +294,8 @@ export function settingsPane(opts: PaneOptions = {}): string {
   const nativeBtn = opts.nativeSettings
     ? '\n    <button class="link" id="nativeSettingsBtn">在 VS Code 设置中打开</button>'
     : '';
-  const generalTab = opts.multiWindow
-    ? '\n    <button class="settings-subtab" id="settingsTabGeneral" data-settings-tab="general" role="tab" aria-selected="false" aria-controls="settingsPanelGeneral">通用</button>'
-    : '';
-  const generalPanel = opts.multiWindow
+  const windowSection = opts.multiWindow
     ? `
-
-  <div class="settings-panel" id="settingsPanelGeneral" data-settings-panel="general" role="tabpanel" aria-labelledby="settingsTabGeneral">
     <div class="pane-head"><span>窗口</span></div>
     <div class="hint">
       每个浏览器窗口各开一个工程，互不干扰。开着这一项时，在已经开着工程的窗口里再打开别的工程（打开文件夹、新建工程、最近打开），
@@ -309,13 +304,31 @@ export function settingsPane(opts: PaneOptions = {}): string {
     </div>
     <div class="grid">
       <label class="field"><span>新窗口中打开项目</span><input type="checkbox" id="setOpenInNewWindow"></label>
-    </div>
-  </div>`
+    </div>`
     : '';
+  const generalPanel = `
+
+  <div class="settings-panel" id="settingsPanelGeneral" data-settings-panel="general" role="tabpanel" aria-labelledby="settingsTabGeneral">
+    <div class="pane-head"><span>Git 自动同步</span><span class="meta">当前工程</span></div>
+    <div class="hint">
+      开启后，保存文件或完成一次「同步章节」时，按节流（默认 30 秒内合并为一次）自动执行 <code>git add -A &amp;&amp; git commit</code>；
+      配了远端时在空闲时先 <code>pull --rebase</code> 再 <code>push</code>。遇到冲突会自动中止变基以保护本地文件。
+      此项记在当前工程的 <code>.novelwarden/project.json</code>，切换即刻生效。
+    </div>
+    <div class="grid">
+      <label class="field"><span>自动同步</span><input type="checkbox" id="setGitAutoSync"></label>
+    </div>
+    <div class="git-sync-box" id="gitSyncBox">
+      <span class="git-sync-badge" id="gitSyncBadge">已关闭</span>
+      <span class="git-sync-detail" id="gitSyncDetail"></span>
+      <button type="button" class="secondary small hidden" id="gitSyncNowBtn">立即同步</button>
+    </div>${windowSection}
+  </div>`;
   return `<section class="pane" id="pane-settings">
   <div class="settings-subtabs" role="tablist" aria-label="设置分类">
     <button class="settings-subtab active" id="settingsTabModels" data-settings-tab="models" role="tab" aria-selected="true" aria-controls="settingsPanelModels">模型配置</button>
-    <button class="settings-subtab" id="settingsTabContext" data-settings-tab="context" role="tab" aria-selected="false" aria-controls="settingsPanelContext">上下文管理</button>${generalTab}
+    <button class="settings-subtab" id="settingsTabContext" data-settings-tab="context" role="tab" aria-selected="false" aria-controls="settingsPanelContext">上下文管理</button>
+    <button class="settings-subtab" id="settingsTabGeneral" data-settings-tab="general" role="tab" aria-selected="false" aria-controls="settingsPanelGeneral">通用</button>
     <button class="settings-subtab" id="settingsTabSkills" data-settings-tab="skills" role="tab" aria-selected="false" aria-controls="settingsPanelSkills">技能</button>
   </div>
 

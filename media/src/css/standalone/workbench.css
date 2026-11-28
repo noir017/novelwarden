@@ -47,6 +47,47 @@ body.workbench {
   flex: 0 0 auto;
 }
 
+/* 标题栏上的 Git 自动同步状态徽标（开启时显示，点击跳到设置页）。 */
+.wb-git-sync {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  height: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.8em;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wb-git-sync:hover {
+  background: var(--vscode-list-hoverBackground);
+  color: var(--vscode-foreground);
+}
+
+.wb-git-sync.is-ok {
+  color: var(--vscode-testing-iconPassed, #73c991);
+}
+
+.wb-git-sync.is-busy {
+  color: var(--vscode-textLink-foreground, #3794ff);
+}
+
+.wb-git-sync.is-warn {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  border-color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+.wb-git-sync.is-error {
+  color: var(--vscode-errorForeground, #f48771);
+  border-color: var(--vscode-errorForeground, #f48771);
+}
+
 .wb-logo svg {
   width: 17px;
   height: 17px;

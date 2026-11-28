@@ -5,6 +5,7 @@ import type { LogEntry } from '../runtime/logger';
 import type { TaskOpen, TaskSnapshot } from '../runtime/progress';
 import type { SkillSource, SkillStage } from '../model/writingSkill';
 import type { ArtifactKind } from '../workspace/kind';
+import type { GitSyncStatus } from '../workspace/gitSync';
 import type { QuickOpenIndex } from './quickOpen';
 import type { CheckTermsView } from './check';
 import type { NameIndex } from './nameIndex';
@@ -322,7 +323,9 @@ export type OutMessage =
       truncated: number;
       error?: string;
       roots?: boolean;
-    };
+    }
+  /** 工程级 Git 自动同步的当前状态。 */
+  | { type: 'gitSync'; status: GitSyncStatus };
 
 export interface WorkspaceItem {
   id: string;

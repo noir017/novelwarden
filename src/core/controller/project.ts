@@ -129,15 +129,18 @@ export async function projectAction(
         break;
       }
       // 工程页章节右键先问这一次用哪个模型；其余入口用对话页选定的那个。
-      if (action === 'askFinalizeChapter') {
-        await askFinalizeChapterTask(c.project, chapter);
-      } else {
-        await finalizeChapterTask(c.project, chapter);
+      const calls =
+        action === 'askFinalizeChapter'
+          ? await askFinalizeChapterTask(c.project, chapter)
+          : await finalizeChapterTask(c.project, chapter);
+      if (calls > 0) {
+        c.notifyChapterFinalized(chapter.relPath);
       }
       break;
     }
     case 'syncSummaries':
       await syncSummaries(c.project);
+      c.notifyChapterFinalized();
       break;
     case 'rebuildGlobalSummary':
       await rebuildGlobalSummary(c.project);

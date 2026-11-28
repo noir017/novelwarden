@@ -22,6 +22,7 @@ import { activeTasks, cancelTask, onTaskFinished, onTasksChanged, requestStop, v
 import { clearApiKey, promptForApiKey } from '../llm/registry';
 import { NovelProject } from '../model/project';
 import { Workspace } from '../workspace';
+import { GitSyncManager } from '../workspace/gitSync';
 import {
   describeModelIssue,
   listModelChoices,
@@ -131,6 +132,8 @@ export class ChatController {
    */
   readonly workspace: Workspace;
   /** @internal controller/ 同包用；壳不要读。 */
+  readonly gitSync: GitSyncManager;
+  /** @internal controller/ 同包用；壳不要读。 */
   readonly store: SessionStore;
   /**
    * 尚未采纳的产物。**并发控制与它无关**——那是 `currentAbort` 的活。
@@ -195,6 +198,15 @@ export class ChatController {
     this.workspace = new Workspace(project);
     this.store = new SessionStore(project);
     this.current = this.store.create();
+    this.gitSync = new GitSyncManager(project, {
+      isBusy: () => this.busy || activeTasks(project.root).length > 0,
+      onStatus: (status) => this.post({ type: 'gitSync', status }),
+      onNotify: (message, level) => this.toast(message, level),
+      onExternalChange: () => {
+        void this.pushState();
+      },
+    });
+    void this.gitSync.init();
 
     // 日志实时推给前端：日志页在跑长任务时要跟着滚，不能只在切页时拉一次。
     this.subscriptions.push(addLogSink((entry) => this.post({ type: 'log', entry })));
@@ -279,6 +291,7 @@ export class ChatController {
   dispose(): void {
     this.disposed = true;
     this.currentAbort?.abort(new CancelledError());
+    this.gitSync.dispose();
     // 还在等回答的权限卡片：面板都没了，没人答得了它。
     cancelGates(this);
     for (const sub of this.subscriptions) {
@@ -338,6 +351,7 @@ export class ChatController {
     // 还没答的权限卡片也要跟着回来：它挂在会话的气泡上（上面那条 session 已经
     // 把气泡带回来了），循环这会儿正卡在那里等回答。
     resendGates(this);
+    this.post({ type: 'gitSync', status: this.gitSync.getStatus() });
     await this.pushTabData();
   }
 
@@ -525,9 +539,12 @@ export class ChatController {
           this.toast('当前环境没有内置编辑器。', 'error');
           return;
         }
-        await host.saveFromEditor(msg.path, msg.text, msg.baseHash, { recreate: msg.recreate === true });
+        const saved = await host.saveFromEditor(msg.path, msg.text, msg.baseHash, { recreate: msg.recreate === true });
         // 保存的可能是章节正文，字数/定稿状态都会变。
         await this.pushState();
+        if (saved !== false) {
+          this.notifyFileSaved(msg.path);
+        }
         return;
       }
 
@@ -698,6 +715,14 @@ export class ChatController {
 
       case 'setParagraphStyle':
         await setParagraphStyle(this, msg.style);
+        return;
+
+      case 'setGitAutoSync':
+        await this.gitSync.setEnabled(msg.enabled === true);
+        return;
+
+      case 'gitSyncNow':
+        await this.gitSync.syncNow();
         return;
 
       case 'openNativeSettings':
@@ -982,5 +1007,15 @@ export class ChatController {
     for (const host of this.hosts) {
       host.reveal();
     }
+  }
+
+  /** 文件保存成功时通知 Git 自动同步（独立版 `saveFile` 与插件壳 `onDidSaveTextDocument` 共用）。 */
+  notifyFileSaved(relPath?: string): void {
+    this.gitSync.notifyChange('save', relPath);
+  }
+
+  /** 完成一次「同步章节」后通知 Git 自动同步。 */
+  notifyChapterFinalized(relPath?: string): void {
+    this.gitSync.notifyChange('finalize', relPath);
   }
 }

@@ -167,6 +167,8 @@ export interface ProjectManifest {
   threadsThrough?: number;
   /** 水位之后另外判过的章（不连续的那几章，升序）；水位推过去就从这里拿掉。缺席是没有。 */
   threadsJudged?: number[];
+  /** 工程级设置：开启后保存文件或同步章节按节流自动 git commit，有远端时在空闲时 pull --rebase && push。默认关闭。 */
+  gitAutoSync?: boolean;
 }
 
 /**

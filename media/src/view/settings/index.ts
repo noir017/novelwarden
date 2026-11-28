@@ -243,6 +243,10 @@ function installAdvancedToggle(): void {
   sync();
 }
 
+export function showSettingsCategory(category: SettingsCategory, focus = false): void {
+  showCategory(category, focus);
+}
+
 function showCategory(category: SettingsCategory, focus = false): void {
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-settings-tab]')) {
     const active = button.dataset.settingsTab === category;

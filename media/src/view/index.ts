@@ -45,6 +45,7 @@ import { renderWorkbench, installWorkbench } from './workbench';
 import { installPrompt, renderPrompt } from './prompt';
 import { installSettings, renderSettings } from './settings';
 import { renderSkillInspection, renderSkills } from './settings/skills';
+import { installGitSync, renderGitSync, syncGitSyncAvailability } from './gitSync';
 import { renderState, setBusy } from './state';
 import { restoreDraft, store, vscode } from './store';
 import { installTabs, isTabActive, showTab } from './tabs';
@@ -78,6 +79,7 @@ installPrompt();
 installCheckpoints();
 installLogs();
 installSettings();
+installGitSync();
 installWorkbench();
 installMenubar();
 installMobileNav();
@@ -89,6 +91,7 @@ onMessage((msg) => {
     case 'init':
     case 'state':
       renderState(msg.state);
+      syncGitSyncAvailability();
       break;
 
     case 'tab':
@@ -207,6 +210,10 @@ onMessage((msg) => {
       renderSettings(msg.settings, msg.keys, msg.ack);
       break;
 
+    case 'gitSync':
+      renderGitSync(msg.status);
+      break;
+
     case 'skills':
       renderSkills(msg.view, msg.installed);
       break;
@@ -270,6 +277,7 @@ onMessage((msg) => {
 
     case 'workspaces':
       applyWorkspaces(msg);
+      syncGitSyncAvailability();
       break;
 
     // 欢迎页「新建一本书」「导入写好的书」（view/welcome.ts）。

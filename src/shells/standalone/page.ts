@@ -67,6 +67,7 @@ export function standalonePage(root?: string, version = '0.0.0'): string {
   </nav>
   <span class="wb-title-text" id="wbTitleText">Novelwarden</span>
   <span class="spacer"></span>
+  <button type="button" class="wb-git-sync hidden" id="wbGitSync" title="Git 自动同步"></button>
   <button class="icon-btn" id="wbThemeBtn" title="切换主题">☀</button>
   <!-- 窄屏上菜单栏收进这一颗（view/menubar.ts）；宽屏不显示。 -->
   <button type="button" class="icon-btn" id="wbMoreBtn" title="菜单" aria-label="菜单">⋯</button>

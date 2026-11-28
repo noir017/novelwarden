@@ -353,7 +353,11 @@ export type InMessage =
    * 内置编辑器「编辑 → 段落格式」：切换正文的分段格式。后端只改 `config.md` frontmatter 的
    * `paragraphStyle` 这一个键（`Workspace.setParagraphStyle`），然后 `pushState`。
    */
-  | { type: 'setParagraphStyle'; style: ParagraphStyle };
+  | { type: 'setParagraphStyle'; style: ParagraphStyle }
+  /** 工程级设置：开启/关闭 Git 自动同步（写进 `.novelwarden/project.json`）。 */
+  | { type: 'setGitAutoSync'; enabled: boolean }
+  /** 立即执行一次 Git 自动同步（跳过节流等待）。 */
+  | { type: 'gitSyncNow' };
 
 export type ProjectAction =
   | 'initProject'
