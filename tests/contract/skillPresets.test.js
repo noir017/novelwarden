@@ -24,7 +24,7 @@ const m = loadModule('src/core/model/writingSkill.ts');
 const DIR = path.join(ROOT, 'skills', 'writing');
 const STAGE_OF_PREFIX = { style: 'drafting', taste: 'planning', pattern: 'planning' };
 /** 本仓库自己写的（不是改编的）：名字 → 绑哪个阶段 */
-const OWN = { 'tension-logic-humanizer': 'drafting' };
+const OWN = {};
 
 const names = fs
   .readdirSync(DIR, { withFileTypes: true })
