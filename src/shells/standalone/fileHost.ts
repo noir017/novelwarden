@@ -282,20 +282,21 @@ export class FileHost implements Host {
    * 保存编辑器内容。冲突不覆盖，改为把磁盘版本回给前端让用户取舍；带了基线而文件已经不在时
    * 也不重建（`FileGoneError` → `editorDiskGone`），作者答应了才带 `recreate` 再来。
    */
-  async saveFromEditor(relPath: string, text: string, baseHash?: string, opts?: { recreate?: boolean }): Promise<void> {
+  async saveFromEditor(relPath: string, text: string, baseHash?: string, opts?: { recreate?: boolean }): Promise<boolean> {
     if (!this.root) {
       this.broadcastMsg({ type: 'editorError', path: relPath, message: '请先打开文件夹' });
-      return;
+      return false;
     }
     try {
       const file = await writeFileFromEditor(this.root, relPath, text, baseHash, opts);
       // draftPath、kind 与 label 要一并带回：前端的保存分支只更新 text/hash，
       // 这里漏掉 draftPath 的话工具栏上的「草稿」按钮会在首次保存后消失。
       this.broadcastMsg({ type: 'editorSaved', file: this.viewOf(file) });
+      return true;
     } catch (err) {
       if (err instanceof FileGoneError) {
         this.broadcastMsg({ type: 'editorDiskGone', path: relPath });
-        return;
+        return false;
       }
       if (err instanceof FileConflictError) {
         this.broadcastMsg({
@@ -304,11 +305,11 @@ export class FileHost implements Host {
           diskText: err.diskText,
           diskHash: err.diskHash,
         });
-        return;
+        return false;
       }
       if (err instanceof FileEditError) {
         this.broadcastMsg({ type: 'editorError', path: relPath, message: err.message });
-        return;
+        return false;
       }
       throw err;
     }

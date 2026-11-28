@@ -72,6 +72,10 @@ export function shouldIgnoreChange(name: string): boolean {
   // 不挡的话每存一个快照就多一轮全量重扫。插件壳那边快照是 `.txt`，`watchGlobs` 本来就扫不到。
   // 存档点（workspace/checkpoints.ts）一次存几十上百个对象，更要挡。
   const posix = name.replace(/\\/g, '/');
+  // Git 自动同步或外部 git 操作会频繁写 `.git/`，与工程内容无关，必须忽略以免触发重扫循环。
+  if (/(^|\/)\.git(\/|$)/.test(posix)) {
+    return true;
+  }
   if (HISTORY_RE.test(posix) || CHECKPOINTS_RE.test(posix)) {
     return true;
   }

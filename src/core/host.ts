@@ -105,8 +105,9 @@ export interface Host {
   /**
    * 保存内置编辑器的内容。只有提供 openInEditor 的宿主才需要实现。
    * 带了 `baseHash`、磁盘上却没有这个文件时不重建（回 `editorDiskGone`），`opts.recreate` 才重建。
+   * 返回 `false` 表示未实际落盘（冲突、文件消失或校验失败）；返回 `true` 或 `void` 表示已保存。
    */
-  saveFromEditor?(relPath: string, text: string, baseHash?: string, opts?: { recreate?: boolean }): Promise<void>;
+  saveFromEditor?(relPath: string, text: string, baseHash?: string, opts?: { recreate?: boolean }): Promise<boolean | void>;
   /**
    * 核对内置编辑器里开着的几份文件在磁盘上变没变（`checkEditorFiles`）：变了的推 `editorDiskChanged`，
    * 读不到的推 `editorDiskGone`，没变的不推。只有提供 openInEditor 的宿主才需要实现。

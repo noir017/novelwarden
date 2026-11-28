@@ -41,6 +41,8 @@ export type {
   FileAction,
   FileOpResult,
   FsEntry,
+  GitSyncPhase,
+  GitSyncStatus,
   InMessage,
   LogEntry,
   LogLevel,

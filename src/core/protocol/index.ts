@@ -90,6 +90,7 @@ export type {
 } from './quickOpen';
 
 export type { CheckSensitiveTerm, CheckTermsView } from './check';
+export type { GitSyncPhase, GitSyncStatus } from '../workspace/gitSync';
 export type { NameEntry, NameIndex, NameSource } from './nameIndex';
 export type {
   ThreadsOverview,

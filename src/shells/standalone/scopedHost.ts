@@ -100,7 +100,7 @@ export class ScopedHost implements Host {
     return this.target.openBeside(relPath, intent);
   }
 
-  saveFromEditor(relPath: string, text: string, baseHash?: string, opts?: { recreate?: boolean }): Promise<void> {
+  saveFromEditor(relPath: string, text: string, baseHash?: string, opts?: { recreate?: boolean }): Promise<boolean | void> {
     return this.target.saveFromEditor(relPath, text, baseHash, opts);
   }
 

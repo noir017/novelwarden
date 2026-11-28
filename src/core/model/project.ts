@@ -787,6 +787,7 @@ export class NovelProject {
         // 叙事线的水位（四期）：原样带着，`syncManifest` 重写索引时才不会把它冲掉；认法在 `threadsMarkOf`（手改坏了不崩）。
         ...(parsed.threadsThrough !== undefined ? { threadsThrough: parsed.threadsThrough } : {}),
         ...(parsed.threadsJudged !== undefined ? { threadsJudged: parsed.threadsJudged } : {}),
+        ...(parsed.gitAutoSync === true ? { gitAutoSync: true } : {}),
       };
     } catch {
       return { version: MANIFEST_VERSION, title: '未命名', author: '', chapters: [] };
@@ -795,6 +796,22 @@ export class NovelProject {
 
   async writeManifest(manifest: ProjectManifest): Promise<void> {
     await writeText(this.manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  }
+
+  /** 读工程级「Git 自动同步」开关（`project.json` 的 `gitAutoSync`），默认关闭。 */
+  async readGitAutoSync(): Promise<boolean> {
+    return (await this.readManifest()).gitAutoSync === true;
+  }
+
+  /** 写工程级「Git 自动同步」开关（`project.json` 的 `gitAutoSync`）。关闭时省略该键，保持文件干净。 */
+  async setGitAutoSync(enabled: boolean): Promise<void> {
+    const manifest = await this.readManifest();
+    if (enabled) {
+      manifest.gitAutoSync = true;
+    } else {
+      delete manifest.gitAutoSync;
+    }
+    await this.writeManifest(manifest);
   }
 
   /**
