@@ -5,9 +5,9 @@
  * 未保存），存不存由作者（第 3 条）。合并视图是宿主的能力（`Host.mergeTexts`，独立版有、插件壳没有）：没有的宿主只回一句
  * 说明，不抛。
  *
- * 「版本」侧栏的时间线是这份文件的快照（网关在覆盖之前存的，`workspace/history.ts`）与它在各存档点里的样子
- * （`workspace/checkpoints.ts`）混排；这里只读。两版之间怎么不同、放回哪一处都是前端的事（`editor/versionDiff.ts`），
- * 后端只给全文。
+ * 「版本」侧栏的时间线是这份文件的快照（网关在覆盖之前存的，`workspace/history.ts`）、它在各存档点里的样子
+ * （`workspace/checkpoints.ts`）与工程在 git 仓库里时它被提交过的各版（`workspace/gitVersions.ts`，只读）混排；这里只读。
+ * 两版之间怎么不同、放回哪一处都是前端的事（`editor/versionDiff.ts`），后端只给全文。
  */
 import * as path from 'node:path';
 import type { ChatController } from './index';
@@ -17,7 +17,8 @@ import type { VersionView } from '../protocol';
 import { describeError, scoped } from '../runtime/logger';
 import { WsError } from '../workspace/guard';
 import { checkpointVersionsOf, readCheckpoint, readCheckpointBytes } from '../workspace/checkpoints';
-import { historyUnavailable, listSnapshots, readSnapshot, snapshotNow } from '../workspace/history';
+import { GIT_VERSION_PREFIX, listGitVersions, readGitVersion } from '../workspace/gitVersions';
+import { historyUnavailable, listSnapshots, readSnapshot, snapshotNow, snapshotUnsaved } from '../workspace/history';
 
 /** 存档点那几行的 id 前缀（后面是存档点的 id）。快照的 id 是文件名，不会以它开头。 */
 export const CHECKPOINT_VERSION_PREFIX = 'cp:';
@@ -62,8 +63,8 @@ export async function mergeWithDisk(c: ChatController, rel: string, text: string
 }
 
 /**
- * 列出这份文件的历史版本：快照与它在各存档点里的样子混排，新的在前。不存历史版本的文件照实说为什么。
- * 存档点读不动（目录坏了之类）只是少了那几行，快照照样列。
+ * 列出这份文件的历史版本：快照、它在各存档点里的样子、git 提交里的样子混排，新的在前。不存历史版本的文件照实说为什么。
+ * 存档点读不动（目录坏了之类）、git 没有（不是仓库、没装 git）只是少了那几行，快照照样列。
  */
 export async function listVersions(c: ChatController, rel: string): Promise<void> {
   const unavailable = await historyUnavailable(c.project, rel);
@@ -85,16 +86,27 @@ export async function listVersions(c: ChatController, rel: string): Promise<void
   } catch (err) {
     log.warn(`列 ${rel} 在存档点里的样子失败`, describeError(err));
   }
+  for (const v of await listGitVersions(c.project, rel)) {
+    entries.push({
+      id: v.id,
+      time: v.time,
+      words: v.words,
+      bytes: v.bytes,
+      git: { commit: v.commit, subject: v.subject, author: v.author },
+    });
+  }
   entries.sort((a, b) => b.time - a.time);
   c.post({ type: 'versions', path: rel, entries });
 }
 
-/** 读某一版的全文（快照，或存档点里的那一份），回给发起的那个页面。 */
+/** 读某一版的全文（快照、存档点里的那一份，或 git 提交里的那一份），回给发起的那个页面。 */
 export async function readVersion(c: ChatController, rel: string, id: string, requestId: string): Promise<void> {
   try {
     const text = id.startsWith(CHECKPOINT_VERSION_PREFIX)
       ? decodeFileText(await readCheckpointBytes(c.project, await readCheckpoint(c.project, id.slice(CHECKPOINT_VERSION_PREFIX.length)), rel))
-      : await readSnapshot(c.project, rel, id);
+      : id.startsWith(GIT_VERSION_PREFIX)
+        ? await readGitVersion(c.project, rel, id)
+        : await readSnapshot(c.project, rel, id);
     c.post({ type: 'versionText', requestId, path: rel, id, text });
   } catch (err) {
     c.post({ type: 'versionText', requestId, path: rel, id, error: describeError(err) });
@@ -107,8 +119,11 @@ export async function readVersion(c: ChatController, rel: string, id: string, re
  *
  * `quiet`：前端把一版（或一处）放回编辑区之前顺手发的：放回去的内容一存盘（开着自动保存时停笔两秒就存）就盖掉
  * 磁盘上这一份，而节流按「改动小」可能不存它。什么提示都不弹——作者点的是「恢复」，不是「存一版」；存不下的原因已经记了 warn。
+ *
+ * `unsaved`：「恢复整份」时编辑器里还没保存的那一份。磁盘上那一份存完再存它（带备注，`snapshotUnsaved`）：整份换掉之后，
+ * 撤销栈只活在这一页里，存盘、关标签之后那些字就只在这一版里了。
  */
-export async function saveVersion(c: ChatController, rel: string, quiet = false): Promise<void> {
+export async function saveVersion(c: ChatController, rel: string, quiet = false, unsaved?: string): Promise<void> {
   const unavailable = await historyUnavailable(c.project, rel);
   if (unavailable) {
     if (!quiet) {
@@ -117,6 +132,9 @@ export async function saveVersion(c: ChatController, rel: string, quiet = false)
     return;
   }
   const r = await snapshotNow(c.project, rel);
+  if (unsaved !== undefined) {
+    await snapshotUnsaved(c.project, rel, unsaved);
+  }
   if (quiet) {
     // 不说话；列表照样重推（多了一版的话面板上跟着出现）。
   } else if (r.saved) {

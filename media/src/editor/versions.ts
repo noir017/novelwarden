@@ -13,17 +13,21 @@
  * 当前文件的时间线：
  *
  * - **一条时间线，新的在前**：最上面「还没保存的改动」（编辑器里那份与磁盘上的不一样时才有，比的是磁盘上的 ↔ 编辑器里的）；
- *   然后是快照（网关在每次覆盖之前存的，`core/workspace/history.ts`）与这份文件在各存档点里的样子（◆ 手动、◇ 自动，带备注；
- *   内容一样的连着几个只列最早那一个）混排。每行「3 分钟前 · 14:32」、多少字、比现在多 / 少几个字。
+ *   然后是快照（网关在每次覆盖之前存的，`core/workspace/history.ts`）、这份文件在各存档点里的样子（◆ 手动、◇ 自动，带备注；
+ *   内容一样的连着几个只列最早那一个）与工程在 git 仓库里时它被提交过的各版（⎇，带提交说明与提交号，
+ *   `core/workspace/gitVersions.ts`）混排。每行「3 分钟前 · 14:32」、多少字、比现在多 / 少几个字。
+ * - **git 那几行可以藏起来**：列表里有 git 提交时，时间线顶上一个「列出 Git 提交」的勾（记在浏览器里，缺省勾着）——
+ *   自动提交很密时只看快照与存档点。
  * - **单击 = 这一版 ↔ 现在**（现在 = 编辑器里那一份，没保存的也算）。右键：跟现在比、跟后一版比（那一次改了什么）、
  *   恢复整份到编辑区。对比标签开着时，它比的那一行标成选中。
  * - **跟着编辑区当前的文件走**：换了文件就换列表；对比标签、别的特殊标签显示着时（那一块没有当前文件）留在原来那份上；
  *   那份文件关掉了才清空。保存之后（`hash` 变了）重拉——网关可能刚存了一版（自动保存几秒一次时攒一攒，一秒最多一次）。
  *   这一页藏着时不拉，切过来时拉一次（存档点可能刚存过）。
  * - **入口**：活动栏「版本」；编辑区工具栏「历史」（每块编辑区一颗，第一次重画时插到「保存」前面，与 `layout.ts` 的「排版」
- *   同一个做法）与标题栏「文件 → 历史版本…」（`view/versionsMenu.ts`，经 `nf-versions-query` / `nf-versions-command`）切到
- *   这一页，窄屏上顺手把编辑区翻下去。没开文件、没打开工程、还不是小说工程、文件不是工程里的创作产物（`kind` 是 `other`）时
- *   那两处置灰，提示里说为什么——前端不拿路径猜，后端也会再判一次（`versions.unavailable`）。
+ *   同一个做法）、标题栏「文件 → 历史版本…」（`view/versionsMenu.ts`，经 `nf-versions-query` / `nf-versions-command`）与
+ *   标签右键「历史版本…」（`tabMenu.ts`，先切到那个标签）切到这一页，窄屏上顺手把编辑区翻下去。没开文件、没打开工程、
+ *   还不是小说工程、文件不是工程里的创作产物（`kind` 是 `other`）时这几处置灰，工具栏与菜单的提示里说为什么——前端不拿
+ *   路径猜，后端也会再判一次（`versions.unavailable`）。
  * - 「＋」（现在存一版）把**磁盘上当前**那一份存一个快照（不是编辑器里没保存的那份）。
  * - 存档点弹窗里的「对比」也开在这里的对比标签上（经 `nf-version-diff-query` / `nf-version-diff-command`）。
  */
@@ -66,6 +70,26 @@ let notProject = false;
 let renderTimer: ReturnType<typeof setTimeout> | undefined;
 /** 当前文件那一块收起来了。 */
 let fileCollapsed = false;
+/** 「列出 Git 提交」那个勾记在浏览器里（不进工程）。 */
+const GIT_PREF_KEY = 'novelwarden.versions.git';
+let showGit = readShowGit();
+
+function readShowGit(): boolean {
+  try {
+    return localStorage.getItem(GIT_PREF_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+function setShowGit(on: boolean): void {
+  showGit = on;
+  try {
+    localStorage.setItem(GIT_PREF_KEY, on ? '1' : '0');
+  } catch {
+    // 存不下就只管这一页。
+  }
+}
 
 /** 全书改动：跟哪个存档点比、比出来什么。 */
 const book: {
@@ -131,9 +155,12 @@ export function unavailableReason(file: Pick<OpenFile, 'kind'> | undefined): str
   return undefined;
 }
 
-/** 一行在标题、对比标签上怎么称呼：「3 分钟前 · 14:32 的快照」「存档点「第一卷完」（10-20 22:30）」。 */
+/** 一行在标题、对比标签上怎么称呼：「3 分钟前 · 14:32 的快照」「存档点「第一卷完」（10-20 22:30）」「提交「改了开头」（…）」。 */
 export function versionLabel(entry: VersionView, now = Date.now()): string {
   const when = describeWhen(entry.time, now);
+  if (entry.git) {
+    return entry.git.subject ? `提交「${entry.git.subject}」（${when}）` : `提交 ${entry.git.commit.slice(0, 7)}（${when}）`;
+  }
   if (!entry.checkpoint) {
     return entry.note ? `${entry.note}（${when}）` : `${when} 的快照`;
   }
@@ -166,7 +193,7 @@ function nameOf(file: OpenFile): string {
 }
 
 const NOTE =
-  '每次覆盖保存之前，磁盘上的旧内容先存成一版（10 分钟内的零星小改并成一版，每份文件留最近 50 版）；◆ ◇ 是存档点里的这一份。' +
+  '每次覆盖保存之前，磁盘上的旧内容先存成一版（10 分钟内的零星小改并成一版，每份文件留最近 50 版）；◆ ◇ 是存档点里的这一份，⎇ 是 git 提交里的。' +
   '点一行在编辑区对比；用回、恢复都只换编辑区里的内容，存不存由你。';
 /** 自动保存开着时多说的那一句（`autosave.ts`：停笔 2 秒就存）。 */
 const AUTOSAVE_NOTE = '自动保存开着：放回编辑区的内容停笔 2 秒就会写回磁盘——被它盖掉的那一版会先存进这里，可以再恢复回来。';
@@ -455,10 +482,34 @@ function fileSection(file: OpenFile | undefined): HTMLElement {
     );
     return box;
   }
+  const gitCount = entries.filter((e) => e.git).length;
+  if (gitCount > 0) {
+    box.appendChild(gitToggle(gitCount));
+  }
+  const list = showGit ? entries : entries.filter((e) => !e.git);
+  if (list.length === 0) {
+    box.appendChild(el('p', 'vs-empty', '藏起 Git 提交之后没有别的版本了。'));
+    return box;
+  }
   const current = countWords(file.draft);
   const now = Date.now();
-  entries.forEach((entry, i) => box.appendChild(row(file, entry, i, current, now, shown)));
+  list.forEach((entry, i) => box.appendChild(row(file, entry, list[i - 1], current, now, shown)));
   return box;
+}
+
+/** 「列出 Git 提交（N）」：勾掉只看快照与存档点。 */
+function gitToggle(count: number): HTMLElement {
+  const label = el('label', 'vs-git-toggle');
+  const box = el('input');
+  box.type = 'checkbox';
+  box.checked = showGit;
+  box.addEventListener('change', () => {
+    setShowGit(box.checked);
+    render();
+  });
+  label.append(box, document.createTextNode(` 列出 Git 提交（${count}）`));
+  label.title = '工程在 git 仓库里：这份文件最近被提交过的各版（只读，最多 30 次提交）';
+  return label;
 }
 
 function unsavedRow(file: OpenFile, shown: DiffRequest | undefined): HTMLElement {
@@ -475,8 +526,15 @@ function unsavedRow(file: OpenFile, shown: DiffRequest | undefined): HTMLElement
   return item;
 }
 
-function row(file: OpenFile, entry: VersionView, index: number, current: number, now: number, shown: DiffRequest | undefined): HTMLElement {
-  const item = el('button', entry.checkpoint ? 'vs-row vs-checkpoint' : 'vs-row');
+function row(
+  file: OpenFile,
+  entry: VersionView,
+  newer: VersionView | undefined,
+  current: number,
+  now: number,
+  shown: DiffRequest | undefined
+): HTMLElement {
+  const item = el('button', entry.checkpoint ? 'vs-row vs-checkpoint' : entry.git ? 'vs-row vs-git' : 'vs-row');
   item.type = 'button';
   item.dataset.id = entry.id;
   const selected = shown?.path === file.path && typeof shown.left !== 'string' && shown.left.id === entry.id;
@@ -484,28 +542,37 @@ function row(file: OpenFile, entry: VersionView, index: number, current: number,
   const when = el('span', 'vs-when', describeWhen(entry.time, now));
   if (entry.checkpoint) {
     when.prepend(el('span', 'vs-mark', entry.checkpoint.auto ? '◇ ' : '◆ '));
+  } else if (entry.git) {
+    when.prepend(el('span', 'vs-mark', '⎇ '));
   }
   item.appendChild(when);
   item.appendChild(el('span', 'vs-meta', `${entry.words} 字 · ${describeDelta(entry.words, current)}`));
   if (entry.checkpoint) {
     item.appendChild(el('span', 'vs-note', entry.checkpoint.note || (entry.checkpoint.auto ? '自动存档点' : '存档点')));
+  } else if (entry.git) {
+    item.appendChild(el('span', 'vs-note', `${entry.git.subject || '（没有提交说明）'} · ${entry.git.commit.slice(0, 7)}`));
   } else if (entry.note) {
     item.appendChild(el('span', 'vs-note', entry.note));
   }
+  const at = new Date(entry.time).toLocaleString();
   item.title = entry.checkpoint
     ? `${versionLabel(entry, now)}里的这一份`
-    : `这一版在 ${new Date(entry.time).toLocaleString()} 被覆盖掉之前在磁盘上`;
+    : entry.git
+      ? `git 提交 ${entry.git.commit.slice(0, 7)}（${entry.git.author} · ${at}）：${entry.git.subject}`
+      : entry.note
+        ? `${entry.note}（${at}）`
+        : `这一版在 ${at} 被覆盖掉之前在磁盘上`;
   const ref = (): VersionRef => ({ id: entry.id, label: versionLabel(entry, Date.now()) });
   item.addEventListener('click', () => {
     openDiff({ path: file.path, name: nameOf(file), left: ref(), right: 'now' });
     revealEditor();
   });
-  onContextMenu(item, () => rowMenu(file, index, ref));
+  onContextMenu(item, () => rowMenu(file, newer, ref));
   return item;
 }
 
-function rowMenu(file: OpenFile, index: number, ref: () => VersionRef): MenuItem[] {
-  const newer = index > 0 ? entries?.[index - 1] : undefined;
+/** `newer`：时间线上紧挨着的后一版（列表里显示着的那几行里；最新的那一版没有，后一版就是现在）。 */
+function rowMenu(file: OpenFile, newer: VersionView | undefined, ref: () => VersionRef): MenuItem[] {
   return [
     {
       label: '跟现在比',
@@ -564,8 +631,8 @@ function onVersions(msg: VersionsMessage): void {
 
 // ---------------------------------------------------------------- 工具栏「历史」
 
-/** 切到「版本」页看这一块的那份文件（窄屏上顺手把编辑区翻下去）。 */
-function showFor(pane: Pane | undefined): void {
+/** 切到「版本」页看这一块的那份文件（窄屏上顺手把编辑区翻下去）。标签右键「历史版本…」也走它（`tabMenu.ts`）。 */
+export function showVersionsFor(pane: Pane | undefined): void {
   const file = pane?.activeFile();
   if (file && file.path !== target) {
     target = file.path;
@@ -586,7 +653,7 @@ function syncButton(pane: Pane): void {
     }
     btn = el('button', 'chip-btn ed-versions-btn', '历史');
     btn.type = 'button';
-    btn.addEventListener('click', () => showFor(pane));
+    btn.addEventListener('click', () => showVersionsFor(pane));
     toolbar.insertBefore(btn, toolbar.querySelector('button.primary'));
     buttons.set(pane, btn);
   }
@@ -687,7 +754,7 @@ export function installVersions(postMessage: (msg: InMessage) => void): void {
   window.addEventListener('nf-versions-command', (e) => {
     const ed = activeEditor();
     if (e.detail.name === 'open' && ed && !unavailableReason(ed.file)) {
-      showFor(ed.pane);
+      showVersionsFor(ed.pane);
     }
   });
 

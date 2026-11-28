@@ -175,14 +175,15 @@ export type InMessage =
   | { type: 'mergeWithDisk'; path: string; text: string; requestId: string }
   /** 历史版本（`workspace/history.ts`，连同这份文件在各存档点里的样子）：列出来，回 `versions`。 */
   | { type: 'listVersions'; path: string }
-  /** 读某一版的全文（快照，或 `cp:` 开头的存档点里那一份），回 `versionText`（同一个 `requestId`）。 */
+  /** 读某一版的全文（快照，`cp:` 开头的存档点里那一份，或 `git:` 开头的 git 提交里那一份），回 `versionText`（同一个 `requestId`）。 */
   | { type: 'readVersion'; path: string; id: string; requestId: string }
   /**
    * 「现在存一版」：把**磁盘上当前**这份强制存一个快照（编辑器里没保存的修改不算），之后重推 `versions`。
    * `quiet`：「版本」侧栏与对比标签把一版（或一处）放回编辑区之前顺手发的那一次——不说话（成了、一样不重复存都不弹
    * 提示），只保证换进来的内容存下去之前，被它盖掉的那一份已经在历史里（节流拦不住它）。
+   * `unsaved`：「恢复整份」时编辑器里还没保存的那一份——磁盘上那一份之后它也存一版（带备注），整份换掉之后照样找得回来。
    */
-  | { type: 'saveVersion'; path: string; quiet?: boolean }
+  | { type: 'saveVersion'; path: string; quiet?: boolean; unsaved?: string }
   /**
    * 存档点（工程页「存档点…」，`protocol/checkpoints.ts`）：列出来，回 `checkpoints`。
    */

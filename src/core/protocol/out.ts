@@ -237,7 +237,7 @@ export type OutMessage =
    */
   | { type: 'editorReplace'; requestId: string; path: string; text: string; base?: { text: string; hash: string } }
   /**
-   * 这份文件的历史版本（快照与存档点里的样子混排，新的在前）。`unavailable`：不存历史版本的原因（不是工程里的
+   * 这份文件的历史版本（快照、存档点里的样子、git 提交里的样子混排，新的在前）。`unavailable`：不存历史版本的原因（不是工程里的
    * 创作产物、还不是小说工程……），这时 `entries` 是空的。
    */
   | { type: 'versions'; path: string; entries: VersionView[]; unavailable?: string }
@@ -443,7 +443,9 @@ export interface VersionView {
   words: number;
   bytes: number;
   checkpoint?: { note: string; auto: boolean };
-  /** 快照的备注（「Agent：批量写章 之前」，`workspace/history.ts` 的 `NOTES_FILE`）。存档点那几行没有。 */
+  /** git 提交里的这一份（`workspace/gitVersions.ts`）：提交号、提交说明的第一行、作者。 */
+  git?: { commit: string; subject: string; author: string };
+  /** 快照的备注（「Agent：批量写章 之前」，`workspace/history.ts` 的 `NOTES_FILE`）。存档点、git 那几行没有。 */
   note?: string;
 }
 

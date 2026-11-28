@@ -556,7 +556,7 @@ export class ChatController {
         await readVersion(this, msg.path, msg.id, msg.requestId);
         return;
       case 'saveVersion':
-        await saveVersion(this, msg.path, msg.quiet === true);
+        await saveVersion(this, msg.path, msg.quiet === true, typeof msg.unsaved === 'string' ? msg.unsaved : undefined);
         return;
 
       // 存档点（controller/checkpoints.ts）：整本书存一版、跟现在比、退回。

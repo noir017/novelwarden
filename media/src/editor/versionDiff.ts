@@ -13,7 +13,8 @@
  *   藏着时只记一笔，下次显示再比。那份文件关掉了就照实说，不拿旧的比。
  * - **用回这一处 / 恢复整份**（只在右边是编辑器里那一份时有）：只换编辑区里的内容——一步撤销、成为未保存、**不写盘**（第 3 条）。
  *   换之前先发一条不说话的 `saveVersion { quiet }`：放回的内容一存盘（开着自动保存时停笔两秒就存）就盖掉磁盘上那一份，节流
- *   可能不存它。用回一处要改的那份文件就藏在这个标签后面（`applyEdit` 只作用于当前文件）：同一个任务里切过去、改、再切回来，
+ *   可能不存它；恢复整份时编辑器里没保存的那一份也一起存一版（`unsaved`）。用回一处要改的那份文件就藏在这个标签后面
+ *   （`applyEdit` 只作用于当前文件）：同一个任务里切过去、改、再切回来，
  *   中间不画，看不出闪；对比区滚到哪先记下、切回来放回去（藏起来那一下滚动位置会丢）。「恢复整份」换完停在那份文件上。
  * - **没改的折起来**：每处改动前后各留一行，中间相同的折成「⋯ 相同的 N 段 ⋯」，点开就展开（重比之后照旧展开着）。
  *
@@ -129,6 +130,17 @@ export function versionText(path: string, id: string): Promise<string> {
   });
 }
 
+/** 这段文字是不是这份文件读过的某一版（快照、存档点、git 里的那一份）。 */
+function isKnownVersion(path: string, text: string): boolean {
+  const want = normalizeEol(text);
+  for (const [key, value] of textCache) {
+    if (key.startsWith(`${path}\u0000`) && normalizeEol(value) === want) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function onVersionText(msg: Extract<OutMessage, { type: 'versionText' }>): void {
   const w = waiting.get(msg.requestId);
   if (!w || !claimRequest(msg.requestId)) {
@@ -193,7 +205,8 @@ export function openFileDiff(next: DiffRequest): void {
 
 /**
  * 「恢复整份」：把编辑区里这份文件换成那一版（一步撤销，成为未保存，不写盘），停在那份文件上。换之前先让后端把磁盘上
- * 现在那一份存一版（不说话、跳过节流）。
+ * 现在那一份存一版（不说话、跳过节流）；编辑器里还有没保存的修改时，连那一份也带上（`unsaved`）存一版——撤销栈只活在
+ * 这一页里，整份换掉之后存了盘、关了标签，那些字就只在历史里了。
  */
 export async function restoreVersion(path: string, ref: VersionRef): Promise<void> {
   let text: string;
@@ -205,8 +218,10 @@ export async function restoreVersion(path: string, ref: VersionRef): Promise<voi
   }
   const file = paneOwning(path)?.files.get(path);
   if (file && normalizeEol(file.draft) !== normalizeEol(text)) {
-    // 消息按顺序到：排在之后任何一次 saveFile 前面。
-    post({ type: 'saveVersion', path, quiet: true });
+    // 消息按顺序到：排在之后任何一次 saveFile 前面。编辑器里那一份本来就是刚放进来的某一版（在版本之间跳）就不带：
+    // 它已经在历史里了，不再存一遍。
+    const unsaved = file.draft !== file.text && !isKnownVersion(path, file.draft);
+    post({ type: 'saveVersion', path, quiet: true, ...(unsaved ? { unsaved: file.draft } : {}) });
   }
   const result = replaceInEditor(path, text);
   if (result === 'closed') {
