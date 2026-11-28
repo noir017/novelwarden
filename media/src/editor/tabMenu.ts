@@ -7,6 +7,7 @@
  *   它此刻的基线。**一个路径同一时刻只属于一块**照旧成立：先从这一块拿走，再交给那一块。
  * - **在文件页中定位**：`nf-reveal-in-files`（资源管理器展开到它、高亮那一行；view 切到「文件」页）。
  * - **复制相对路径**。
+ * - **历史版本…**：先切到这个标签，再切到侧栏「版本」页列它的各版（`versions.ts`）；不存历史版本的文件置灰。
  * - **重新打开刚关闭的**：这一块最近关掉的那一个（按块记，`store.ts`）。没有快捷键（⚑）：Chrome 不让页面
  *   拦 Ctrl+Shift+T，换一个组合键作者也记不住；「▾」列表底下也列着最近关掉的几个。
  */
@@ -15,6 +16,7 @@ import type { MenuItem } from '../globals';
 import type { Pane } from './store';
 import { lastClosed, otherPane, persist, reopenClosed, syncDraftVisibility } from './store';
 import { PANE_LABEL } from './tabStrip';
+import { showVersionsFor, unavailableReason } from './versions';
 
 export function extraTabItems(pane: Pane, path: string): MenuItem[] {
   const file = pane.files.get(path);
@@ -31,6 +33,14 @@ export function extraTabItems(pane: Pane, path: string): MenuItem[] {
     { sep: true },
     { label: '在文件页中定位', run: () => revealInFiles(path) },
     { label: '复制相对路径', run: () => copyRelPath(path) },
+    {
+      label: '历史版本…',
+      disabled: !!unavailableReason(file),
+      run: () => {
+        pane.activate(path, { focus: false });
+        showVersionsFor(pane);
+      },
+    },
     { sep: true }
   );
   const closed = lastClosed(pane.id);

@@ -14,7 +14,9 @@
  * | 用回这一处 | 编辑区那一处换回左边那样：一步撤销、成为未保存、**不写盘**；先发不说话的 `saveVersion`；对比标签留着、少一处 |
  * | 还没保存的改动 | 磁盘上的 ↔ 编辑器里的；用回一处 = 换回磁盘上那样 |
  * | 跟后一版比 | 两边都是存下的，只能看：没有「用回这一处」「恢复整份」 |
- * | 恢复整份 | 编辑区换成那一版、不写盘，停在那份文件上；开着自动保存时停笔 2 秒照常存，`saveVersion` 排在 `saveFile` 前面 |
+ * | 恢复整份 | 编辑区换成那一版、不写盘，停在那份文件上；开着自动保存时停笔 2 秒照常存，`saveVersion` 排在 `saveFile` 前面；
+ *   编辑器里有没保存的修改时 `saveVersion` 带上它（`unsaved`），那份就是刚放进来的某一版时不带 |
+ * | git 提交 | ⎇ 标出来、带说明与短号，混在时间线里；点了读 `git:` 那个 id；「列出 Git 提交」勾掉就藏起来（记在浏览器里），没有 git 提交时没有那个勾 |
  * | 刷新 | 对比标签不进刷新恢复 |
  * | 全书改动 | 切过来拉存档点列表；缺省跟最近一个**手动**的比（发 `checkpointDiff`），下拉换过就一直是它；按种类分组、改 / 新 / 删、字数差；
  *   没有存档点给一颗「现在存一个存档点」；显示着时后端推 `state` 停一下再比；标题点了收起 |
@@ -706,5 +708,112 @@ describe('全书改动', { skip: JSDOM_SKIP }, () => {
     assert.match(h.book().textContent, /还没有存档点/);
     h.ui.clickEl(h.book().querySelector('.vs-book-save'));
     assert.deepEqual({ ...h.ui.last('createCheckpoint') }, { type: 'createCheckpoint', note: '' });
+  });
+});
+
+describe('git 提交那几行', { skip: JSDOM_SKIP }, () => {
+  let h;
+  const now = Date.now();
+  const C = 'abcdef1234567890abcdef1234567890abcdef12';
+  const GIT_ID = `git:${C}:${'e'.repeat(40)}`;
+  const entries = [
+    { id: 'b.txt', time: now - 3 * MIN, words: 12, bytes: 40 },
+    { id: GIT_ID, time: now - 10 * MIN, words: 11, bytes: 38, git: { commit: C, subject: '改了第二段', author: '作者' } },
+    { id: 'a.txt', time: now - 30 * MIN, words: 3, bytes: 12 },
+  ];
+
+  before(async () => {
+    h = harness([], { storage: {} });
+    h.open(PATH, DISK, { hash: 'h-base' });
+    await h.showSide();
+    h.ui.post({ type: 'versions', path: PATH, entries });
+  });
+
+  const toggle = () => h.doc.querySelector('#versionsBody .vs-git-toggle input');
+
+  test('混在时间线里：⎇ 标出来，带提交说明与短号；提示里有作者', () => {
+    assert.deepEqual(
+      h.rows().map((r) => r.dataset.id),
+      ['b.txt', GIT_ID, 'a.txt']
+    );
+    const row = h.row(GIT_ID);
+    assert.ok(row.classList.contains('vs-git'));
+    assert.match(row.querySelector('.vs-when').textContent, /^⎇ /);
+    assert.equal(row.querySelector('.vs-note').textContent, '改了第二段 · abcdef1');
+    assert.match(row.title, /git 提交 abcdef1（作者/);
+  });
+
+  test('点一行：读的就是那个 git: id，左边那一栏写「提交「改了第二段」」', async () => {
+    h.ui.sent.length = 0;
+    h.ui.clickEl(h.row(GIT_ID));
+    assert.equal(h.ui.last('readVersion').id, GIT_ID);
+    await h.answerRead(OLD, GIT_ID);
+    const cols = [...h.diff().querySelectorAll('.vd-col')].map((c) => c.textContent);
+    assert.match(cols[0], /提交「改了第二段」/);
+    assert.equal(h.changes().length, 2);
+  });
+
+  test('「列出 Git 提交（1）」勾着；勾掉：git 那几行藏起来，「跟后一版比」跳过它', () => {
+    assert.match(h.doc.querySelector('#versionsBody .vs-git-toggle').textContent, /列出 Git 提交（1）/);
+    assert.equal(toggle().checked, true);
+    toggle().checked = false;
+    toggle().dispatchEvent(new h.ui.window.Event('change', { bubbles: true }));
+    assert.deepEqual(
+      h.rows().map((r) => r.dataset.id),
+      ['b.txt', 'a.txt']
+    );
+    h.ui.sent.length = 0;
+    h.ui.pick(h.ui.rightClick(h.row('a.txt')), '跟后一版比（那一次改了什么）');
+    assert.deepEqual(h.ui.sent.filter((m) => m.type === 'readVersion').map((m) => m.id).sort(), ['a.txt', 'b.txt']);
+  });
+
+  test('勾不勾记在浏览器里；重列之后照旧', () => {
+    assert.equal(h.ui.window.localStorage.getItem('novelwarden.versions.git'), '0');
+    h.ui.post({ type: 'versions', path: PATH, entries });
+    assert.equal(h.row(GIT_ID), null);
+    assert.equal(toggle().checked, false);
+    toggle().checked = true;
+    toggle().dispatchEvent(new h.ui.window.Event('change', { bubbles: true }));
+    assert.ok(h.row(GIT_ID));
+  });
+
+  test('没有 git 提交：没有那个勾', () => {
+    h.ui.post({ type: 'versions', path: PATH, entries: entries.filter((e) => !e.git) });
+    assert.equal(toggle(), null);
+  });
+});
+
+describe('恢复整份时编辑器里还有没保存的修改', { skip: JSDOM_SKIP }, () => {
+  let h;
+  const now = Date.now();
+  const entries = [
+    { id: 'b.txt', time: now - 3 * MIN, words: 13, bytes: 40 },
+    { id: 'a.txt', time: now - 120 * MIN, words: 17, bytes: 60 },
+  ];
+  const TYPED = `${DISK}风停了。\n`;
+
+  before(async () => {
+    h = harness();
+    h.open(PATH, DISK, { hash: 'h-base' });
+    await h.showSide();
+    h.ui.post({ type: 'versions', path: PATH, entries });
+  });
+
+  test('saveVersion 带上编辑器里那一份（unsaved），排在换内容之前', async () => {
+    h.type(TYPED);
+    h.ui.sent.length = 0;
+    h.ui.pick(h.ui.rightClick(h.row('a.txt')), '恢复整份到编辑区');
+    await h.answerRead(OLD, 'a.txt');
+    await tick();
+    assert.equal(h.area().value, OLD);
+    assert.deepEqual({ ...h.ui.last('saveVersion') }, { type: 'saveVersion', path: PATH, quiet: true, unsaved: TYPED });
+  });
+
+  test('接着再恢复另一版：编辑器里是刚放进来的那一版（历史里本来就有），不再带', async () => {
+    h.ui.sent.length = 0;
+    h.ui.pick(h.ui.rightClick(h.row('b.txt')), '恢复整份到编辑区');
+    await h.answerRead('他推开门。\n\n雨还没有停。\n', 'b.txt');
+    await tick();
+    assert.deepEqual({ ...h.ui.last('saveVersion') }, { type: 'saveVersion', path: PATH, quiet: true });
   });
 });

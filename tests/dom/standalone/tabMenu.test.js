@@ -10,6 +10,7 @@
  * | 搬回来 | 右边空了就整块收起 |
  * | 在文件页中定位 | 切到「文件」页、展开到它、那一行标出来 |
  * | 复制相对路径 | 写进剪贴板 |
+ * | 历史版本… | 排在「复制相对路径」后面；先切到那个标签再切到「版本」页列它；不是创作产物的置灰 |
  * | 重新打开刚关闭的 | 按块记：右边关掉的只在右边的菜单里，点了按原来那一块重新打开；没有时置灰 |
  */
 const { describe, test, before } = require('node:test');
@@ -183,5 +184,33 @@ describe('标签右键：定位、复制路径、重新打开', { skip: JSDOM_SK
     const rightItem = item(ui.rightClick(tabIn(ui.panes()[1], '003-夜访')), '重新打开刚关闭的');
     assert.equal(rightItem.disabled, true);
     ui.closeMenu();
+  });
+});
+
+describe('标签右键：历史版本…', { skip: JSDOM_SKIP }, () => {
+  let ui;
+  const tabIn = (pane, name) => [...pane.querySelectorAll('.ed-tab')].find((t) => t.textContent.includes(name));
+  const item = (menu, prefix) => [...menu.querySelectorAll('button')].find((b) => b.textContent.startsWith(prefix));
+
+  before(() => {
+    ui = mount({ body: 'standalone', scripts: ['view.js', 'editor.js'], shims: ['pointerCapture', 'confirm', 'scrollIntoView'] });
+    ui.post({ type: 'editorOpen', file: file('chapters/003-夜访.md', '正文', { kind: 'chapter' }) });
+    ui.post({ type: 'editorOpen', file: file('notes.md', '笔记', { kind: 'other' }) });
+  });
+
+  test('排在「复制相对路径」后面；不是创作产物的置灰', () => {
+    const items = ui.itemsOf(ui.rightClick(tabIn(ui.panes()[0], 'notes')));
+    assert.equal(items[items.indexOf('复制相对路径') + 1], '历史版本…', JSON.stringify(items));
+    ui.closeMenu();
+    assert.equal(item(ui.rightClick(tabIn(ui.panes()[0], 'notes')), '历史版本…').disabled, true);
+    ui.closeMenu();
+  });
+
+  test('点别的标签上的：先切到那个标签，再切到「版本」页列它的各版', () => {
+    ui.sent.length = 0;
+    ui.clickEl(item(ui.rightClick(tabIn(ui.panes()[0], '003-夜访')), '历史版本…'));
+    assert.ok(tabIn(ui.panes()[0], '003-夜访').classList.contains('active'));
+    assert.ok(ui.doc.getElementById('pane-versions').classList.contains('active'));
+    assert.deepEqual({ ...ui.last('listVersions') }, { type: 'listVersions', path: 'chapters/003-夜访.md' });
   });
 });

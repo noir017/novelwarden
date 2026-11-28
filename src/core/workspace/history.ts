@@ -34,6 +34,8 @@
  * - 「现在存一版」（{@link snapshotNow}）跳过节流，但和最新快照一字不差时照样不重复存。
  * - 外部 agent 动一份文件之前（`journal.ts`）同「现在存一版」，另外不是创作产物的也存（`anyKind`），并记一句备注
  *   （{@link NOTES_FILE}）：「版本」侧栏照着标出「Agent：<动作> 之前」。
+ * - 「恢复整份」之前编辑器里没保存的那一份（{@link snapshotUnsaved}）：唯一一种没在磁盘上待过的快照，带备注
+ *   {@link UNSAVED_NOTE}；磁盘上的那一份跟「最新一个」比时跳过它们。
  *
  * ## 保留
  *
@@ -220,6 +222,12 @@ export interface SnapshotInfo {
 export const NOTES_FILE = '.notes.json';
 
 /**
+ * 「恢复整份」之前编辑器里没保存的那一版（{@link snapshotUnsaved}）的备注。认它的地方：磁盘上的那一份跟「最新一个」比时
+ * 跳过这几版——它们从没在磁盘上待过。
+ */
+export const UNSAVED_NOTE = '恢复别的版本之前，编辑器里没保存的';
+
+/**
  * 这份文件能不能存历史版本。能就给 undefined，不能给一句给人看的原因（界面上禁用按钮时说的就是它）。
  * 越界、不是创作产物、还不是小说工程，都不能。
  */
@@ -308,6 +316,8 @@ export interface SnapshotOptions {
   anyKind?: boolean;
   /** 给这一版记一句备注（{@link NOTES_FILE}）。与最新一个一字不差没另存时，备注记在那一个上（它已经有备注就不动）。 */
   note?: string;
+  /** 存这一份（UTF-8）而不是磁盘上的：编辑器里还没保存的那一份（{@link snapshotUnsaved}）。 */
+  content?: string;
 }
 
 /**
@@ -334,6 +344,15 @@ export function snapshotNow(project: NovelProject, rel: string, opts: Pick<Snaps
   return snapshotBeforeWrite(project, rel, undefined, { ...opts, force: true });
 }
 
+/**
+ * 把编辑器里**还没保存**的那一份存一版（跳过节流，备注 {@link UNSAVED_NOTE}）：「恢复整份」把它从编辑区整个换掉之前调——
+ * 撤销栈只活在这一页里，换掉之后再存盘、关掉标签，那些没保存的字就只剩这一版。与最新快照、与磁盘上此刻那一份一字不差时
+ * 不存。磁盘上已经没有这份文件也存（历史跟着路径走，重建出来照样看得到）。同 {@link snapshotBeforeWrite}，绝不抛。
+ */
+export function snapshotUnsaved(project: NovelProject, rel: string, text: string): Promise<SnapshotResult> {
+  return snapshotBeforeWrite(project, rel, undefined, { force: true, note: UNSAVED_NOTE, content: text });
+}
+
 async function snapshot(
   project: NovelProject,
   rel: string,
@@ -351,26 +370,41 @@ async function snapshot(
   }
   const abs = project.pathOf(normalized);
   let buf: Buffer;
-  try {
-    const stat = await fs.stat(abs);
-    if (!stat.isFile()) {
-      return { skipped: 'missing' };
-    }
-    if (stat.size > MAX_EDITABLE_BYTES) {
+  if (opts.content !== undefined) {
+    buf = Buffer.from(opts.content, 'utf8');
+    if (buf.length > MAX_EDITABLE_BYTES) {
       return { skipped: 'tooLarge' };
     }
-    buf = await fs.readFile(abs);
-  } catch {
-    return { skipped: 'missing' };
+  } else {
+    try {
+      const stat = await fs.stat(abs);
+      if (!stat.isFile()) {
+        return { skipped: 'missing' };
+      }
+      if (stat.size > MAX_EDITABLE_BYTES) {
+        return { skipped: 'tooLarge' };
+      }
+      buf = await fs.readFile(abs);
+    } catch {
+      return { skipped: 'missing' };
+    }
   }
   const old = decodeFileText(buf);
 
   const dir = project.pathOf(historyDirOf(project, normalized)!);
   const names = sortSnapshotNames(await snapshotNamesIn(dir));
+  if (opts.content !== undefined && (await diskTextOf(abs)) === old) {
+    // 编辑器里的与磁盘上此刻的一样：不是「没保存的」，磁盘上那一份要存由磁盘那条路存。
+    return { skipped: 'same' };
+  }
+  // 磁盘上的这一份跟「最新一个」比时跳过「没保存的」那几版（{@link UNSAVED_NOTE}）：它们没在磁盘上待过，夹在中间会让
+  // 磁盘上没变的这一份每恢复一次就被当成新的再存一遍。编辑器里的那一份跟最新一个比。
+  const notes = opts.content === undefined ? await readNotes(dir) : {};
+  const latestName = names.find((n) => notes[n] !== UNSAVED_NOTE);
   let latest: { text: string; time: number } | undefined;
-  if (names[0]) {
+  if (latestName) {
     try {
-      latest = { text: decodeFileText(await fs.readFile(path.join(dir, names[0]))), time: parseSnapshotFileName(names[0])!.time };
+      latest = { text: decodeFileText(await fs.readFile(path.join(dir, latestName))), time: parseSnapshotFileName(latestName)!.time };
     } catch {
       latest = undefined;
     }
@@ -379,11 +413,11 @@ async function snapshot(
   const now = opts.now ?? Date.now();
   const decision = decideSnapshot({ old, next, latest, now, force: opts.force });
   if (!decision.save) {
-    if (decision.reason === 'same' && names[0]) {
-      if (opts.note) {
-        await noteSnapshot(dir, names[0], opts.note);
+    if (decision.reason === 'same' && latestName) {
+      if (opts.note && opts.content === undefined) {
+        await noteSnapshot(dir, latestName, opts.note);
       }
-      return { skipped: 'same', latest: names[0] };
+      return { skipped: 'same', latest: latestName };
     }
     return { skipped: decision.reason };
   }
@@ -411,6 +445,15 @@ async function snapshot(
     });
   }
   return { saved: name };
+}
+
+/** 磁盘上此刻这份文件的文字；不在、读不动给 undefined。 */
+async function diskTextOf(abs: string): Promise<string | undefined> {
+  try {
+    return decodeFileText(await fs.readFile(abs));
+  } catch {
+    return undefined;
+  }
 }
 
 // ---------------------------------------------------------------- 备注

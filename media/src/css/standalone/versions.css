@@ -197,6 +197,20 @@
   color: var(--vscode-charts-blue, #3794ff);
 }
 
+.vs-git .vs-mark {
+  color: var(--vscode-charts-orange, #d18616);
+}
+
+.vs-git-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 14px 4px;
+  font-size: 0.88em;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+}
+
 .vs-unsaved .vs-when {
   color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
 }

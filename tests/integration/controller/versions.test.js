@@ -12,6 +12,8 @@
  * | 存档点里的样子混进同一条时间线：`cp:` 开头、带备注；内容一样的连着几个只留最早那一个；读得回全文；改了备注重列跟上 | 一行说的是「到这个存档点它变成了这样」，三十个自动存档点里没动过的不刷三十行 |
  * | 现在存一版：存的是磁盘上的那一份，与最新一版一样时不重复存，之后重推列表 | 界面上说的「不是编辑器里没保存的那份」要成立 |
  * | 对比合并放回之前、前端放回一版（一处）之前发的 `saveVersion quiet`：磁盘上那一份先强制存一版，**节流拦不住** | 放回去的内容一存盘（开着自动保存时停笔两秒）就盖掉它；按节流它可能因为「改动小」不存 |
+ * | 恢复整份时带上的 `unsaved`：磁盘上那一版之后再存编辑器里的那一版、带备注；一样的不重复存，磁盘上那一版不被记成「没保存的」 | 整份换掉之后撤销栈只活在这一页里，存盘、关标签之后那些字只剩这一版 |
+ * | 工程在 git 仓库里：提交过的各版混进同一条时间线（`git:` 开头、带提交号 / 说明 / 作者），读得回全文；别的文件的 id 读不到 | 时间线的第三个来源；只读，不越界 |
  */
 const { describe, test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
@@ -21,6 +23,7 @@ const { makeTempProject } = require('../../helpers/tmpProject');
 const { makeFakeHost } = require('../../helpers/fakeHost');
 const { makeSettings } = require('../../helpers/fakeProvider');
 const { cleanup } = require('../../helpers/teardown');
+const { HAS_GIT, gitInit, gitCommitAll } = require('../../helpers/gitRepo');
 
 const CHAPTER = 'chapters/001-雨夜.md';
 const DISK = '# 雨夜\n\n他推开门。\n\n雨下了三天。\n';
@@ -343,5 +346,88 @@ describe('存档点里的样子混进同一条时间线', () => {
     await bundle.checkpoints.noteCheckpoint(t.project, ids.three, '三，改过备注');
     await send({ type: 'listVersions', path: REL });
     assert.equal(ofType('versions')[0].entries[1].checkpoint.note, '三，改过备注');
+  });
+});
+
+describe('恢复整份之前：编辑器里没保存的那一份也存一版', () => {
+  const REL = 'chapters/006-归舟.md';
+  const ON_DISK = '# 归舟\n\n船靠岸了。\n';
+  const UNSAVED = '# 归舟\n\n船靠岸了，他没有下来。\n';
+  let list;
+
+  before(async () => {
+    t.write(REL, ON_DISK);
+    await send({ type: 'saveVersion', path: REL, quiet: true, unsaved: UNSAVED });
+    list = ofType('versions')[0];
+  });
+
+  test('先存磁盘上的，再存编辑器里的（新的在前），一句提示都没有', () => {
+    const names = snapNames(REL);
+    assert.equal(names.length, 2);
+    assert.equal(fs.readFileSync(t.rel('.novelwarden/history', REL, names[0]), 'utf8'), UNSAVED);
+    assert.equal(fs.readFileSync(t.rel('.novelwarden/history', REL, names[1]), 'utf8'), ON_DISK);
+    assert.equal(ofType('toast').length, 0);
+  });
+
+  test('编辑器里那一版带备注，磁盘上那一版不带', () => {
+    assert.equal(list.entries[0].note, bundle.history.UNSAVED_NOTE);
+    assert.equal(list.entries[1].note, undefined);
+  });
+
+  test('再来一次同样的：都不重复存；磁盘上那一版不被记成「没保存的」', async () => {
+    await send({ type: 'saveVersion', path: REL, quiet: true, unsaved: UNSAVED });
+    assert.equal(snapNames(REL).length, 2);
+    await send({ type: 'saveVersion', path: REL, quiet: true, unsaved: ON_DISK });
+    assert.equal(snapNames(REL).length, 2);
+    const entries = ofType('versions')[0].entries;
+    assert.deepEqual(
+      entries.map((e) => e.note),
+      [bundle.history.UNSAVED_NOTE, undefined]
+    );
+  });
+});
+
+describe('git 提交里的样子混进同一条时间线', { skip: !HAS_GIT && '没有 git' }, () => {
+  const REL = 'chapters/007-山门.md';
+  const G1 = '# 山门\n\n石阶很长。\n';
+  const G2 = '# 山门\n\n石阶很长，他走了一夜。\n';
+  const NOW = '# 山门\n\n石阶很长，他走了一夜，天亮时到了。\n';
+  let list;
+  let commit;
+
+  before(async () => {
+    const base = Math.floor(Date.now() / 1000) - 7200;
+    gitInit(t.dir);
+    t.write(REL, G1);
+    gitCommitAll(t.dir, '山门初稿', base);
+    t.write(REL, G2);
+    commit = gitCommitAll(t.dir, '山门改了一句', base + 60);
+    // 经网关覆盖：存下 G2 的快照（时间是此刻，排在两次提交前面）。
+    await controller.workspace.write(REL, { text: NOW }, { mode: 'overwrite', review: false });
+    await send({ type: 'listVersions', path: REL });
+    list = ofType('versions')[0];
+  });
+
+  test('新的在前：快照、两次提交；git 那几行带提交号、说明与作者', () => {
+    assert.deepEqual(
+      list.entries.map((e) => (e.git ? `git ${e.git.subject}` : 'snapshot')),
+      ['snapshot', 'git 山门改了一句', 'git 山门初稿']
+    );
+    const g = list.entries[1];
+    assert.ok(g.id.startsWith(`git:${commit}:`), g.id);
+    assert.deepEqual(g.git, { commit, subject: '山门改了一句', author: '作者' });
+    assert.equal(g.words, bundle.fsx.countWords(G2));
+  });
+
+  test('读得回那一次提交里的全文', async () => {
+    await send({ type: 'readVersion', path: REL, id: list.entries[2].id, requestId: 'r-git' });
+    const r = ofType('versionText')[0];
+    assert.equal(r.requestId, 'r-git');
+    assert.equal(r.text, G1);
+  });
+
+  test('别的文件的 git 版本 id：带 error，不抛', async () => {
+    await send({ type: 'readVersion', path: CHAPTER, id: list.entries[2].id, requestId: 'r-git2' });
+    assert.match(ofType('versionText')[0].error, /不在这份文件的 git 历史里/);
   });
 });
