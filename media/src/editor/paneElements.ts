@@ -71,8 +71,8 @@ export interface OpenFile {
   markdownPreview?: boolean;
   /** 在预览里时切走那一刻预览的滚动位置，切回来放回去。 */
   previewScrollTop?: number;
-  caret: number;
-  scrollTop: number;
+  /** 正文区的选区与滚动：切走时记下、切回来放回去（`pane.ts` 的 `stashView` / `restoreView`）。 */
+  view: FileView;
   /**
    * 这份文件自己的撤销历史（`history.ts`）。切标签不丢，关标签随文件一起丢，刷新不恢复；
    * 搬到另一块编辑区 / 改名时跟着搬（见 `CarriedDraft`）。
@@ -83,6 +83,22 @@ export interface OpenFile {
    * 重建，自动保存跳过它；磁盘上又出现了（核对磁盘时）就清掉。
    */
   gone?: boolean;
+}
+
+/**
+ * 一个标签在正文区里的样子：选区（没选中时两头相同，就是光标；`backward` 是从后往前拉的，Shift+方向键接着从那头伸缩）
+ * 与滚动位置。开着时记在 `OpenFile.view`，关掉之后按路径再记一阵（`store.ts` 的 `rememberView`）。
+ */
+export interface FileView {
+  start: number;
+  end: number;
+  backward?: boolean;
+  scrollTop: number;
+}
+
+/** 新开的一份：光标在开头、从顶上开始。 */
+export function freshView(): FileView {
+  return { start: 0, end: 0, scrollTop: 0 };
 }
 
 /** 冲突时暂存的磁盘版本，供「用磁盘版本覆盖」使用。 */
@@ -104,7 +120,7 @@ export interface Conflict {
  * `preview`：搬走时是不是临时标签（刷新恢复、改名搬家时照旧）。`markdownPreview`：搬走时是不是在 Markdown 预览里（同样照旧）。
  *
  * `local`：标签右键「移到另一侧」——就在页面里从一块搬到另一块，接手的那一块收到的文件就是搬走时的
- * 基线（不经后端重读），所以连冲突条、见过的磁盘新版、「磁盘上没了」与光标位置一起接上。
+ * 基线（不经后端重读），所以连冲突条、见过的磁盘新版、「磁盘上没了」与选区、滚动（`view`）一起接上。
  */
 export interface CarriedDraft {
   hash?: string;
@@ -118,8 +134,7 @@ export interface CarriedDraft {
   gone?: boolean;
   conflict?: { text: string; hash: string; reopen?: boolean };
   diskSeen?: string;
-  caret?: number;
-  scrollTop?: number;
+  view?: FileView;
 }
 
 /** 从页面上固定的 id 收集主区的节点引用。 */

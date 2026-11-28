@@ -10,7 +10,7 @@ import { announceEditorActive, projectStorageKey } from '../globals';
 import type { MenuItem } from '../globals';
 import type { EditorFileView, EditorOpenIntent, InMessage } from '../protocol';
 import type { TextSelection } from './history';
-import type { CarriedDraft, OpenFile, PaneId } from './paneElements';
+import type { CarriedDraft, FileView, OpenFile, PaneId } from './paneElements';
 
 /** `Pane.applyEdit` 的选项。 */
 export interface ApplyEditOptions {
@@ -262,16 +262,12 @@ export function refreshOtherTabs(except: Pane): void {
   }
 }
 
-// ---------------------------------------------------------------- 关掉之后的光标与滚动
+// ---------------------------------------------------------------- 关掉之后的选区与滚动
 
-/**
- * 关掉的（含被换掉的临时标签、搬去另一块的）文件最后的光标与滚动：这一页里再打开它时放回去，不从顶上重新找。
+/*
+ * 关掉的（含被换掉的临时标签、搬去另一块的）文件最后的选区与滚动（`FileView`）：这一页里再打开它时放回去，不从顶上重新找。
  * 单击浏览章节时临时标签一直在被换掉，回到看过的那一章应该还在原处。按路径记、两块共用，不进 localStorage。
  */
-export interface FileView {
-  caret: number;
-  scrollTop: number;
-}
 
 const VIEW_LIMIT = 100;
 const closedViews = new Map<string, FileView>();
@@ -284,7 +280,7 @@ export function rememberView(path: string, view: FileView): void {
   }
 }
 
-/** 取走这份文件关掉时记下的光标与滚动（取一次就没了：开着时由 `OpenFile` 自己记）。 */
+/** 取走这份文件关掉时记下的选区与滚动（取一次就没了：开着时由 `OpenFile.view` 自己记）。 */
 export function takeView(path: string): FileView | undefined {
   const view = closedViews.get(path);
   closedViews.delete(path);

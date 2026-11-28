@@ -113,6 +113,64 @@ const SHIMS = {
     });
   },
   /**
+   * 窄屏上编辑区那一层的显隐（配 `narrow` 用）：`.wb-editor` 只在 body 带 `editor-open` 时排版（`narrow.css`），自己或祖先
+   * 带 `hidden` 类的也不排版。照 Chrome 实测的样子：没排版的 `checkVisibility()` 是 false，`scrollTop` 读出来是 0、写进去
+   * 不算数，再排上版时把藏起来之前的偏移还给它。`window.__relayout()` 是浏览器排一次版：刚露出来、带着偏移的先发
+   * `scroll`（还回来的那个偏移），再叫 `ResizeObserver`（只报排版与否变了的节点）——顺序同浏览器一帧里的先后。
+   */
+  narrowLayout(window) {
+    const laidOut = (node) =>
+      !node.closest('.hidden') && (!node.closest('.wb-editor') || window.document.body.classList.contains('editor-open'));
+    window.HTMLElement.prototype.checkVisibility = function () {
+      return laidOut(this);
+    };
+    const offsets = new WeakMap();
+    Object.defineProperty(window.Element.prototype, 'scrollTop', {
+      configurable: true,
+      get() {
+        return laidOut(this) ? (offsets.get(this) ?? 0) : 0;
+      },
+      set(value) {
+        if (laidOut(this)) {
+          offsets.set(this, Math.max(0, Number(value) || 0));
+        }
+      },
+    });
+    const observers = [];
+    window.ResizeObserver = class {
+      constructor(callback) {
+        this.callback = callback;
+        this.nodes = new Map();
+        observers.push(this);
+      }
+      observe(node) {
+        this.nodes.set(node, laidOut(node));
+      }
+      unobserve(node) {
+        this.nodes.delete(node);
+      }
+      disconnect() {
+        this.nodes.clear();
+      }
+    };
+    window.__relayout = () => {
+      const changed = observers.map((o) => [...o.nodes].filter(([node, was]) => laidOut(node) !== was).map(([node]) => node));
+      for (const node of new Set(changed.flat())) {
+        if (laidOut(node) && node.scrollTop > 0) {
+          node.dispatchEvent(new window.Event('scroll'));
+        }
+      }
+      observers.forEach((o, i) => {
+        for (const node of changed[i]) {
+          o.nodes.set(node, laidOut(node));
+        }
+        if (changed[i].length > 0) {
+          o.callback(changed[i].map((target) => ({ target })), o);
+        }
+      });
+    };
+  },
+  /**
    * 手拨的时钟：窗口里的 `setTimeout` / `clearTimeout` / `setInterval` / `clearInterval` 换成假的，
    * `window.__clock.tick(ms)` 往前拨——拨到点的按时间先后跑，跑的时候新挂上的只要也在这段里照样跑。
    * 测停笔 2 秒、10 秒没回音、收到 `state` 之后的去抖这些，不必真等。`Date` 不动。

@@ -54,6 +54,7 @@ import { EditHistory, diffText } from './history';
 import type { TextChange, TextSelection } from './history';
 import { indentLines, outdentLines } from './indent';
 import { previewTabsEnabled } from './paragraphState';
+import { freshView } from './paneElements';
 import type { CarriedDraft, OpenFile, PaneId, PaneRefs } from './paneElements';
 import { renderPreview } from './preview';
 import { lineOfOffset, lineStarts } from './previewCore';
@@ -126,6 +127,14 @@ function viewText(text: string): string {
   return text.includes('\r') ? text.replace(/\r\n?/g, '\n') : text;
 }
 
+/**
+ * 这个节点此刻排没排版。自己或祖先藏着（`display: none`：窄屏上编辑区那一层翻下去时整层藏着）时读到的 `scrollTop` 是 0、
+ * 写进去也不算数——这时不能拿它记位置，放回位置也得等它露出来。没有 `checkVisibility` 的环境（jsdom）只看自己的 `hidden` 类。
+ */
+function rendered(node: HTMLElement): boolean {
+  return typeof node.checkVisibility === 'function' ? node.checkVisibility() : !node.classList.contains('hidden');
+}
+
 export function createPane(
   id: PaneId,
   el: PaneRefs,
@@ -161,6 +170,12 @@ export function createPane(
    * 都只改 `activePath` 再重画。从前这些路上 textarea 沿用上一份的滚动偏移，滚动事件还把它记成了这一份的位置。
    */
   let shown: OpenFile | undefined;
+  /**
+   * 换上了、滚动位置却还没放回去的那一份：换上它时正文区（或预览）藏着（窄屏上编辑区那层翻下去时从工程页开了一章）。
+   * 露出来时（`ResizeObserver`：尺寸从 0 变成有）再放。在那之前滚动不记、也不读——浏览器露出来时先把藏起来之前的偏移
+   * 还给它，那是上一份的；从前这里把它记成了这一份的位置，上一份切走时读到的 0 也冲掉了它自己的。
+   */
+  let unplaced: OpenFile | undefined;
 
   const pane: Pane = {
     id,
@@ -522,8 +537,8 @@ export function createPane(
     }
     // 不抢焦点地切（上一章 / 下一章时另一块里配对的那一份）：不认下「当前这一块」，焦点留在原处。
     const quiet = opts?.focus === false;
-    // 切走前把光标位置留住，切回来还在原处；正在打的那一步也收口，切回来再打另起一步。
-    stashCaret();
+    // 正在打的那一步收口，切回来再打另起一步。选区与滚动：`renderAll` 换上这一份时先留住上一份的、再放回这一份的
+    // （切走时在预览里的照旧在预览里，滚到切走时的位置）。
     activeFile()?.history.seal();
     leaveSpecial();
     pane.activePath = path;
@@ -532,26 +547,19 @@ export function createPane(
     }
     renderAll();
     announceActive();
-    if (previewing(file)) {
-      // 这一份切走时在预览里：照旧在预览里，滚到切走时的位置。
-      el.preview.scrollTop = file.previewScrollTop ?? 0;
-      if (!quiet) {
+    // 聚焦不滚：位置刚放回去，浏览器聚焦时把光标滚进视野会把它冲掉（作者滚走了没点、光标还在上面时）。
+    if (!quiet) {
+      if (previewing(file)) {
         el.preview.focus({ preventScroll: true });
+      } else if (!avoidSoftKeyboard()) {
+        // 手机上切过来只是看：不把焦点放进正文区（一聚焦就弹软键盘），点进正文才打字。
+        el.area.focus({ preventScroll: true });
       }
-    } else {
-      // 手机上切过来只是看：不把焦点放进正文区（一聚焦就弹软键盘），点进正文才打字。
-      if (!quiet && !avoidSoftKeyboard()) {
-        el.area.focus();
-      }
-      if (file.caret !== undefined) {
-        el.area.selectionStart = el.area.selectionEnd = Math.min(file.caret, el.area.value.length);
-      }
-      el.area.scrollTop = file.scrollTop || 0;
     }
     persist();
   }
 
-  /** 切走之前把这一份的光标与滚动（在预览里就是预览的滚动）留住。 */
+  /** 切走之前把这一份的选区与滚动（在预览里就是预览的滚动）留住。 */
   function stashCaret(): void {
     const file = activeFile();
     if (file) {
@@ -559,29 +567,59 @@ export function createPane(
     }
   }
 
-  /** 把正显示着的这一份的光标与滚动从 DOM 读回它身上。textarea / 预览藏着时（特殊标签盖着）滚动读出来是 0，不读。 */
+  /**
+   * 把正显示着的这一份的选区与滚动从 DOM 读回它身上。滚动只在排着版、而且已经放回过位置时读（`rendered` / `unplaced`）：
+   * 藏着时（特殊标签盖着、窄屏上编辑区那层翻下去了）读出来是 0，读了就把记着的冲掉了。
+   */
   function stashView(file: OpenFile): void {
+    const placed = file !== unplaced;
     if (previewing(file)) {
-      if (!el.preview.classList.contains('hidden')) {
+      if (placed && rendered(el.preview)) {
         file.previewScrollTop = el.preview.scrollTop;
       }
       return;
     }
-    file.caret = el.area.selectionStart;
-    if (!el.area.classList.contains('hidden')) {
-      file.scrollTop = el.area.scrollTop;
-    }
+    file.view = {
+      start: el.area.selectionStart,
+      end: el.area.selectionEnd,
+      ...(el.area.selectionDirection === 'backward' ? { backward: true } : {}),
+      scrollTop: placed && rendered(el.area) ? el.area.scrollTop : file.view.scrollTop,
+    };
   }
 
-  /** 换上这一份之后把它的光标与滚动放回去（新开的是 0：从顶上开始，不沿用上一份的偏移）。先落光标、再滚。 */
+  /**
+   * 换上这一份之后把它的选区与滚动放回去（新开的是 0：从顶上开始，不沿用上一份的偏移）。先落选区、再滚：落选区时浏览器
+   * 可能自己把光标滚进视野。选区藏着也落得上；滚动要等露出来（`placeScroll`）。
+   */
   function restoreView(file: OpenFile): void {
-    if (previewing(file)) {
-      el.preview.scrollTop = file.previewScrollTop ?? 0;
+    if (!previewing(file)) {
+      const { start, end } = clampSelection(file.view, el.area.value.length);
+      el.area.setSelectionRange(start, end, file.view.backward ? 'backward' : undefined);
+    }
+    placeScroll(file);
+  }
+
+  /** 把这一份的滚动位置放回正文区（或预览）。那个框此刻藏着就记下来，露出来时再放。 */
+  function placeScroll(file: OpenFile): void {
+    const box = previewing(file) ? el.preview : el.area;
+    if (!rendered(box)) {
+      unplaced = file;
       return;
     }
-    const caret = Math.min(file.caret, el.area.value.length);
-    el.area.setSelectionRange(caret, caret);
-    el.area.scrollTop = file.scrollTop || 0;
+    unplaced = undefined;
+    box.scrollTop = previewing(file) ? (file.previewScrollTop ?? 0) : file.view.scrollTop;
+  }
+
+  // 正文区 / 预览露出来了（尺寸变了，从藏着到露出来是从 0 变成有）：没放回位置的那一份这时放。没有 ResizeObserver 的环境
+  // （jsdom）用不着——那里不看祖先，`rendered` 一直说排着版。
+  if (typeof ResizeObserver === 'function') {
+    const watch = new ResizeObserver(() => {
+      if (unplaced && unplaced === shown) {
+        placeScroll(unplaced);
+      }
+    });
+    watch.observe(el.area);
+    watch.observe(el.preview);
   }
 
   /**
@@ -620,14 +658,20 @@ export function createPane(
       }
       const target = areaScrollForLine(pane, pos);
       const starts = lineStarts(el.area.value);
-      const caretLine = lineOfOffset(starts, Math.min(file.caret, el.area.value.length));
+      const sel = clampSelection(file.view, el.area.value.length);
+      // 光标在选区的哪一头：从后往前拉的在开头。
+      const caretLine = lineOfOffset(starts, file.view.backward ? sel.start : sel.end);
       if (caretLine < Math.floor(target.top) || caretLine > target.bottom) {
-        file.caret = starts[Math.min(starts.length - 1, Math.ceil(target.top - 1e-6))];
+        const top = starts[Math.min(starts.length - 1, Math.ceil(target.top - 1e-6))];
+        file.view = { start: top, end: top, scrollTop: target.scrollTop };
+      } else {
+        file.view = { ...file.view, scrollTop: target.scrollTop };
       }
-      // 先落光标、再滚：落选区时浏览器可能自己把光标滚进视野。
-      el.area.setSelectionRange(file.caret, file.caret);
-      el.area.scrollTop = target.scrollTop;
-      file.scrollTop = el.area.scrollTop;
+      restoreView(file);
+      // 滚到底时浏览器会夹一下：记实际停下的位置。
+      if (file !== unplaced) {
+        file.view.scrollTop = el.area.scrollTop;
+      }
     }
     persist();
     return true;
@@ -677,8 +721,7 @@ export function createPane(
       gone: !!file.gone,
       conflict: conflicts.get(path),
       diskSeen: diskSeen.get(path),
-      caret: file.caret,
-      scrollTop: file.scrollTop,
+      view: { ...file.view },
     };
     if (file.draft !== file.text) {
       carry.hash = file.hash;
@@ -715,7 +758,7 @@ export function createPane(
     return { view, carried: { ...carried, hash: file.hash, local: true } };
   }
 
-  /** 这一份要从这块里拿走了：光标与滚动记下来（正显示着的先从 DOM 读回来），这一页里再打开它时放回去。 */
+  /** 这一份要从这块里拿走了：选区与滚动记下来（正显示着的先从 DOM 读回来），这一页里再打开它时放回去。 */
   function keepView(path: string): void {
     const file = files.get(path);
     if (!file) {
@@ -724,7 +767,7 @@ export function createPane(
     if (file === shown) {
       stashView(file);
     }
-    rememberView(path, { caret: file.caret, scrollTop: file.scrollTop });
+    rememberView(path, { ...file.view });
   }
 
   function dropFile(path: string): void {
@@ -746,7 +789,7 @@ export function createPane(
 
   function renderAll(): void {
     const file = activeFile();
-    // 换了一份（或没了）：DOM 里还是上一份，先把它的光标与滚动留住；换上之后在下面放回这一份的。
+    // 换了一份（或没了）：DOM 里还是上一份，先把它的选区与滚动留住；换上之后在下面放回这一份的。
     const switched = file !== shown;
     if (switched && shown) {
       stashView(shown);
@@ -920,7 +963,7 @@ export function createPane(
   /** 把 `file.draft` 写进 textarea 并落选区（当前文件、不在预览时）。保住滚动位置。 */
   function showDraft(file: OpenFile, selection: TextSelection): void {
     const sel = clampSelection(selection, viewText(file.draft).length);
-    file.caret = sel.start;
+    file.view = { start: sel.start, end: sel.end, scrollTop: file.view.scrollTop };
     if (file !== activeFile() || previewing(file)) {
       return;
     }
@@ -948,11 +991,11 @@ export function createPane(
     afterContentChange(file, source, change);
   }
 
-  /** 改动之前的选区：当前文件取 textarea 的，否则取切走时留下的光标。 */
+  /** 改动之前的选区：当前文件取 textarea 的，否则取切走时留下的。 */
   function selectionOf(file: OpenFile): TextSelection {
     return file === activeFile() && !previewing(file)
       ? currentSelection()
-      : { start: file.caret, end: file.caret };
+      : { start: file.view.start, end: file.view.end };
   }
 
   function applyEdit(
@@ -1106,8 +1149,9 @@ export function createPane(
 
   el.area.addEventListener('scroll', () => {
     const file = activeFile();
-    if (file) {
-      file.scrollTop = el.area.scrollTop;
+    // 位置还没放回去（藏着时换上的）：这时的偏移是浏览器替上一份留着的，不记。
+    if (file && file !== unplaced) {
+      file.view.scrollTop = el.area.scrollTop;
     }
   });
 
@@ -1462,7 +1506,8 @@ export function createPane(
   el.preview.tabIndex = -1;
   el.preview.addEventListener('scroll', () => {
     const file = activeFile();
-    if (file && previewing(file)) {
+    // 同正文区：位置还没放回去时的偏移不是这一份的。
+    if (file && file !== unplaced && previewing(file)) {
       file.previewScrollTop = el.preview.scrollTop;
     }
   });
@@ -1692,8 +1737,7 @@ export function createPane(
       draftPath: incoming.draftPath,
       kind: incoming.kind,
       label: incoming.label,
-      caret: 0,
-      scrollTop: 0,
+      view: freshView(),
       history: new EditHistory(),
     };
     if (restore?.draft !== undefined) {
@@ -1714,17 +1758,15 @@ export function createPane(
     if (restore?.history && restore.historyText === file.draft) {
       file.history = restore.history;
     }
-    // 页面里直接搬过来的（「移到另一侧」）：「磁盘上没了」与光标、滚动位置也接上。
+    // 页面里直接搬过来的（「移到另一侧」）：「磁盘上没了」与选区、滚动位置也接上。
     if (restore?.local) {
       file.gone = !!restore.gone;
-      file.caret = restore.caret ?? 0;
-      file.scrollTop = restore.scrollTop ?? 0;
+      file.view = restore.view ? { ...restore.view } : freshView();
     }
-    // 这一页里关掉过（或临时标签被换掉过）：回到关掉时的光标与滚动。内容变了的话夹进新长度（`restoreView`）。
+    // 这一页里关掉过（或临时标签被换掉过）：回到关掉时的选区与滚动。内容变了的话夹进新长度（`restoreView`）。
     const seen = takeView(incoming.path);
     if (seen && !restore?.local) {
-      file.caret = seen.caret;
-      file.scrollTop = seen.scrollTop;
+      file.view = seen;
     }
     return file;
   }
