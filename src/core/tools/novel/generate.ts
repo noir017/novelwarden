@@ -37,7 +37,7 @@
  */
 import type { ToolContext, ToolDef, ToolIntent, ToolResult } from '../types';
 import { int, objectSchema, str } from '../schema';
-import { clip, describeForReview, describePath, text } from './naming';
+import { clip, describeForReview, describePath, resolveToolPath, text } from './naming';
 import { generate } from '../../generation/generate';
 import { createModelPool } from '../../llm/pool';
 import type { LlmProvider } from '../../llm/provider';
@@ -85,7 +85,8 @@ export const generateTool: ToolDef = {
    * 工具条上写清**会花钱、写到哪**：作者回头看这一行，要知道它动的是哪一份。
    */
   intent(args, project): ToolIntent {
-    const target = text(args.target);
+    const rawTarget = text(args.target);
+    const target = project ? resolveToolPath(project, rawTarget) : rawTarget;
     const dir = project ? settingDirPath(project, target) : undefined;
     return {
       gate: 'mutating',
@@ -138,7 +139,7 @@ export const generateTool: ToolDef = {
   ),
 
   async run(ctx: ToolContext, args: Record<string, unknown>): Promise<ToolResult> {
-    const rel = typeof args.target === 'string' ? args.target.trim() : '';
+    const rel = typeof args.target === 'string' ? resolveToolPath(ctx.project, args.target) : '';
     const capability = args.capability;
 
     if (!isCapability(capability)) {

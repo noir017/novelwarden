@@ -26,12 +26,13 @@
  */
 import type { ToolContext, ToolDef, ToolIntent, ToolResult } from '../types';
 import { objectSchema, str } from '../schema';
-import { describeForReview, describePath, text } from './naming';
+import { clip, describeForReview, describePath, resolveToolPath, text } from './naming';
 import { WsError, kindOfPath } from '../../workspace';
 import type { PathKind, WriteInput } from '../../workspace';
 import type { Artifact } from '../../features/artifact';
 import { clearFailures, recordFailure } from '../../runtime/errorLog';
 import { countWords } from '../../model/fs';
+import { asString, inspectFrontmatter } from '../../model/markdown';
 import { describeError } from '../../runtime/logger';
 
 /** 写入模式。与 `WriteOptions.mode` 同一套值，不另造名字。 */
@@ -48,7 +49,8 @@ export const writeTool: ToolDef = {
   /** 写盘（`mutating`）：不等人点，改之前那一版由改动账存下（`workspace/journal.ts`），作者在对话页上撤销这一步。 */
   intent(args, project): ToolIntent {
     const mode = text(args.mode) || 'create';
-    const target = text(args.path);
+    const rawTarget = text(args.path);
+    const target = project ? resolveToolPath(project, rawTarget) : rawTarget;
     if (mode === 'overwrite') {
       return { gate: 'mutating', title: `覆盖「${describePath(target, project)}」` };
     }
@@ -81,10 +83,11 @@ export const writeTool: ToolDef = {
   ),
 
   async run(ctx: ToolContext, args: Record<string, unknown>): Promise<ToolResult> {
-    const rel = typeof args.path === 'string' ? args.path.trim() : '';
-    if (!rel) {
+    const rawRel = typeof args.path === 'string' ? args.path.trim() : '';
+    if (!rawRel) {
       return { text: '', error: 'path 是必填的：给一个工程内相对路径。' };
     }
+    const rel = resolveToolPath(ctx.project, rawRel);
 
     const rawMode = typeof args.mode === 'string' ? args.mode.trim() : '';
     if (rawMode && !(MODES as readonly string[]).includes(rawMode)) {
@@ -138,6 +141,16 @@ export const writeTool: ToolDef = {
     }
 
     const path = kindOfPath(ctx.project, rel);
+    if (
+      !draftId &&
+      (mode === 'create' || mode === 'overwrite') &&
+      (path.kind === 'character' || path.kind === 'lore')
+    ) {
+      const fmError = validateCardFrontmatter(path.kind, content!);
+      if (fmError) {
+        return { text: '', error: fmError };
+      }
+    }
     const what = describeForReview(path, rel);
 
     try {
@@ -233,4 +246,106 @@ async function clearFailure(ctx: ToolContext, path: PathKind): Promise<void> {
   if (path.plotRelPath) {
     await clearFailures(ctx.project, 'plot', path.plotRelPath, WRITE_OP);
   }
+}
+
+const HEADING_FM_RE = /^#{1,3}\s+(?:name|title)\s*:/i;
+const SQUASHED_NO_FENCE_RE =
+  /^(?:name|title)\s*:\s*.*\s+(?:name|title|aliases|tags|gender|firstAppear|lastSeen|appearsIn|keywords|brief)\s*:/i;
+const SQUASHED_FIELD_RE =
+  /\s+(?:name|title|aliases|tags|gender|firstAppear|lastSeen|appearsIn|updatedThrough|stateThrough|stateHash|keywords|brief|bodyHash)\s*:/;
+
+/**
+ * 角色卡 / 设定条目的 YAML frontmatter 轻量前置校验（供 `write` 纯文本新建/覆盖使用）。
+ *
+ * 复用 `model/markdown.ts` 的 `inspectFrontmatter` 与 `asString`，只拦截明显损坏的 frontmatter
+ * （未闭合 `---`、压成标题行或单行、非法断行、数组未闭合、角色卡缺有效 `name`），
+ * 遵循第 1 条容错精神：不带 frontmatter 的合法手写 Markdown 卡片照常放行。
+ */
+export function validateCardFrontmatter(kind: 'character' | 'lore', content: string): string | undefined {
+  const label = kind === 'character' ? '角色卡' : '设定条目';
+  const example =
+    kind === 'character'
+      ? '---\nname: 角色名\naliases: []\ntags: []\n---'
+      : '---\ntitle: 设定名\nkeywords: []\n---';
+
+  const normalized = content.replace(/^\uFEFF/, '');
+  const firstLine = normalized.trimStart().split(/\r?\n/, 1)[0] ?? '';
+
+  if (HEADING_FM_RE.test(firstLine)) {
+    return (
+      `${label}的 YAML frontmatter 被压成了标题行（${clip(firstLine, 60)}），未落盘。` +
+      `请用单独的 --- 包裹并逐行写字段，例如：\n${example}`
+    );
+  }
+
+  const inspected = inspectFrontmatter(normalized);
+  if (inspected.brokenFence) {
+    if (inspected.brokenFence === 'inlineOpen') {
+      return (
+        `${label}的 YAML frontmatter 开头 --- 必须单独占一行，不要把字段和 --- 写在同一行（${clip(firstLine, 60)}），未落盘。` +
+        `正确写法：\n${example}`
+      );
+    }
+    if (inspected.brokenFence === 'leadingSpace') {
+      return `${label}的 YAML frontmatter 开头 --- 必须在文件第一行，前面不要留空行或空格，未落盘。`;
+    }
+    return (
+      `${label}的 YAML frontmatter 开头 --- 没有成对闭合，未落盘。` +
+      `请在元数据末尾单独加一行 ---，再接正文，例如：\n${example}`
+    );
+  }
+
+  if (!inspected.hasFence) {
+    if (SQUASHED_NO_FENCE_RE.test(firstLine)) {
+      return (
+        `${label}的 YAML frontmatter 缺少 --- 包裹且多个字段被压在同一行（${clip(firstLine, 60)}），未落盘。` +
+        `请改写成：\n${example}`
+      );
+    }
+    return undefined;
+  }
+
+  if (inspected.unclosedArrays.length > 0) {
+    const first = inspected.unclosedArrays[0];
+    return (
+      `${label}的 YAML frontmatter 中「${first.key}」的数组未闭合（${clip(first.line, 60)}），未落盘。` +
+      `行内数组请写在同一行「${first.key}: [甲, 乙]」，或改用多行「- 项」写法。`
+    );
+  }
+
+  if (inspected.invalidLines.length > 0) {
+    const first = inspected.invalidLines[0];
+    return (
+      `${label}的 YAML frontmatter 中存在无法解析的行（可能是非法断行或缺少冒号）：「${clip(first, 60)}」，未落盘。` +
+      '每行应为「键: 值」格式，或接在空值键后的「- 列表项」。'
+    );
+  }
+
+  for (const entry of inspected.entries) {
+    const v = entry.rawValue;
+    const quoted =
+      v.length >= 2 && ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'")));
+    if (!quoted && SQUASHED_FIELD_RE.test(v)) {
+      return (
+        `${label}的 YAML frontmatter 中多个字段被压在同一行（「${clip(entry.line, 60)}」），未落盘。` +
+        '请将每个「键: 值」拆成单独一行。'
+      );
+    }
+  }
+
+  if (kind === 'character' && !asString(inspected.frontmatter.name).trim()) {
+    return (
+      `${label}的 YAML frontmatter 中缺少有效的 name 字段，未落盘。` +
+      `请在 --- 之间写明角色名，例如：\n${example}`
+    );
+  }
+
+  if (kind === 'lore' && 'title' in inspected.frontmatter && !asString(inspected.frontmatter.title).trim()) {
+    return (
+      `${label}的 YAML frontmatter 中 title 不能为空，未落盘。` +
+      `请在 --- 之间写明设定标题，例如：\n${example}`
+    );
+  }
+
+  return undefined;
 }

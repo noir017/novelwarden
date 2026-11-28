@@ -6,6 +6,7 @@
  */
 import { str } from '../schema';
 import { countedBy, defineActionTool, handed } from './actions';
+import { resolveToolPath } from './naming';
 import { chapterForSummary, rebuildGlobalSummary, syncSummaries } from '../../features/summarize';
 import { describeFinalize, finalizeChapter } from '../../features/finalize';
 
@@ -24,7 +25,7 @@ export const summaryTool = defineActionTool({
       uses: ['path'],
       requires: ['path'],
       async run(ctx, args) {
-        const rel = String(args.path).trim();
+        const rel = resolveToolPath(ctx.project, String(args.path));
         const chapter = await chapterForSummary(ctx.project, rel);
         if (!chapter) {
           throw new Error(`${rel} 这一章还没有正文，没有可同步的东西。同步是照正文改细纲，没有正文就无从改起。`);

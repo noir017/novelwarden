@@ -18,7 +18,7 @@
  *
  * MCP server 把它贴在工具结果末尾，变了才贴（[mcp/server.ts](../mcp/server.ts)）。
  */
-import type { NovelProject } from '../model/project';
+import { NOVEL_DIR, type NovelProject } from '../model/project';
 import { basename } from 'node:path';
 import {
   CreationTarget,
@@ -68,6 +68,9 @@ export async function buildStateBrief(
     `《${manifest.title || '未命名'}》· 已写 ${written.length} 章 · ${formatWords(words)}` +
       (config.totalChapters ? `（计划 ${config.totalChapters} 章）` : '')
   );
+  if (project.novelDirName !== NOVEL_DIR) {
+    lines.push(`元数据目录：${project.novelDirName}/`);
+  }
 
   const current = target ? await findPipeline(project, index, target) : undefined;
   if (current) {

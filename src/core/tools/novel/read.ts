@@ -14,6 +14,7 @@
 import type { ToolContext, ToolDef, ToolResult } from '../types';
 import { int, objectSchema, str } from '../schema';
 import { WsError } from '../../workspace';
+import { resolveToolPath } from './naming';
 
 /** 一次最多读几行。 */
 export const READ_LINE_LIMIT = 400;
@@ -37,10 +38,11 @@ export const readTool: ToolDef = {
   ),
 
   async run(ctx: ToolContext, args: Record<string, unknown>): Promise<ToolResult> {
-    const rel = typeof args.path === 'string' ? args.path.trim() : '';
-    if (!rel) {
+    const rawRel = typeof args.path === 'string' ? args.path.trim() : '';
+    if (!rawRel) {
       return { text: '', error: 'path 是必填的：给一个工程内相对路径。' };
     }
+    const rel = resolveToolPath(ctx.project, rawRel);
     // 行号对模型是 1-based（返回值里就是这么标的），Workspace 收的是 0-based。
     const from = Math.max(1, toInt(args.offset) ?? 1);
     const want = Math.min(READ_LINE_LIMIT, Math.max(1, toInt(args.limit) ?? READ_LINE_LIMIT));

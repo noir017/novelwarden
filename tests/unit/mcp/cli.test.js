@@ -36,6 +36,52 @@ describe('parseMcpArgs & parseValue', () => {
     assert.equal(c2.stream, false);
     assert.deepEqual(c2.args, { path: 'chapters/001.md', limit: 100 });
   });
+
+  test('--- 开头的 frontmatter、多行文本与负数不会误判为下一个 flag', () => {
+    const fm = '---\nname: test\naliases: [阿测]\n---\n\n# test\n\n正文';
+    const c1 = cli.parseMcpArgs(['call', 'write', '--path', '.novelwarden/characters/test.md', '--content', fm]);
+    assert.equal(c1.args.path, '.novelwarden/characters/test.md');
+    assert.equal(c1.args.content, fm);
+
+    const c2 = cli.parseMcpArgs(['call', 'write', '--path', 'a.md', '--content', '---']);
+    assert.equal(c2.args.content, '---');
+
+    const c3 = cli.parseMcpArgs(['call', 'write', '--path', 'a.md', '--content', '- 列表项']);
+    assert.equal(c3.args.content, '- 列表项');
+
+    const c4 = cli.parseMcpArgs(['call', 'read', '--path', 'a.md', '--offset', '-5', '--delta', '-3.5']);
+    assert.equal(c4.args.offset, -5);
+    assert.equal(c4.args.delta, -3.5);
+  });
+
+  test('布尔开关在末尾、后接长选项或短选项时仍判为 true', () => {
+    const c1 = cli.parseMcpArgs(['call', 'edit', '--path', 'a.md', '--old', 'x', '--new', 'y', '--all']);
+    assert.equal(c1.args.all, true);
+
+    const c2 = cli.parseMcpArgs(['call', 'edit', '--all', '--path', 'a.md', '--old', 'x', '--new', 'y']);
+    assert.equal(c2.args.all, true);
+    assert.equal(c2.args.path, 'a.md');
+
+    const c3 = cli.parseMcpArgs(['call', 'edit', '--all', '-p', '/books/demo', '--path', 'a.md']);
+    assert.equal(c3.args.all, true);
+    assert.equal(c3.project, '/books/demo');
+    assert.equal(c3.args.path, 'a.md');
+  });
+
+  test('支持 --<key>-file <路径|-> 与 --<key>-file=<路径>', () => {
+    const c1 = cli.parseMcpArgs(['call', 'write', '--path', 'a.md', '--content-file', '/tmp/card.md']);
+    assert.deepEqual(c1.fileArgs, { content: '/tmp/card.md' });
+    assert.equal('content-file' in c1.args, false);
+
+    const c2 = cli.parseMcpArgs(['call', 'write', '--path', 'a.md', '--content-file=/tmp/card2.md']);
+    assert.deepEqual(c2.fileArgs, { content: '/tmp/card2.md' });
+
+    const c3 = cli.parseMcpArgs(['call', 'write', '--path', 'a.md', '--content-file', '-']);
+    assert.deepEqual(c3.fileArgs, { content: '-' });
+
+    assert.throws(() => cli.parseMcpArgs(['call', 'write', '--content-file']), /缺少文件路径/);
+    assert.throws(() => cli.parseMcpArgs(['call', 'write', '--content-file=']), /缺少文件路径/);
+  });
 });
 
 describe('runMcpCli 对接 McpRestHandler', () => {
@@ -117,5 +163,23 @@ describe('runMcpCli 对接 McpRestHandler', () => {
     const fail = await h.run(['write', '--path', 'a.md']);
     assert.equal(fail.code, 1);
     assert.ok(fail.err.includes('写入失败'));
+  });
+
+  test('--<key>-file 按纯文本读取文件或 stdin，不经类型转换', async () => {
+    const h = harness({
+      reply: (name, args) => ({ text: `${name}:${typeof args.content}:${args.content}`, isError: false }),
+    });
+
+    const fromFile = await h.run(['write', '--path', 'a.md', '--content-file', 'card.md'], {
+      readFile: (p) => (p === 'card.md' ? '---\nname: 林汐\n---\n\n正文' : ''),
+    });
+    assert.equal(fromFile.code, 0, fromFile.err);
+    assert.equal(h.calls[0].args.content, '---\nname: 林汐\n---\n\n正文');
+
+    const fromStdin = await h.run(['write', '--path', 'b.md', '--content-file', '-'], {
+      readStdin: async () => 'true',
+    });
+    assert.equal(fromStdin.code, 0, fromStdin.err);
+    assert.equal(h.calls[1].args.content, 'true');
   });
 });

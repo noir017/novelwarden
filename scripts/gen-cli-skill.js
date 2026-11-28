@@ -145,7 +145,7 @@ function renderSkillFiles() {
     '```',
     '',
     '- 长任务（如 `generate`、`pipeline`、`summary`）默认走 SSE 心跳保活，不会因空闲超时断开；按 `Ctrl+C` 断开连接即中断服务端任务。',
-    '- 参数传递：`--<参数> <值>` 自动还原布尔、无前导零数字与 JSON 数组/对象（`001` 这类前导零保留为字符串）；复杂长文本优先用 `--data @payload.json` 或 `--data -`（stdin）。',
+    '- 参数传递：`--<参数> <值>` 自动还原布尔、无前导零数字与 JSON 数组/对象（`001` 这类前导零保留为字符串）；长文本或多行 Markdown 可用 `--<参数>-file <路径|->` 按纯文本读入，或用 `--data @payload.json` / `--data -`（stdin）。',
     '- 纯 HTTP 直调（如 `curl`）：`GET /api/status`、`GET /api/tools`、`POST /api/tools/<工具名>[?project=DIR]`，鉴权头为 `Authorization: Bearer $NOVELWARDEN_TOKEN`。',
     '',
     '## 3. 工作原则',

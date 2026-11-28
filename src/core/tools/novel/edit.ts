@@ -28,7 +28,7 @@
  */
 import type { ToolContext, ToolDef, ToolIntent, ToolResult } from '../types';
 import { bool, objectSchema, str } from '../schema';
-import { clip, describePath, text } from './naming';
+import { clip, describePath, resolveToolPath, text } from './naming';
 import { WsError, kindOfPath } from '../../workspace';
 import { clearFailures, recordFailure } from '../../runtime/errorLog';
 import { describeError } from '../../runtime/logger';
@@ -43,7 +43,8 @@ export const editTool: ToolDef = {
    * old → new 两段原文写在 `detail` 里，就是工具条上看得见的那份 diff。
    */
   intent(args, project): ToolIntent {
-    const target = text(args.path);
+    const rawTarget = text(args.path);
+    const target = project ? resolveToolPath(project, rawTarget) : rawTarget;
     return {
       gate: 'mutating',
       title: `改「${describePath(target, project)}」里的一段文字`,
@@ -95,7 +96,7 @@ export const editTool: ToolDef = {
     if (issue) {
       return { text: '', error: issue };
     }
-    const rel = text(args.path);
+    const rel = resolveToolPath(ctx.project, text(args.path));
     const oldText = args.old as string;
     const newText = args.new as string;
     const all = args.all === true;

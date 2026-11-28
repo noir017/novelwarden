@@ -9,6 +9,7 @@
  */
 import { str } from '../schema';
 import { defineActionTool, handed } from './actions';
+import { resolveToolPath } from './naming';
 import {
   createCardForCast,
   createCardsForAllCast,
@@ -64,8 +65,9 @@ export const charactersTool = defineActionTool({
       uses: CARD,
       requires: CARD,
       async run(ctx, args) {
-        await updateCharacterCard(ctx.project, String(args.path).trim(), 'incremental');
-        return handed(`角色卡 ${args.path} 增量更新`);
+        const rel = resolveToolPath(ctx.project, String(args.path));
+        await updateCharacterCard(ctx.project, rel, 'incremental');
+        return handed(`角色卡 ${rel} 增量更新`);
       },
     },
     rebuild: {
@@ -74,8 +76,9 @@ export const charactersTool = defineActionTool({
       uses: CARD,
       requires: CARD,
       async run(ctx, args) {
-        await updateCharacterCard(ctx.project, String(args.path).trim(), 'full');
-        return handed(`角色卡 ${args.path} 重写`);
+        const rel = resolveToolPath(ctx.project, String(args.path));
+        await updateCharacterCard(ctx.project, rel, 'full');
+        return handed(`角色卡 ${rel} 重写`);
       },
     },
     updateAll: {
@@ -116,8 +119,9 @@ export const charactersTool = defineActionTool({
       uses: CARD,
       requires: CARD,
       async run(ctx, args) {
-        await reviewCharacterState(ctx.project, String(args.path).trim());
-        return handed(`角色卡 ${args.path} 的当前状态对比`);
+        const rel = resolveToolPath(ctx.project, String(args.path));
+        await reviewCharacterState(ctx.project, rel);
+        return handed(`角色卡 ${rel} 的当前状态对比`);
       },
     },
   },

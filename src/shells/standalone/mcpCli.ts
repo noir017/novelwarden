@@ -32,6 +32,8 @@ export interface McpCliCommand {
   data?: string;
   /** 通过 `--arg k=v` 或 `--k v` 传入的工具参数。 */
   args: Record<string, unknown>;
+  /** 通过 `--<k>-file <路径|->` 传入的参数，执行时按纯文本读取（不经 `parseValue`）。 */
+  fileArgs: Record<string, string>;
 }
 
 export interface McpCliDeps {
@@ -53,6 +55,7 @@ const HELP_TEXT = `用法：
   --data '<json>' / -d '<json>'   传入 JSON 对象（@路径 读文件，- 读标准输入）
   --arg key=value / -a key=value  设置单个参数（可重复）
   --<参数名> <值>                 直接设置对应工具参数
+  --<参数名>-file <路径|->        从文件（或标准输入 -）读取纯文本作为对应参数值
 
 环境变量：
   NOVELWARDEN_URL                 默认服务地址（缺省 http://127.0.0.1:${DEFAULT_PORT}）
@@ -68,12 +71,13 @@ export function parseMcpArgs(argv: string[], env: NodeJS.ProcessEnv = process.en
   let stream = true;
   let data: string | undefined;
   const args: Record<string, unknown> = {};
+  const fileArgs: Record<string, string> = {};
   const positionals: string[] = [];
 
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--help' || a === '-h') {
-      return { kind: 'help', url, project, json, stream, args };
+      return { kind: 'help', url, project, json, stream, args, fileArgs };
     }
     if (a === '--url' || a === '-u') {
       const next = argv[++i];
@@ -135,14 +139,30 @@ export function parseMcpArgs(argv: string[], env: NodeJS.ProcessEnv = process.en
       const eq = a.indexOf('=');
       if (eq > 2) {
         const key = a.slice(2, eq);
-        args[key] = parseValue(a.slice(eq + 1));
+        const val = a.slice(eq + 1);
+        if (isFileArgKey(key)) {
+          if (!val) {
+            throw new Error(`--${key} 缺少文件路径。`);
+          }
+          fileArgs[key.slice(0, -'-file'.length)] = val;
+        } else {
+          args[key] = parseValue(val);
+        }
       } else {
         const key = a.slice(2);
-        const peek = argv[i + 1];
-        if (peek === undefined || peek.startsWith('-')) {
-          args[key] = true;
+        if (isFileArgKey(key)) {
+          const next = argv[++i];
+          if (!next) {
+            throw new Error(`--${key} 缺少文件路径。`);
+          }
+          fileArgs[key.slice(0, -'-file'.length)] = next;
         } else {
-          args[key] = parseValue(argv[++i]);
+          const peek = argv[i + 1];
+          if (peek === undefined || looksLikeFlag(peek)) {
+            args[key] = true;
+          } else {
+            args[key] = parseValue(argv[++i]);
+          }
         }
       }
       continue;
@@ -153,23 +173,23 @@ export function parseMcpArgs(argv: string[], env: NodeJS.ProcessEnv = process.en
   url = url.replace(/\/+$/, '');
   const sub = positionals[0];
   if (!sub || sub === 'help') {
-    return { kind: 'help', url, project, json, stream, args };
+    return { kind: 'help', url, project, json, stream, args, fileArgs };
   }
   if (sub === 'status') {
-    return { kind: 'status', url, project, json, stream, args };
+    return { kind: 'status', url, project, json, stream, args, fileArgs };
   }
   if (sub === 'tools') {
-    return { kind: 'tools', url, project, json, stream, tool: positionals[1], args };
+    return { kind: 'tools', url, project, json, stream, tool: positionals[1], args, fileArgs };
   }
   if (sub === 'call') {
     const tool = positionals[1];
     if (!tool) {
       throw new Error('请指定要调用的工具名，例如：novelwarden mcp call list');
     }
-    return { kind: 'call', url, project, json, stream, tool, data, args };
+    return { kind: 'call', url, project, json, stream, tool, data, args, fileArgs };
   }
   // 简写：novelwarden mcp <tool> [...]
-  return { kind: 'call', url, project, json, stream, tool: sub, data, args };
+  return { kind: 'call', url, project, json, stream, tool: sub, data, args, fileArgs };
 }
 
 /** 执行一条 `novelwarden mcp` 命令，返回进程退出码。 */
@@ -256,6 +276,9 @@ export async function runMcpCli(argv: string[], deps: McpCliDeps = {}): Promise<
       mergedArgs = { ...(parsed as Record<string, unknown>) };
     }
     Object.assign(mergedArgs, cmd.args);
+    for (const [key, filePath] of Object.entries(cmd.fileArgs)) {
+      mergedArgs[key] = filePath === '-' ? await readStdin() : readFile(filePath);
+    }
 
     const target = withProject(`${cmd.url}${API_PREFIX}/tools/${encodeURIComponent(cmd.tool!)}`, cmd.project);
     const res = await fetchFn(target, {
@@ -305,6 +328,23 @@ export async function runMcpCli(argv: string[], deps: McpCliDeps = {}): Promise<
     process.off('SIGINT', onSignal);
     process.off('SIGTERM', onSignal);
   }
+}
+
+function isFileArgKey(key: string): boolean {
+  return key.length > '-file'.length && key.endsWith('-file');
+}
+
+/**
+ * 判断一个 token 是否像下一个 CLI 选项（短选项 `-x` 或长选项 `--foo` / `--foo=...`）。
+ *
+ * `---` 开头的 YAML frontmatter、包含换行符的多行文本、负数（`-5` / `-3.5`）、单横杠 `-` 等
+ * 都不是选项名，应被当前 `--<key>` 当作参数值消费，而不是把 `--<key>` 误判成布尔开关。
+ */
+function looksLikeFlag(token: string): boolean {
+  if (token.includes('\n') || token.includes('\r')) {
+    return false;
+  }
+  return /^--[a-zA-Z][a-zA-Z0-9_-]*(?:=.*)?$/.test(token) || /^-[a-zA-Z]$/.test(token);
 }
 
 function applyKeyValue(target: Record<string, unknown>, pair: string): void {

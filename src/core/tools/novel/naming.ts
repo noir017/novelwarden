@@ -8,9 +8,11 @@
  *
  * 措辞逐字沿用采纳路径（`generation/accept.ts`）。
  */
-import { kindOfPath } from '../../workspace';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { kindOfPath, normalizeRel } from '../../workspace';
 import type { PathKind } from '../../workspace';
-import type { NovelProject } from '../../model/project';
+import { NOVEL_DIR, type NovelProject } from '../../model/project';
 import { SETTING_DOC_LABEL } from '../../model/pipeline';
 
 /** 覆盖审阅框上显示的名字。 */
@@ -69,4 +71,29 @@ export function clip(value: string, max = 60): string {
 /** 参数取字符串，其余一律当没给。模型偶尔会塞个 null 进来。 */
 export function text(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+/**
+ * 工具层的元数据目录兼容映射：未迁移的旧工程实际目录是 `.novelforge/` 或 `.novel/`，
+ * 而工具文档统一写 `.novelwarden/...`。当调用方传入 `.novelwarden` 或 `.novelwarden/...`，
+ * 且当前工程实际用旧目录、工程根下也不存在真正的 `.novelwarden/` 时，自动把前缀映射为
+ * `project.novelDirName`——不修改磁盘目录，也不静默新建 `.novelwarden/`（AGENTS 第 3 条）。
+ */
+export function resolveToolPath(project: NovelProject, rawPath: string): string {
+  const trimmed = rawPath.trim();
+  if (!trimmed) {
+    return '';
+  }
+  const actualDir = project.novelDirName;
+  if (actualDir === NOVEL_DIR) {
+    return trimmed;
+  }
+  const norm = normalizeRel(trimmed);
+  if (!norm || (norm !== NOVEL_DIR && !norm.startsWith(`${NOVEL_DIR}/`))) {
+    return trimmed;
+  }
+  if (fs.existsSync(path.join(project.root, NOVEL_DIR))) {
+    return trimmed;
+  }
+  return norm === NOVEL_DIR ? actualDir : `${actualDir}${norm.slice(NOVEL_DIR.length)}`;
 }

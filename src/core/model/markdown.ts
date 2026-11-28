@@ -12,6 +12,23 @@ export interface ParsedMarkdown {
 }
 
 const FM_FENCE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
+const LIST_ITEM_RE = /^\s*-\s+(.*)$/;
+const KV_RE = /^([A-Za-z_][\w-]*)\s*:\s*(.*)$/;
+
+export interface FrontmatterInspection {
+  /** 是否匹配到规范的 `--- ... ---` frontmatter 块。 */
+  hasFence: boolean;
+  /** 文件开头是 `---` 却未形成合法 frontmatter 块的原因。 */
+  brokenFence?: 'inlineOpen' | 'leadingSpace' | 'unclosed';
+  /** frontmatter 内既不是空行/注释、也不是键值对或合法列表项的行。 */
+  invalidLines: string[];
+  /** frontmatter 内行内数组以 `[` 开头却未以 `]` 闭合的行。 */
+  unclosedArrays: Array<{ key: string; line: string }>;
+  /** frontmatter 内按顺序解析到的原始键值对。 */
+  entries: Array<{ key: string; rawValue: string; line: string }>;
+  frontmatter: Record<string, string | string[]>;
+  body: string;
+}
 
 export function parseMarkdown(text: string): ParsedMarkdown {
   const normalized = text.replace(/^﻿/, '');
@@ -20,13 +37,62 @@ export function parseMarkdown(text: string): ParsedMarkdown {
     return { frontmatter: {}, body: normalized.trim() };
   }
   return {
-    frontmatter: parseFrontmatter(match[1]),
+    frontmatter: parseFrontmatterRaw(match[1]).frontmatter,
+    body: normalized.slice(match[0].length).trim(),
+  };
+}
+
+/**
+ * 复用与 {@link parseMarkdown} 同一套规则检查 frontmatter 结构，供写盘前置校验使用。
+ * 读盘路径仍走容错的 `parseMarkdown`（第 1 条），这里只把被静默跳过的损坏行显式报出来。
+ */
+export function inspectFrontmatter(text: string): FrontmatterInspection {
+  const normalized = text.replace(/^﻿/, '');
+  const match = FM_FENCE.exec(normalized);
+  if (!match) {
+    const trimmedStart = normalized.trimStart();
+    let brokenFence: FrontmatterInspection['brokenFence'];
+    if (trimmedStart.startsWith('---')) {
+      if (/^---[ \t]*\S/.test(trimmedStart)) {
+        brokenFence = 'inlineOpen';
+      } else if (normalized !== trimmedStart) {
+        brokenFence = 'leadingSpace';
+      } else {
+        brokenFence = 'unclosed';
+      }
+    }
+    return {
+      hasFence: false,
+      ...(brokenFence ? { brokenFence } : {}),
+      invalidLines: [],
+      unclosedArrays: [],
+      entries: [],
+      frontmatter: {},
+      body: normalized.trim(),
+    };
+  }
+  const parsed = parseFrontmatterRaw(match[1]);
+  return {
+    hasFence: true,
+    ...parsed,
     body: normalized.slice(match[0].length).trim(),
   };
 }
 
 function parseFrontmatter(raw: string): Record<string, string | string[]> {
+  return parseFrontmatterRaw(raw).frontmatter;
+}
+
+function parseFrontmatterRaw(raw: string): {
+  frontmatter: Record<string, string | string[]>;
+  invalidLines: string[];
+  unclosedArrays: Array<{ key: string; line: string }>;
+  entries: Array<{ key: string; rawValue: string; line: string }>;
+} {
   const result: Record<string, string | string[]> = {};
+  const invalidLines: string[] = [];
+  const unclosedArrays: Array<{ key: string; line: string }> = [];
+  const entries: Array<{ key: string; rawValue: string; line: string }> = [];
   const lines = raw.split(/\r?\n/);
   let currentListKey: string | null = null;
 
@@ -36,7 +102,7 @@ function parseFrontmatter(raw: string): Record<string, string | string[]> {
     }
 
     // 缩进的 `- item` 归属于上一个键。
-    const listItem = /^\s*-\s+(.*)$/.exec(line);
+    const listItem = LIST_ITEM_RE.exec(line);
     if (listItem && currentListKey) {
       const arr = result[currentListKey];
       const value = stripQuotes(listItem[1].trim());
@@ -48,12 +114,14 @@ function parseFrontmatter(raw: string): Record<string, string | string[]> {
       continue;
     }
 
-    const kv = /^([A-Za-z_][\w-]*)\s*:\s*(.*)$/.exec(line);
+    const kv = KV_RE.exec(line);
     if (!kv) {
+      invalidLines.push(line);
       continue;
     }
     const key = kv[1];
     const rawValue = kv[2].trim();
+    entries.push({ key, rawValue, line });
 
     if (rawValue === '') {
       // 可能是块状数组的起始，先占位为空数组。
@@ -70,10 +138,13 @@ function parseFrontmatter(raw: string): Record<string, string | string[]> {
         .map((s) => stripQuotes(s.trim()))
         .filter((s) => s.length > 0);
     } else {
+      if (rawValue.startsWith('[')) {
+        unclosedArrays.push({ key, line });
+      }
       result[key] = stripQuotes(rawValue);
     }
   }
-  return result;
+  return { frontmatter: result, invalidLines, unclosedArrays, entries };
 }
 
 function stripQuotes(s: string): string {

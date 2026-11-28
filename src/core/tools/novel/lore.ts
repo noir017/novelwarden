@@ -11,6 +11,7 @@
  */
 import { str } from '../schema';
 import { defineActionTool, handed } from './actions';
+import { resolveToolPath } from './naming';
 import { buildLoreEntries, integrateLore } from '../../features/lore';
 import { recordLore } from '../../features/loreRecord';
 
@@ -29,7 +30,7 @@ export const loreTool = defineActionTool({
       costly: true,
       uses: ['path'],
       async run(ctx, args) {
-        const path = typeof args.path === 'string' && args.path.trim() ? args.path.trim() : undefined;
+        const path = typeof args.path === 'string' && args.path.trim() ? resolveToolPath(ctx.project, args.path) : undefined;
         await recordLore(ctx.project, path);
         return handed(path ? `${path} 记设定` : '补记设定');
       },
@@ -49,7 +50,7 @@ export const loreTool = defineActionTool({
       costly: true,
       uses: ['path'],
       async run(ctx, args) {
-        const path = typeof args.path === 'string' && args.path.trim() ? args.path.trim() : undefined;
+        const path = typeof args.path === 'string' && args.path.trim() ? resolveToolPath(ctx.project, args.path) : undefined;
         await integrateLore(ctx.project, path ? [path] : undefined);
         return handed(path ? `设定 ${path} 整合` : '整合设定');
       },

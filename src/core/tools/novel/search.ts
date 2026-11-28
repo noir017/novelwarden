@@ -17,6 +17,7 @@
 import type { ToolContext, ToolDef, ToolResult } from '../types';
 import { bool, int, objectSchema, str, strArray } from '../schema';
 import type { ArtifactKind } from '../../workspace';
+import { resolveToolPath } from './naming';
 
 /** 一次最多返回几条命中。 */
 export const SEARCH_LIMIT = 40;
@@ -67,8 +68,9 @@ export const searchTool: ToolDef = {
     }
     const limit = Math.min(SEARCH_LIMIT, Math.max(1, toInt(args.limit) ?? SEARCH_LIMIT));
 
+    const rawPath = typeof args.path === 'string' ? args.path.trim() : '';
     const r = await ctx.workspace.search(pattern, {
-      path: typeof args.path === 'string' ? args.path : undefined,
+      path: rawPath ? resolveToolPath(ctx.project, rawPath) : undefined,
       kinds: pickKinds(args.kinds),
       regex: args.regex === true,
       perFile: SEARCH_PER_FILE,

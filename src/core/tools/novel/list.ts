@@ -17,6 +17,7 @@
  */
 import type { ToolContext, ToolDef, ToolResult } from '../types';
 import { objectSchema, str } from '../schema';
+import { resolveToolPath } from './naming';
 
 /** 一次最多列几项。 */
 export const LIST_LIMIT = 60;
@@ -39,7 +40,7 @@ export const listTool: ToolDef = {
   }),
 
   async run(ctx: ToolContext, args: Record<string, unknown>): Promise<ToolResult> {
-    const dir = typeof args.path === 'string' ? args.path.trim() : '';
+    const dir = typeof args.path === 'string' ? resolveToolPath(ctx.project, args.path) : '';
     // `Workspace.list` 不抛：越界、不存在、读不动一律空数组。所以「空」有两种
     // 含义，这里不去区分——对模型来说「这里什么都没有」就是它要的答案，
     // 让它换个路径再试比给一句它读不懂的错误代码有用。
