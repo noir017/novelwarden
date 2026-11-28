@@ -7,7 +7,7 @@ import {
   thinkingBudget,
 } from '../model/thinking';
 import { scoped } from '../runtime/logger';
-import { describeHttpBody, hostOf, readBody } from './openaiProvider';
+import { assertSseResponse, describeHttpBody, hostOf, readBody } from './openaiProvider';
 import {
   ChatMessage,
   LlmError,
@@ -102,6 +102,7 @@ export class AnthropicProvider implements LlmProvider {
         });
 
         if (response.ok && response.body) {
+          await assertSseResponse(response, this.label, '/v1/messages');
           stream = response.body;
           break;
         }
@@ -116,12 +117,17 @@ export class AnthropicProvider implements LlmProvider {
       }
       poke();
 
+      let sawValidEvent = false;
+      let sawContent = false;
       for await (const payload of iterateSse(stream, signal, poke)) {
         let event: AnthropicEvent;
         try {
           event = JSON.parse(payload) as AnthropicEvent;
         } catch {
           continue;
+        }
+        if (event && typeof event === 'object' && typeof event.type === 'string') {
+          sawValidEvent = true;
         }
         if (event.type === 'error') {
           throw new LlmError(`${this.label} 返回错误：${event.error?.message ?? '未知错误'}`);
@@ -136,6 +142,7 @@ export class AnthropicProvider implements LlmProvider {
           };
         }
         if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta' && event.delta.text) {
+          sawContent = true;
           yield { type: 'text', text: event.delta.text };
         }
         // 扩展思考（thinking blocks）同样不是正文，走单独的事件给界面展示。
@@ -144,12 +151,18 @@ export class AnthropicProvider implements LlmProvider {
           event.delta?.type === 'thinking_delta' &&
           event.delta.thinking
         ) {
+          sawContent = true;
           yield { type: 'reasoning', text: event.delta.thinking };
         }
         // 收尾原因在 `message_delta` 上，**排在所有内容块之后**。
         if (event.type === 'message_delta' && event.delta?.stop_reason) {
           yield { type: 'stop', reason: stopSignalOf(event.delta.stop_reason) };
         }
+      }
+      if (!sawContent && !sawValidEvent) {
+        throw new LlmError(
+          `${this.label} 返回了空的响应流，未收到任何有效 SSE 事件。请检查接口地址（baseUrl）与模型名配置。`
+        );
       }
     } catch (err) {
       throw normalizeError(err, signal, this.label);

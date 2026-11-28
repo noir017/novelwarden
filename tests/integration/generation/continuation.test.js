@@ -764,3 +764,17 @@ describe('禁用词：执行卡后面点名，续写那一轮说清用了几次�
     assert.ok(r.draft.notes.some((n) => /正文用到了这本书不该用的词：「能量」2 次、「神经」1 次/.test(n)), JSON.stringify(r.draft.notes));
   });
 });
+
+describe('空正文直接判失败：不出 0 字 Draft', () => {
+  test('模型返回空字符串且无目标字数时报错、不产出 Draft', async () => {
+    const r = await write(P2, [{ text: '' }]);
+    assert.equal(r.draft, undefined);
+    assert.ok(r.rec.error && r.rec.error.includes('没有产出任何正文内容'), String(r.rec.error));
+  });
+
+  test('模型只输出思考没有正文时报错、不产出 Draft', async () => {
+    const r = await write(P2, [{ text: '', reasoning: '想了半天没落笔' }]);
+    assert.equal(r.draft, undefined);
+    assert.ok(r.rec.error && r.rec.error.includes('只输出了思考过程'), String(r.rec.error));
+  });
+});

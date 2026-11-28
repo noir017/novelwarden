@@ -665,6 +665,27 @@ describe('正文层用对话页选定的那个模型', () => {
   test('给模型的只有字数与 draftId', () => {
     assert.ok(r.text.includes(stored[0].draft.id), r.text);
     assert.ok(/\d+ 字/.test(r.text), r.text);
+    assert.ok(!r.text.includes('要不要落盘正在问他'), r.text);
+    assert.ok(r.text.includes('落盘结果见下方说明'), r.text);
+  });
+});
+
+describe('模型返回空内容', () => {
+  let r;
+
+  before(async () => {
+    resetCtx();
+    replyFn = () => '';
+    r = await run({ target: 'chapters/001.md', capability: 'generate' });
+  });
+
+  test('直接返回 error，不把 0 字当成成功', () => {
+    assert.ok(r.error && r.error.length > 0, JSON.stringify(r));
+    assert.equal(r.draftIds, undefined);
+  });
+
+  test('没有空 draft 落进 store', () => {
+    assert.equal(stored.length, 0, JSON.stringify(stored.length));
   });
 });
 

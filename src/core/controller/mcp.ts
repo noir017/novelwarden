@@ -37,6 +37,7 @@ import { activeTasks, runTask } from '../runtime/progress';
 import { describeError, scoped } from '../runtime/logger';
 import { AgentCall, newAgentCall, withAgentCall } from '../runtime/agentCall';
 import { AgentAnswer, AgentStepChanges, FileChange, hasChanges, normalizeAgentStep } from '../model/agentStep';
+import { outputKindOf } from '../model/pipeline';
 import { ChatTurn, TurnToolCall, makeTurnId, nowIso } from '../model/session';
 import { ChangeJournal, withJournal } from '../workspace/journal';
 import { describeUndo, undoAgentStep } from '../features/agentUndo';
@@ -298,9 +299,14 @@ async function adopt(
 ): Promise<{ text: string; summary: string } | undefined> {
   const draftId = draftIds[draftIds.length - 1];
   const draft = c.drafts.get(draftId);
-  const art = draft?.artifact ? await describeArtifactOf(c, draft.raw, draft) : undefined;
-  if (!draft || !art) {
+  if (!draft) {
     return undefined;
+  }
+  const art = draft.artifact ? await describeArtifactOf(c, draft.raw, draft) : undefined;
+  if (!art) {
+    return outputKindOf(draft.action) === 'artifact'
+      ? { text: '没有落盘：生成内容为空或无法解析为有效产物。', summary: '未落盘' }
+      : undefined;
   }
   c.current.drafts = c.drafts.bySession(c.current.id);
   const r = await askArtifact(c, { turnId, draft, art, byAgent: true, callId: row.callId, open: false, signal });

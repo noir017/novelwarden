@@ -279,6 +279,13 @@ export async function completeManuscript(
         : '正文还没写几个字就被输出上限截断了。调大设置页的「最大输出 token」再试。'
     );
   }
+  if (countWords(added) === 0) {
+    t.fail(
+      ctx.reasoned
+        ? '模型只输出了思考过程，没有产出正文内容。调大设置页的「最大输出 token」，或降低思考深度再试。'
+        : '模型没有产出任何正文内容。请检查模型配置或稍后重试。'
+    );
+  }
   // 模型说正常收尾（或网关不报原因）、结尾却停在半句上：照截断处理——往后接，不回退。
   const settle = (s: StopSignal | undefined, text: string, round: string): StopSignal | undefined => {
     if (s === 'maxTokens' || s === 'other' || !endsMidSentence(text)) {

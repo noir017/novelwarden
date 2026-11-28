@@ -457,3 +457,15 @@ describe('简报', () => {
     assert.ok(brief.includes('下一步'), brief);
   });
 });
+
+describe('generate 空产物：报错且不落盘', () => {
+  const CH_EMPTY = 'chapters/002-藏书阁.txt';
+  test('模型返回空正文时 isError=true，且不创建章节文件', async () => {
+    reset();
+    replyFn = () => '';
+    const r = await call('generate', { target: CH_EMPTY, capability: 'generate' });
+    assert.equal(r.isError, true, r.text);
+    assert.equal(t.has(CH_EMPTY), false);
+    assert.ok(!r.text.includes('要不要落盘正在问他'), r.text);
+  });
+});

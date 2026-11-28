@@ -55,6 +55,7 @@ import {
   STAGE_LABEL,
   isCapability,
   isValidAction,
+  outputKindOf,
 } from '../../model/pipeline';
 
 const log = scoped('MCP');
@@ -236,6 +237,12 @@ export const generateTool: ToolDef = {
     if (!draft) {
       return { text: '', error: failure ?? '这次生成没有产出内容。' };
     }
+    if (outputKindOf(action) === 'artifact' && (!draft.artifact || draft.words === 0)) {
+      return {
+        text: '',
+        error: failure ?? '这次生成没有产出可落盘的内容（0 字或无法解析为有效产物）。',
+      };
+    }
     ctx.drafts.put(draft, ctx.sessionId);
 
     const what = `${STAGE_LABEL[path.stage]}·${CAPABILITY_LABEL[action.capability]}`;
@@ -250,8 +257,7 @@ export const generateTool: ToolDef = {
         `已生成：${what} · ${shape}，${draft.words} 字\n` +
         `draftId: ${draft.id}\n` +
         `落点：${rel}\n` +
-        `内容已经流给作者看了。要不要落盘正在问他，结论就在下面。` +
-        `你不需要复述它的内容。`,
+        `内容已经流给作者看了。落盘结果见下方说明，你不需要复述它的内容。`,
       display: { title: `generate ${what}`, detail: `${shape} · ${draft.words} 字` },
     };
   },

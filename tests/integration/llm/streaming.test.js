@@ -221,6 +221,18 @@ const httpServer = http.createServer((req, res) => {
         res.end();
         return;
       }
+      case 'html-200': {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end('<!doctype html><html><body>SPA Fallback</body></html>');
+        return;
+      }
+      case 'empty-sse': {
+        sse();
+        res.write(': heartbeat\n\n');
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
       default:
         res.writeHead(500);
         res.end('unknown mode');
@@ -816,5 +828,49 @@ describe('思考深度 · 老模型不认自适应时换写法', () => {
 
   test('作者拿到的是正常结果，不是一句报错', () => {
     assert.equal(text, '换写法后成了');
+  });
+});
+
+// ---------------------------------------------------------------------------
+
+describe('流式响应校验 · 拒绝非 SSE 与空响应流', () => {
+  test('OpenAI 收到 HTTP 200 HTML（如 baseUrl 漏写 /v1）时直接抛 LlmError 并提示检查 baseUrl', async () => {
+    server.mode = 'html-200';
+    await assert.rejects(
+      () => collectText(openai.stream([{ role: 'user', content: 'hi' }], opts())),
+      (err) =>
+        err instanceof providerMod.LlmError &&
+        err.message.includes('text/html') &&
+        err.message.includes('baseUrl') &&
+        err.message.includes('SPA Fallback')
+    );
+  });
+
+  test('Anthropic 收到 HTTP 200 HTML 时直接抛 LlmError 并提示检查 baseUrl', async () => {
+    server.mode = 'html-200';
+    await assert.rejects(
+      () => collectText(anthropic.stream([{ role: 'user', content: 'hi' }], opts())),
+      (err) =>
+        err instanceof providerMod.LlmError &&
+        err.message.includes('text/html') &&
+        err.message.includes('baseUrl') &&
+        err.message.includes('SPA Fallback')
+    );
+  });
+
+  test('OpenAI 收到无任何有效事件的空 SSE 流时抛 LlmError', async () => {
+    server.mode = 'empty-sse';
+    await assert.rejects(
+      () => collectText(openai.stream([{ role: 'user', content: 'hi' }], opts())),
+      (err) => err instanceof providerMod.LlmError && err.message.includes('空的响应流')
+    );
+  });
+
+  test('Anthropic 收到无任何有效事件的空 SSE 流时抛 LlmError', async () => {
+    server.mode = 'empty-sse';
+    await assert.rejects(
+      () => collectText(anthropic.stream([{ role: 'user', content: 'hi' }], opts())),
+      (err) => err instanceof providerMod.LlmError && err.message.includes('空的响应流')
+    );
   });
 });

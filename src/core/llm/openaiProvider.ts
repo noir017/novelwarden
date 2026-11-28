@@ -71,6 +71,7 @@ export class OpenAiProvider implements LlmProvider {
           signal,
         });
         if (response.ok && response.body) {
+          await assertSseResponse(response, this.label, '/responses');
           stream = response.body;
           break;
         }
@@ -85,6 +86,8 @@ export class OpenAiProvider implements LlmProvider {
       }
       poke();
 
+      let sawValidEvent = false;
+      let sawContent = false;
       for await (const payload of iterateSse(stream, signal, poke)) {
         let event: ResponsesEvent;
         try {
@@ -92,9 +95,20 @@ export class OpenAiProvider implements LlmProvider {
         } catch {
           continue; // 心跳或非 JSON 行，跳过
         }
+        if (event && typeof event === 'object' && typeof event.type === 'string') {
+          sawValidEvent = true;
+        }
         for (const ev of readResponsesEvent(event, this.label)) {
+          if (ev.type === 'text' || ev.type === 'reasoning') {
+            sawContent = true;
+          }
           yield ev;
         }
+      }
+      if (!sawContent && !sawValidEvent) {
+        throw new LlmError(
+          `${this.label} 返回了空的响应流，未收到任何有效 SSE 事件。请检查接口地址（baseUrl）与模型名配置。`
+        );
       }
     } catch (err) {
       throw normalizeError(err, signal, this.label);
@@ -348,6 +362,26 @@ export async function readBody(response: Response): Promise<string> {
   } catch {
     return '';
   }
+}
+
+/**
+ * 流式请求拿到了 HTTP 200，但响应不是 SSE（典型场景：baseUrl 漏写 `/v1`，
+ * 命中了网关前端的 SPA fallback 返回 `text/html`）。直接判错并截前段响应体，
+ * 绝不把 HTML 当成「零事件空流」静默放行。
+ */
+export async function assertSseResponse(response: Response, label: string, endpoint: string): Promise<void> {
+  const contentType = (response.headers.get('content-type') ?? '').trim();
+  if (contentType.toLowerCase().includes('text/event-stream')) {
+    return;
+  }
+  const snippet = (await readBody(response)).replace(/\s+/g, ' ').trim().slice(0, 240);
+  const hint =
+    endpoint === '/responses'
+      ? '请检查服务商的接口地址（baseUrl）是否缺少 /v1 或路径填错'
+      : '请检查服务商的接口地址（baseUrl）是否填错';
+  throw new LlmError(
+    `${label} 返回的不是流式 SSE 响应（Content-Type: ${contentType || '空'}；${hint}）${snippet ? `：${snippet}` : ''}`
+  );
 }
 
 /** 已经读出来的响应体 → 一句人话。两家 provider 共用。 */
